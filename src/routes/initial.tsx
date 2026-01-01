@@ -1,14 +1,33 @@
-import { NavLink } from "react-router";
 import { Button } from "@/components/ui/button.tsx";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty.tsx";
+import { FolderX } from "lucide-react";
 
 const InitialRoute = () => {
   return (
-    <main className="flex flex-col h-dvh w-full items-center justify-center gap-4">
-      <p>Frost Initial Page</p>
-      <NavLink to="/second">
-        <Button>Go to Second Page</Button>
-      </NavLink>
-    </main>
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <FolderX />
+        </EmptyMedia>
+        <EmptyTitle>No projects found</EmptyTitle>
+        <EmptyDescription>
+          Get started by creating a new project.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <div className="flex gap-2">
+          <Button>New Project</Button>
+          <Button variant="outline">Open Project</Button>
+        </div>
+      </EmptyContent>
+    </Empty>
   );
 };
 
