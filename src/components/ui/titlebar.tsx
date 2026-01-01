@@ -1,13 +1,17 @@
 import { type } from "@tauri-apps/plugin-os";
 import FrostIcon from "@/assets/frost.svg";
-import { useCallback } from "react";
+import { FC, useCallback } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "@/components/ui/button.tsx";
 import { Minus, Square, X } from "lucide-react";
 
 const appWindow = getCurrentWindow();
 
-const Titlebar = () => {
+interface TitlebarProps {
+  includeTitle?: boolean;
+}
+
+const Titlebar: FC<TitlebarProps> = ({ includeTitle = true }) => {
   const handleMinimize = useCallback(() => {
     appWindow.minimize();
   }, []);
@@ -27,11 +31,15 @@ const Titlebar = () => {
   return (
     <div
       data-tauri-drag-region
-      className="absolute top-0 left-0 right-0 h-8 bg-muted backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none"
+      className="h-8 bg-secondary backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none w-full"
     >
       <div className="flex items-center gap-2 pointer-events-none">
-        <img src={FrostIcon} alt="Application Icon" className="size-4" />
-        <span className="text-sm">Frost 0.1.0</span>
+        {includeTitle && (
+          <>
+            <img src={FrostIcon} alt="Application Icon" className="size-4" />
+            <span className="text-sm font-medium">Frost 0.1.0</span>
+          </>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <Button
