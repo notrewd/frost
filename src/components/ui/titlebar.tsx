@@ -29,7 +29,7 @@ const Titlebar = () => {
       data-tauri-drag-region
       className="absolute top-0 left-0 right-0 h-8 bg-muted backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pointer-events-none">
         <img src={FrostIcon} alt="Application Icon" className="size-4" />
         <span className="text-sm">Frost 0.1.0</span>
       </div>
