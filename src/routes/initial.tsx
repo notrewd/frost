@@ -1,12 +1,15 @@
-import {NavLink} from "react-router";
+import { NavLink } from "react-router";
+import { Button } from "@/components/ui/button.tsx";
 
 const InitialRoute = () => {
-    return (
-        <main className="bg-zinc-800 flex flex-col h-dvh w-full items-center justify-center text-white">
-            <p>Frost Initial Page</p>
-            <NavLink to="/second">Go to Second Page</NavLink>
-        </main>
-    );
+  return (
+    <main className="flex flex-col h-dvh w-full items-center justify-center gap-4">
+      <p>Frost Initial Page</p>
+      <NavLink to="/second">
+        <Button>Go to Second Page</Button>
+      </NavLink>
+    </main>
+  );
 };
 
 export default InitialRoute;
