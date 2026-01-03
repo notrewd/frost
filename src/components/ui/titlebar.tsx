@@ -6,22 +6,23 @@ import { Button } from "@/components/ui/button.tsx";
 import { Minus, Square, X } from "lucide-react";
 
 const appWindow = getCurrentWindow();
+const windowTitle = appWindow.title();
 
 interface TitlebarProps {
-  includeTitle?: boolean;
+  variant?: "default" | "no-title" | "dialog";
 }
 
-const Titlebar: FC<TitlebarProps> = ({ includeTitle = true }) => {
-  const handleMinimize = useCallback(() => {
-    appWindow.minimize();
+const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
+  const handleMinimize = useCallback(async () => {
+    await appWindow.minimize();
   }, []);
 
   const handleMaximize = useCallback(async () => {
-    appWindow.toggleMaximize();
+    await appWindow.toggleMaximize();
   }, []);
 
-  const handleClose = useCallback(() => {
-    appWindow.close();
+  const handleClose = useCallback(async () => {
+    await appWindow.close();
   }, []);
 
   if (type() !== "windows") {
@@ -34,28 +35,34 @@ const Titlebar: FC<TitlebarProps> = ({ includeTitle = true }) => {
       className="h-8 bg-secondary backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none w-full"
     >
       <div className="flex items-center gap-2 pointer-events-none">
-        {includeTitle && (
+        {(variant === "default" || variant === "dialog") && (
           <>
             <img src={FrostIcon} alt="Application Icon" className="size-4" />
-            <span className="text-sm font-medium">Frost 0.1.0</span>
+            <span className="text-sm font-medium text-nowrap">
+              {windowTitle}
+            </span>
           </>
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          className="size-6 hover:bg-muted-foreground!"
-          variant="ghost"
-          onClick={handleMinimize}
-        >
-          <Minus className="size-4" />
-        </Button>
-        <Button
-          className="size-6 hover:bg-muted-foreground!"
-          variant="ghost"
-          onClick={handleMaximize}
-        >
-          <Square className="size-3" />
-        </Button>
+        {variant !== "dialog" && (
+          <>
+            <Button
+              className="size-6 hover:bg-muted-foreground!"
+              variant="ghost"
+              onClick={handleMinimize}
+            >
+              <Minus className="size-4" />
+            </Button>
+            <Button
+              className="size-6 hover:bg-muted-foreground!"
+              variant="ghost"
+              onClick={handleMaximize}
+            >
+              <Square className="size-3" />
+            </Button>
+          </>
+        )}
         <Button
           className="size-6 hover:bg-destructive!"
           variant="ghost"

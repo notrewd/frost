@@ -1,8 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
+import { Routes, Route, BrowserRouter } from "react-router";
 import InitialRoute from "./routes/initial-route.tsx";
 import { ThemeProvider } from "@/components/providers/theme-provider.tsx";
+import NewProjectRoute from "@/routes/new-project-route.tsx";
+import DialogLayout from "@/layouts/dialog-layout.tsx";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -11,6 +13,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <BrowserRouter>
           <Routes>
             <Route index element={<InitialRoute />} />
+            <Route element={<DialogLayout />}>
+              <Route path="/new-project" element={<NewProjectRoute />} />
+            </Route>
           </Routes>
         </BrowserRouter>
       </div>

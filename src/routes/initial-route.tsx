@@ -14,11 +14,21 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable.tsx";
+import { useCallback } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 const InitialRoute = () => {
+  const handleNewProject = useCallback(async () => {
+    try {
+      await invoke("new_project_window");
+    } catch (error) {
+      console.error("Failed to open new project window:", error);
+    }
+  }, []);
+
   return (
     <>
-      <Titlebar includeTitle={false} />
+      <Titlebar variant="no-title" />
       <main className="flex items-stretch flex-1">
         <ResizablePanelGroup dir="horizontal">
           <ResizablePanel
@@ -34,7 +44,7 @@ const InitialRoute = () => {
             <p className="text-xl font-medium">Frost</p>
             <p className="text-muted-foreground text-sm">version 0.1.0</p>
             <div className="flex flex-col gap-2 mt-10">
-              <Button>
+              <Button onClick={handleNewProject}>
                 <CirclePlus />
                 Create New Project
               </Button>
