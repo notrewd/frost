@@ -51,7 +51,7 @@ const NewProjectRoute = () => {
                 field.state.meta.isTouched && !field.state.meta.isValid;
 
               return (
-                <Field data-invalud={isInvalid}>
+                <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor="projectName">Project Name</FieldLabel>
                   <Input
                     id={field.name}
@@ -74,7 +74,7 @@ const NewProjectRoute = () => {
                 field.state.meta.isTouched && !field.state.meta.isValid;
 
               return (
-                <Field data-invalud={isInvalid}>
+                <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor="projectPath">Project Path</FieldLabel>
                   <Input
                     id={field.name}
