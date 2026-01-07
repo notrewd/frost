@@ -1,5 +1,5 @@
 import { type } from "@tauri-apps/plugin-os";
-import FrostIcon from "@/assets/frost.svg";
+import FrostIcon from "@/assets/graphics/frost.svg";
 import { FC, useCallback } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "@/components/ui/button.tsx";

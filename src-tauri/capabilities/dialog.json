@@ -2,13 +2,16 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "dialog",
   "description": "Capability for the dialog windows",
-  "windows": ["new-project"],
+  "windows": [
+    "new-project"
+  ],
   "permissions": [
     "core:default",
     "opener:default",
     "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-close",
-    "os:default"
+    "os:default",
+    "dialog:default"
   ]
 }

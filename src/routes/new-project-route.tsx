@@ -6,12 +6,14 @@ import {
 import { z } from "zod";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field.tsx";
-import { Input } from "@/components/ui/input.tsx";
+import { Input } from "@/components/ui/inputs/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import PathInput from "@/components/ui/inputs/path-input.tsx";
 
 const formSchema = z.object({
   projectName: projectNameSchema,
@@ -43,7 +45,7 @@ const NewProjectRoute = () => {
           form.handleSubmit();
         }}
       >
-        <FieldGroup>
+        <FieldGroup className="gap-6">
           <form.Field
             name="projectName"
             children={(field) => {
@@ -51,7 +53,7 @@ const NewProjectRoute = () => {
                 field.state.meta.isTouched && !field.state.meta.isValid;
 
               return (
-                <Field data-invalid={isInvalid}>
+                <Field data-invalid={isInvalid} className="gap-1">
                   <FieldLabel htmlFor="projectName">Project Name</FieldLabel>
                   <Input
                     id={field.name}
@@ -61,6 +63,7 @@ const NewProjectRoute = () => {
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
                     placeholder="My Awesome Project"
+                    variant="small"
                   />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
@@ -74,9 +77,9 @@ const NewProjectRoute = () => {
                 field.state.meta.isTouched && !field.state.meta.isValid;
 
               return (
-                <Field data-invalid={isInvalid}>
+                <Field data-invalid={isInvalid} className="gap-1">
                   <FieldLabel htmlFor="projectPath">Project Path</FieldLabel>
-                  <Input
+                  <PathInput
                     id={field.name}
                     name={field.name}
                     value={field.state.value}
@@ -84,7 +87,12 @@ const NewProjectRoute = () => {
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
                     placeholder="/path/to/project"
+                    variant="small"
                   />
+                  <FieldDescription>
+                    A new folder will be created at this location for your
+                    project.
+                  </FieldDescription>
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
               );

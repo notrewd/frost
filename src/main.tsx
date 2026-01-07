@@ -9,7 +9,7 @@ import DialogLayout from "@/layouts/dialog-layout.tsx";
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="h-dvh flex flex-col">
+      <div className="h-dvh flex flex-col font-manrope">
         <BrowserRouter>
           <Routes>
             <Route index element={<InitialRoute />} />
