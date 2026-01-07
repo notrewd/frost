@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/inputs/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import PathInput from "@/components/ui/inputs/path-input.tsx";
+import { invoke } from "@tauri-apps/api/core";
 
 const formSchema = z.object({
   projectName: projectNameSchema,
@@ -29,9 +30,13 @@ const NewProjectRoute = () => {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: async ({ value }) => {
-      console.log("Form submitted with values:", value);
-      // Handle form submission logic here
+    onSubmit: async () => {
+      await invoke("open_editor_window");
+
+      await Promise.all([
+        invoke("close_window", { label: "welcome" }),
+        invoke("close_window", { label: "new-project" }),
+      ]);
     },
   });
 

@@ -2,7 +2,7 @@ use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 // for some reason, when creating a new window, the function needs to be async, otherwise the whole applications freezes up
 #[tauri::command]
-async fn new_project_window(app: AppHandle) -> tauri::Result<()> {
+async fn open_new_project_window(app: AppHandle) -> tauri::Result<()> {
     match app.webview_windows().get("new-project") {
         None => {
             WebviewWindowBuilder::new(&app, "new-project", WebviewUrl::App("/new-project".into()))
@@ -13,6 +13,7 @@ async fn new_project_window(app: AppHandle) -> tauri::Result<()> {
                 .minimizable(false)
                 .maximizable(false)
                 .decorations(if cfg!(windows) { false } else { true })
+                .theme(Some(tauri::Theme::Dark))
                 .build()?;
         }
         Some(window) => {
@@ -23,13 +24,76 @@ async fn new_project_window(app: AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+#[tauri::command]
+async fn open_welcome_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("welcome") {
+        None => {
+            WebviewWindowBuilder::new(&app, "welcome", WebviewUrl::App("/".into()))
+                .title("Frost")
+                .inner_size(800.0, 600.0)
+                .min_inner_size(400.0, 300.0)
+                .decorations(if cfg!(windows) { false } else { true })
+                .theme(Some(tauri::Theme::Dark))
+                .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn open_editor_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("editor") {
+        None => {
+            WebviewWindowBuilder::new(&app, "editor", WebviewUrl::App("/editor".into()))
+                .title("Frost Editor")
+                .inner_size(800.0, 600.0)
+                .min_inner_size(600.0, 400.0)
+                .maximized(true)
+                .decorations(if cfg!(windows) { false } else { true })
+                .theme(Some(tauri::Theme::Dark))
+                .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
+    if let Some(window) = app.webview_windows().get(&label) {
+        window.close()?;
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![new_project_window])
+        .invoke_handler(tauri::generate_handler![
+            open_new_project_window,
+            open_editor_window,
+            open_welcome_window,
+            close_window
+        ])
+        .setup(|app| {
+            let handle = app.handle().clone();
+
+            tauri::async_runtime::spawn(async move {
+                let _ = open_welcome_window(handle).await;
+            });
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

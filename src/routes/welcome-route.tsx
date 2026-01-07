@@ -17,10 +17,10 @@ import {
 import { useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
-const InitialRoute = () => {
+const WelcomeRoute = () => {
   const handleNewProject = useCallback(async () => {
     try {
-      await invoke("new_project_window");
+      await invoke("open_new_project_window");
     } catch (error) {
       console.error("Failed to open new project window:", error);
     }
@@ -74,4 +74,4 @@ const InitialRoute = () => {
   );
 };
 
-export default InitialRoute;
+export default WelcomeRoute;
