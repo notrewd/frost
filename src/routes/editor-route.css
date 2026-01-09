@@ -1,0 +1,12 @@
+/* ReactFlow sets a non-default cursor on the pane for panning/selection.
+   Keep the canvas cursor as the default arrow for the editor route. */
+
+.frost-editor-flow .react-flow__pane {
+  cursor: default !important;
+}
+
+/* Defensive: some versions apply cursor on the renderer/container. */
+.frost-editor-flow .react-flow__renderer,
+.frost-editor-flow .react-flow__container {
+  cursor: default !important;
+}

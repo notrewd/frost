@@ -4,6 +4,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import "@xyflow/react/dist/style.css";
+import "./editor-route.css";
 import { useState } from "react";
 import {
   ReactFlow,
@@ -13,6 +14,7 @@ import {
   NodeChange,
   EdgeChange,
   MiniMap,
+  Controls,
   Background,
 } from "@xyflow/react";
 import PropertiesPanel from "@/components/panels/properties-panel";
@@ -64,6 +66,7 @@ const EditorRoute = () => {
       </ResizablePanel>
       <ResizablePanel className="flex flex-col" minSize={300}>
         <ReactFlow
+          className="frost-editor-flow"
           nodes={nodes}
           edges={edges}
           colorMode="dark"
@@ -80,6 +83,7 @@ const EditorRoute = () => {
         >
           <MiniMap />
           <Background />
+          <Controls />
         </ReactFlow>
       </ResizablePanel>
       <ResizablePanel className="bg-secondary" minSize={300} defaultSize={300}>
