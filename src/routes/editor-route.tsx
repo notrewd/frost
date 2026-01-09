@@ -5,52 +5,90 @@ import {
 } from "@/components/ui/resizable";
 import "@xyflow/react/dist/style.css";
 import "./editor-route.css";
-import { useState } from "react";
+import { useCallback } from "react";
 import {
   ReactFlow,
-  applyNodeChanges,
-  applyEdgeChanges,
   addEdge,
-  NodeChange,
-  EdgeChange,
   MiniMap,
   Controls,
   Background,
+  useNodesState,
+  useEdgesState,
 } from "@xyflow/react";
 import PropertiesPanel from "@/components/panels/properties-panel";
 import LibraryPanel from "@/components/panels/library-panel";
 import PanelBar from "@/components/ui/panel-bar";
 import ProjectPanel from "@/components/panels/project-panel";
+import DiagramNode from "@/components/nodes/diagram-node";
+
+const nodeTypes = {
+  diagram: DiagramNode,
+};
 
 const initialNodes = [
-  { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
-  { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
+  {
+    id: "n1",
+    type: "diagram",
+    position: { x: 0, y: 0 },
+    data: {
+      name: "Person",
+      attributes: [
+        { name: "firstName", type: "string", accessModifier: "private" },
+        { name: "lastName", type: "string", accessModifier: "private" },
+        {
+          name: "age",
+          type: "number",
+          accessModifier: "private",
+          defaultValue: "0",
+        },
+      ],
+      methods: [
+        {
+          name: "getFullName",
+          accessModifier: "public",
+          returnType: "string",
+          parameters: [],
+        },
+        {
+          name: "setAge",
+          accessModifier: "public",
+          returnType: "void",
+          parameters: [{ name: "age", type: "number" }],
+        },
+      ],
+    },
+  },
+  {
+    id: "n2",
+    type: "diagram",
+    position: { x: 0, y: 100 },
+    data: {
+      name: "Employee",
+      attributes: [
+        { name: "employeeId", type: "string", accessModifier: "private" },
+      ],
+      methods: [
+        {
+          name: "getEmployeeDetails",
+          accessModifier: "public",
+          returnType: "string",
+          parameters: [],
+        },
+      ],
+    },
+  },
 ];
+
 const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 const EditorRoute = () => {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const onNodesChange = (
-    changes: NodeChange<{
-      id: string;
-      position: { x: number; y: number };
-      data: { label: string };
-    }>[]
-  ) => {
-    setNodes((nds) => applyNodeChanges(changes, nds));
-  };
-
-  const onEdgesChange = (
-    changes: EdgeChange<{ id: string; source: string; target: string }>[]
-  ) => {
-    setEdges((eds) => applyEdgeChanges(changes, eds));
-  };
-
-  const onConnect = (connection: any) => {
-    setEdges((eds) => addEdge(connection, eds));
-  };
+  const onConnect = useCallback(
+    (params: any) => setEdges((els) => addEdge(params, els)),
+    []
+  );
 
   return (
     <ResizablePanelGroup orientation="horizontal" className="text-sm">
@@ -70,6 +108,7 @@ const EditorRoute = () => {
           nodes={nodes}
           edges={edges}
           colorMode="dark"
+          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
