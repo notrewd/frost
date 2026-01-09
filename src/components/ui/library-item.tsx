@@ -34,7 +34,7 @@ const LibraryItem: FC<LibraryItemProps> = ({
         <Icon className="relative z-10 size-9 text-muted-foreground mx-auto transition-transform duration-200 group-hover:scale-105" />
       </div>
       <div className="flex flex-col items-center justify-center p-2 h-16">
-        <span className="text-sm text-center leading-tight font-medium">
+        <span className="text-sm text-center leading-tight font-medium text-foreground/95">
           {children}
         </span>
       </div>

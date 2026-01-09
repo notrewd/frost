@@ -1,4 +1,9 @@
-import { ChevronsLeftRightEllipsis, TableProperties } from "lucide-react";
+import {
+  ChevronsLeftRightEllipsis,
+  Columns3Cog,
+  TableProperties,
+  Tag,
+} from "lucide-react";
 import LibraryItem from "../ui/library-item";
 import SearchInput from "../ui/inputs/search-input";
 import { useState } from "react";
@@ -6,6 +11,8 @@ import { useState } from "react";
 const items = [
   { icon: TableProperties, label: "Class Node" },
   { icon: ChevronsLeftRightEllipsis, label: "Interface Node" },
+  { icon: Tag, label: "Enum Node" },
+  { icon: Columns3Cog, label: "Custom Node" },
 ];
 
 const LibraryPanel = () => {
