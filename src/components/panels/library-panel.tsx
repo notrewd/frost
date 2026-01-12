@@ -4,25 +4,93 @@ import {
   TableProperties,
   Tag,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import LibraryItem from "../ui/library-item";
 import SearchInput from "../ui/inputs/search-input";
-import { useState } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
+import type { DragEventData } from "@neodrag/react";
+import type { ObjectNodeData } from "@/components/nodes/object-node";
 
-const items = [
-  { icon: TableProperties, label: "Class Node" },
-  { icon: ChevronsLeftRightEllipsis, label: "Interface Node" },
-  { icon: Tag, label: "Enum Node" },
-  { icon: Columns3Cog, label: "Custom Node" },
-];
+export type LibraryNodeTemplate = {
+  type: "object";
+  data: ObjectNodeData;
+};
 
-const LibraryPanel = () => {
-  const [filteredItems, setFilteredItems] = useState(items);
+export type LibraryPaletteItem = {
+  icon: LucideIcon;
+  label: string;
+  template: LibraryNodeTemplate;
+};
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value.toLowerCase();
-    setFilteredItems(
-      items.filter((item) => item.label.toLowerCase().includes(query))
-    );
+type LibraryPanelProps = {
+  onItemDropped?: (item: LibraryPaletteItem, drag: DragEventData) => void;
+};
+
+const items: LibraryPaletteItem[] = [
+  {
+    icon: TableProperties,
+    label: "Class Node",
+    template: {
+      type: "object",
+      data: {
+        name: "Class",
+        attributes: [],
+        methods: [],
+      },
+    },
+  },
+  {
+    icon: ChevronsLeftRightEllipsis,
+    label: "Interface Node",
+    template: {
+      type: "object",
+      data: {
+        name: "Interface",
+        stereotype: "interface",
+        attributes: [],
+        methods: [],
+      },
+    },
+  },
+  {
+    icon: Tag,
+    label: "Enum Node",
+    template: {
+      type: "object",
+      data: {
+        name: "Enum",
+        stereotype: "enumeration",
+        attributes: [],
+        methods: [],
+      },
+    },
+  },
+  {
+    icon: Columns3Cog,
+    label: "Custom Node",
+    template: {
+      type: "object",
+      data: {
+        name: "Custom",
+        attributes: [],
+        methods: [],
+      },
+    },
+  },
+] as const;
+
+const LibraryPanel = ({ onItemDropped }: LibraryPanelProps) => {
+  const [query, setQuery] = useState("");
+  const [resetKey, setResetKey] = useState(0);
+
+  const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((item) => item.label.toLowerCase().includes(q));
+  }, [query]);
+
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
   };
 
   return (
@@ -34,7 +102,15 @@ const LibraryPanel = () => {
       />
       <div className="grid grid-cols-2 gap-4">
         {filteredItems.map((item) => (
-          <LibraryItem key={item.label} icon={item.icon}>
+          <LibraryItem
+            key={`${item.label}-${resetKey}`}
+            icon={item.icon}
+            draggable
+            onDragEnd={(drag) => {
+              onItemDropped?.(item, drag);
+              setResetKey((k) => k + 1);
+            }}
+          >
             {item.label}
           </LibraryItem>
         ))}

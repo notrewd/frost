@@ -25,7 +25,7 @@ export interface ObjectNodeMethod {
   parameters: ObjectNodeProperty[];
 }
 
-export interface ObjectNodeData {
+export interface ObjectNodeData extends Record<string, unknown> {
   name: string;
   stereotype?: string;
   attributes?: ObjectNodeAttribute[];
