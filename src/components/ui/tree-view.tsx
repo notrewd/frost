@@ -46,6 +46,14 @@ export interface TreeViewMenuItem {
   action: (items: TreeViewItem[]) => void;
 }
 
+export interface TreeViewMenuItemsByType {
+  /**
+   * Map from item.type -> menu items.
+   * Use "*" as a fallback for any type.
+   */
+  [type: string]: TreeViewMenuItem[] | undefined;
+}
+
 export interface TreeViewProps {
   className?: string;
   data: TreeViewItem[];
@@ -64,6 +72,14 @@ export interface TreeViewProps {
   onAction?: (action: string, items: TreeViewItem[]) => void;
   onCheckChange?: (item: TreeViewItem, checked: boolean) => void;
   iconMap?: TreeViewIconMap;
+  /**
+   * Optional per-type context menu items.
+   * If present, items will be resolved as:
+   *   1) menuItemsByType[item.type]
+   *   2) menuItemsByType["*"]
+   *   3) menuItems (legacy fallback)
+   */
+  menuItemsByType?: TreeViewMenuItemsByType;
   menuItems?: TreeViewMenuItem[];
 }
 
@@ -82,6 +98,7 @@ interface TreeItemProps {
   showAccessRights?: boolean;
   itemMap: Map<string, TreeViewItem>;
   iconMap?: TreeViewIconMap;
+  menuItemsByType?: TreeViewMenuItemsByType;
   menuItems?: TreeViewMenuItem[];
   getSelectedItems: () => TreeViewItem[];
 }
@@ -157,6 +174,7 @@ function TreeItem({
   showAccessRights,
   itemMap,
   iconMap = defaultIconMap,
+  menuItemsByType,
   menuItems,
   getSelectedItems,
 }: TreeItemProps): JSX.Element {
@@ -337,6 +355,11 @@ function TreeItem({
   // Get selected count only if item has children and is collapsed
   const selectedCount =
     (item.children && !isOpen && getSelectedChildrenCount(item)) || null;
+
+  const resolvedMenuItems =
+    menuItemsByType?.[item.type] ?? menuItemsByType?.["*"] ?? menuItems;
+
+  const hasMenuItems = (resolvedMenuItems?.length ?? 0) > 0;
 
   return (
     <ContextMenu>
@@ -550,6 +573,7 @@ function TreeItem({
                           showAccessRights={showAccessRights}
                           itemMap={itemMap}
                           iconMap={iconMap}
+                          menuItemsByType={menuItemsByType}
                           menuItems={menuItems}
                           getSelectedItems={getSelectedItems}
                         />
@@ -562,24 +586,26 @@ function TreeItem({
           )}
         </div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-64">
-        {menuItems?.map((menuItem) => (
-          <ContextMenuItem
-            key={menuItem.id}
-            onClick={() => {
-              const items = selectedIds.has(item.id)
-                ? getSelectedItems()
-                : [item];
-              menuItem.action(items);
-            }}
-          >
-            {menuItem.icon && (
-              <span className="mr-2 h-4 w-4">{menuItem.icon}</span>
-            )}
-            {menuItem.label}
-          </ContextMenuItem>
-        ))}
-      </ContextMenuContent>
+      {hasMenuItems && (
+        <ContextMenuContent className="w-64">
+          {resolvedMenuItems?.map((menuItem) => (
+            <ContextMenuItem
+              key={menuItem.id}
+              onClick={() => {
+                const items = selectedIds.has(item.id)
+                  ? getSelectedItems()
+                  : [item];
+                menuItem.action(items);
+              }}
+            >
+              {menuItem.icon && (
+                <span className="mr-2 h-4 w-4">{menuItem.icon}</span>
+              )}
+              {menuItem.label}
+            </ContextMenuItem>
+          ))}
+        </ContextMenuContent>
+      )}
     </ContextMenu>
   );
 }
@@ -600,6 +626,7 @@ export default function TreeView({
   onSelectionChange,
   onAction,
   onCheckChange,
+  menuItemsByType,
   menuItems,
 }: TreeViewProps) {
   const [currentMousePos, setCurrentMousePos] = useState<number>(0);
@@ -1012,6 +1039,7 @@ export default function TreeView({
                 showAccessRights={showCheckboxes}
                 itemMap={itemMap}
                 iconMap={iconMap}
+                menuItemsByType={menuItemsByType}
                 menuItems={menuItems}
                 getSelectedItems={getSelectedItems}
               />

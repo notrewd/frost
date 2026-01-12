@@ -16,23 +16,24 @@ interface ProjectPanelProps {
 const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
   const [data, setData] = useState<TreeViewItem[]>([]);
 
-  const menuItems = useMemo(
-    () => [
-      {
-        id: "delete",
-        label: "Delete",
-        icon: <Trash className="size-4" />,
-        action: (items: TreeViewItem[]) => {
-          items.forEach((item) => {
-            if (onDelete) {
-              onDelete(item.id);
-            }
-          });
+  const menuItems = useMemo(() => {
+    return {
+      node: [
+        {
+          id: "delete",
+          label: "Delete",
+          icon: <Trash className="size-4" />,
+          action: (items: TreeViewItem[]) => {
+            items.forEach((item) => {
+              if (onDelete) {
+                onDelete(item.id);
+              }
+            });
+          },
         },
-      },
-    ],
-    [onDelete]
-  );
+      ],
+    };
+  }, [onDelete]);
 
   useEffect(() => {
     if (initialData) {
@@ -52,7 +53,7 @@ const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
       data={data}
       showExpandAll={false}
       iconMap={iconMap}
-      menuItems={menuItems}
+      menuItemsByType={menuItems}
       searchPlaceholder="Search project..."
       className="bg-transparent"
     />
