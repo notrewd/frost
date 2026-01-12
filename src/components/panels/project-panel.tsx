@@ -1,36 +1,38 @@
-import TreeView from "../ui/tree-view";
+import { Folder, FolderRoot, SquareChartGantt } from "lucide-react";
+import TreeView, { TreeViewItem } from "../ui/tree-view";
+import { FC, useEffect, useState } from "react";
 
-const data = [
-  {
-    id: "1",
-    name: "Project",
-    type: "region",
-    children: [
-      {
-        id: "1.1",
-        name: "Folder 1",
-        type: "store",
-        children: [
-          {
-            id: "1.1.1",
-            name: "Subfolder",
-            type: "department",
-            children: [
-              { id: "1.1.1.1", name: "File 1", type: "item" },
-              { id: "1.1.1.2", name: "File 2", type: "item" },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-];
+const iconMap = {
+  root: <FolderRoot className="size-4" />,
+  folder: <Folder className="size-4" />,
+  node: <SquareChartGantt className="size-4" />,
+};
 
-const ProjectPanel = () => {
+interface ProjectPanelProps {
+  initialData?: TreeViewItem[];
+}
+
+const ProjectPanel: FC<ProjectPanelProps> = ({ initialData }) => {
+  const [data, setData] = useState<TreeViewItem[]>([]);
+
+  useEffect(() => {
+    if (initialData) {
+      const rootItem: TreeViewItem = {
+        id: "root",
+        name: "Project",
+        type: "root",
+        children: initialData,
+      };
+
+      setData([rootItem]);
+    }
+  }, [initialData]);
+
   return (
     <TreeView
       data={data}
       showExpandAll={false}
+      iconMap={iconMap}
       searchPlaceholder="Search project..."
       className="bg-transparent"
     />

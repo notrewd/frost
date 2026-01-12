@@ -81,6 +81,12 @@ const initialNodes = [
 
 const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
+const projectData = initialNodes.map((node) => ({
+  id: node.id,
+  name: node.data.name,
+  type: "node",
+}));
+
 const EditorRoute = () => {
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -134,7 +140,7 @@ const EditorRoute = () => {
           >
             <PanelBar>Project</PanelBar>
             <div className="flex flex-col h-full pl-4 py-2 pb-7">
-              <ProjectPanel />
+              <ProjectPanel initialData={projectData} />
             </div>
           </ResizablePanel>
           <ResizableHandle className="bg-muted-foreground/25" />
