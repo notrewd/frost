@@ -86,6 +86,36 @@ const initialNodes = [
       ],
     },
   },
+  {
+    id: "n3",
+    type: "object",
+    position: { x: 300, y: 200 },
+    data: {
+      name: "Status",
+      stereotype: "enumeration",
+      attributes: [
+        {
+          name: "Active",
+          accessModifier: "public",
+          defaultValue: "1",
+          static: true,
+        },
+        {
+          name: "Inactive",
+          accessModifier: "public",
+          defaultValue: "0",
+          static: true,
+        },
+        {
+          name: "Pending",
+          accessModifier: "public",
+          defaultValue: "2",
+          static: true,
+        },
+      ],
+      methods: [],
+    },
+  },
 ];
 
 const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];

@@ -1,26 +1,33 @@
 import { FC } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface ObjectNodeProperty {
   name: string;
-  type: string;
+  type?: string;
+  static?: boolean;
 }
 
 export interface ObjectNodeAttribute extends ObjectNodeProperty {
   accessModifier: "public" | "private" | "protected";
+  stereotype?: string;
   defaultValue?: string;
 }
 
 export interface ObjectNodeMethod {
   name: string;
   accessModifier: string;
+  abstract?: boolean;
+  static?: boolean;
   returnType: string;
   parameters: ObjectNodeProperty[];
 }
 
 export interface ObjectNodeData {
   name: string;
+  stereotype?: string;
   attributes?: ObjectNodeAttribute[];
   methods?: ObjectNodeMethod[];
 }
@@ -32,6 +39,13 @@ interface ObjectNodeProps {
 const ObjectNode: FC<ObjectNodeProps> = ({ data }) => {
   return (
     <Card className="gap-2 py-4 font-mono">
+      {data.stereotype && (
+        <div className="px-4 w-full flex items-center justify-center text-muted-foreground">
+          <ChevronsLeft className="size-4" />
+          <span>{data.stereotype}</span>
+          <ChevronsRight className="size-4" />
+        </div>
+      )}
       <p className="px-4 w-full text-center">{data.name}</p>
       <Separator className="my-2" />
       {data.attributes?.map((attr, index) => (
@@ -43,12 +57,22 @@ const ObjectNode: FC<ObjectNodeProps> = ({ data }) => {
                 ? "-"
                 : "#"}{" "}
           </span>
-          {attr.name}
-          <span className="text-red-400">:</span>{" "}
-          <span className="text-blue-400">{attr.type}</span>
+          <span
+            className={cn({
+              underline: attr.static,
+            })}
+          >
+            {attr.name}
+            {attr.type && (
+              <>
+                <span className="text-red-400">:</span>{" "}
+                <span className="text-blue-400">{attr.type}</span>
+              </>
+            )}
+          </span>
         </p>
       ))}
-      {data.attributes && data.attributes.length > 0 && (
+      {data.methods && data.methods.length > 0 && (
         <Separator className="my-2" />
       )}
       {data.methods?.map((method, index) => (
@@ -60,17 +84,24 @@ const ObjectNode: FC<ObjectNodeProps> = ({ data }) => {
                 ? "-"
                 : "#"}{" "}
           </span>
-          {method.name}(
-          {method.parameters.map((param, index) => (
-            <>
-              <span className="text-orange-400">{param.name}</span>
-              <span className="text-red-400">:</span>{" "}
-              <span className="text-blue-400">{param.type}</span>
-              {index < method.parameters.length - 1 ? ", " : ""}
-            </>
-          ))}
-          )<span className="text-red-400">:</span>{" "}
-          <span className="text-blue-400">{method.returnType}</span>
+          <span
+            className={cn({
+              underline: method.static,
+              italic: method.abstract,
+            })}
+          >
+            {method.name}(
+            {method.parameters.map((param, index) => (
+              <>
+                <span className="text-orange-400">{param.name}</span>
+                <span className="text-red-400">:</span>{" "}
+                <span className="text-blue-400">{param.type}</span>
+                {index < method.parameters.length - 1 ? ", " : ""}
+              </>
+            ))}
+            )<span className="text-red-400">:</span>{" "}
+            <span className="text-blue-400">{method.returnType}</span>
+          </span>
         </p>
       ))}
     </Card>
