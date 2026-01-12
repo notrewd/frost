@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/resizable";
 import "@xyflow/react/dist/style.css";
 import "./editor-route.css";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ReactFlow,
   addEdge,
@@ -81,19 +81,31 @@ const initialNodes = [
 
 const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
-const projectData = initialNodes.map((node) => ({
-  id: node.id,
-  name: node.data.name,
-  type: "node",
-}));
-
 const EditorRoute = () => {
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
     (params: any) => setEdges((els) => addEdge(params, els)),
     []
+  );
+
+  const projectData = useMemo(() => {
+    return nodes.map((node) => ({
+      id: node.id,
+      name: node.data.name,
+      type: "node" as const,
+    }));
+  }, [nodes]);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      setNodes((nds) => nds.filter((node) => node.id !== id));
+      setEdges((eds) =>
+        eds.filter((edge) => edge.source !== id && edge.target !== id)
+      );
+    },
+    [setNodes, setEdges]
   );
 
   return (
@@ -140,7 +152,7 @@ const EditorRoute = () => {
           >
             <PanelBar>Project</PanelBar>
             <div className="flex flex-col h-full pl-4 py-2 pb-7">
-              <ProjectPanel initialData={projectData} />
+              <ProjectPanel initialData={projectData} onDelete={handleDelete} />
             </div>
           </ResizablePanel>
           <ResizableHandle className="bg-muted-foreground/25" />

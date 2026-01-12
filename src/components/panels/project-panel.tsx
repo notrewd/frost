@@ -1,6 +1,6 @@
-import { Folder, FolderRoot, SquareChartGantt } from "lucide-react";
+import { Folder, FolderRoot, SquareChartGantt, Trash } from "lucide-react";
 import TreeView, { TreeViewItem } from "../ui/tree-view";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 const iconMap = {
   root: <FolderRoot className="size-4" />,
@@ -10,10 +10,29 @@ const iconMap = {
 
 interface ProjectPanelProps {
   initialData?: TreeViewItem[];
+  onDelete?: (id: string) => void;
 }
 
-const ProjectPanel: FC<ProjectPanelProps> = ({ initialData }) => {
+const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
   const [data, setData] = useState<TreeViewItem[]>([]);
+
+  const menuItems = useMemo(
+    () => [
+      {
+        id: "delete",
+        label: "Delete",
+        icon: <Trash className="size-4" />,
+        action: (items: TreeViewItem[]) => {
+          items.forEach((item) => {
+            if (onDelete) {
+              onDelete(item.id);
+            }
+          });
+        },
+      },
+    ],
+    [onDelete]
+  );
 
   useEffect(() => {
     if (initialData) {
@@ -33,6 +52,7 @@ const ProjectPanel: FC<ProjectPanelProps> = ({ initialData }) => {
       data={data}
       showExpandAll={false}
       iconMap={iconMap}
+      menuItems={menuItems}
       searchPlaceholder="Search project..."
       className="bg-transparent"
     />

@@ -413,10 +413,7 @@ function TreeItem({
                   {renderIcon()}
                   <span className="flex-1">{item.name}</span>
                   {selectedCount !== null && selectedCount > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="mr-2 bg-blue-100 hover:bg-blue-100"
-                    >
+                    <Badge variant="outline" className="mr-2">
                       {selectedCount} selected
                     </Badge>
                   )}
