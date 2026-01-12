@@ -44,6 +44,15 @@ const initialNodes = [
       ],
       methods: [
         {
+          name: "setFullName",
+          accessModifier: "public",
+          returnType: "void",
+          parameters: [
+            { name: "firstName", type: "string" },
+            { name: "lastName", type: "string" },
+          ],
+        },
+        {
           name: "getFullName",
           accessModifier: "public",
           returnType: "string",
