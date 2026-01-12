@@ -2,36 +2,36 @@ import { FC } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
 
-export interface DiagramNodeProperty {
+export interface ObjectNodeProperty {
   name: string;
   type: string;
 }
 
-export interface DiagramNodeAttribute extends DiagramNodeProperty {
+export interface ObjectNodeAttribute extends ObjectNodeProperty {
   accessModifier: "public" | "private" | "protected";
   defaultValue?: string;
 }
 
-export interface DiagramNodeMethod {
+export interface ObjectNodeMethod {
   name: string;
   accessModifier: string;
   returnType: string;
-  parameters: DiagramNodeProperty[];
+  parameters: ObjectNodeProperty[];
 }
 
-export interface DiagramNodeData {
+export interface ObjectNodeData {
   name: string;
-  attributes?: DiagramNodeAttribute[];
-  methods?: DiagramNodeMethod[];
+  attributes?: ObjectNodeAttribute[];
+  methods?: ObjectNodeMethod[];
 }
 
-interface DiagramNodeProps {
-  data: DiagramNodeData;
+interface ObjectNodeProps {
+  data: ObjectNodeData;
 }
 
-const DiagramNode: FC<DiagramNodeProps> = ({ data }) => {
+const ObjectNode: FC<ObjectNodeProps> = ({ data }) => {
   return (
-    <Card className="gap-2 py-4">
+    <Card className="gap-2 py-4 font-mono">
       <p className="px-4 w-full text-center">{data.name}</p>
       <Separator className="my-2" />
       {data.attributes?.map((attr, index) => (
@@ -65,4 +65,4 @@ const DiagramNode: FC<DiagramNodeProps> = ({ data }) => {
   );
 };
 
-export default DiagramNode;
+export default ObjectNode;

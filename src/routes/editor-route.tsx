@@ -19,16 +19,16 @@ import PropertiesPanel from "@/components/panels/properties-panel";
 import LibraryPanel from "@/components/panels/library-panel";
 import PanelBar from "@/components/ui/panel-bar";
 import ProjectPanel from "@/components/panels/project-panel";
-import DiagramNode from "@/components/nodes/diagram-node";
+import ObjectNode from "@/components/nodes/object-node";
 
 const nodeTypes = {
-  diagram: DiagramNode,
+  object: ObjectNode,
 };
 
 const initialNodes = [
   {
     id: "n1",
-    type: "diagram",
+    type: "object",
     position: { x: 0, y: 0 },
     data: {
       name: "Person",
@@ -60,7 +60,7 @@ const initialNodes = [
   },
   {
     id: "n2",
-    type: "diagram",
+    type: "object",
     position: { x: 0, y: 100 },
     data: {
       name: "Employee",
