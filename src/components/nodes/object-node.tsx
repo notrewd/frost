@@ -104,6 +104,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ data }) => {
           </span>
         </p>
       ))}
+      {!data.attributes?.length && !data.methods?.length && (
+        <p className="px-4 italic text-muted-foreground">
+          No attributes or methods
+        </p>
+      )}
     </Card>
   );
 };
