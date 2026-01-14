@@ -1,6 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo, JSX } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  JSX,
+  ReactNode,
+  cloneElement,
+  isValidElement,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -42,7 +52,8 @@ export interface TreeViewIconMap {
 export interface TreeViewMenuItem {
   id: string;
   label: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
+  variant?: "default" | "destructive";
   action: (items: TreeViewItem[]) => void;
 }
 
@@ -361,6 +372,19 @@ function TreeItem({
 
   const hasMenuItems = (resolvedMenuItems?.length ?? 0) > 0;
 
+  const renderMenuIcon = (icon?: ReactNode) => {
+    if (!icon) return null;
+
+    // Force icon color to inherit from the menu item's text color (e.g. destructive).
+    if (isValidElement<{ className?: string }>(icon)) {
+      return cloneElement(icon, {
+        className: cn(icon.props.className, "size-4 shrink-0 text-current"),
+      });
+    }
+
+    return <span className="size-4 shrink-0 text-current">{icon}</span>;
+  };
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -587,7 +611,7 @@ function TreeItem({
         </div>
       </ContextMenuTrigger>
       {hasMenuItems && (
-        <ContextMenuContent className="w-64">
+        <ContextMenuContent>
           {resolvedMenuItems?.map((menuItem) => (
             <ContextMenuItem
               key={menuItem.id}
@@ -597,10 +621,9 @@ function TreeItem({
                   : [item];
                 menuItem.action(items);
               }}
+              variant={menuItem.variant || "default"}
             >
-              {menuItem.icon && (
-                <span className="mr-2 h-4 w-4">{menuItem.icon}</span>
-              )}
+              {renderMenuIcon(menuItem.icon)}
               {menuItem.label}
             </ContextMenuItem>
           ))}

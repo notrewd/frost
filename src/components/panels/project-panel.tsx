@@ -1,5 +1,8 @@
 import { Folder, FolderRoot, SquareChartGantt, Trash } from "lucide-react";
-import TreeView, { TreeViewItem } from "../ui/tree-view";
+import TreeView, {
+  TreeViewItem,
+  TreeViewMenuItemsByType,
+} from "../ui/tree-view";
 import { FC, useEffect, useMemo, useState } from "react";
 
 const iconMap = {
@@ -16,13 +19,14 @@ interface ProjectPanelProps {
 const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
   const [data, setData] = useState<TreeViewItem[]>([]);
 
-  const menuItems = useMemo(() => {
+  const menuItems: TreeViewMenuItemsByType = useMemo(() => {
     return {
       node: [
         {
           id: "delete",
           label: "Delete",
           icon: <Trash className="size-4" />,
+          variant: "destructive",
           action: (items: TreeViewItem[]) => {
             items.forEach((item) => {
               if (onDelete) {
