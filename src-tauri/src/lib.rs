@@ -65,20 +65,6 @@ async fn open_editor_window(app: AppHandle) -> tauri::Result<()> {
         }
     }
 
-    let file_menu = SubmenuBuilder::new(&app, "About")
-        .services()
-        .separator()
-        .hide()
-        .hide_others()
-        .show_all()
-        .separator()
-        .quit()
-        .build()?;
-
-    let menu = MenuBuilder::new(&app).items(&[&file_menu]).build()?;
-
-    app.set_menu(menu)?;
-
     Ok(())
 }
 
@@ -108,6 +94,47 @@ pub fn run() {
             tauri::async_runtime::spawn(async move {
                 let _ = open_welcome_window(handle).await;
             });
+
+            let about_menu = SubmenuBuilder::new(app, "About")
+                .services()
+                .separator()
+                .hide()
+                .hide_others()
+                .show_all()
+                .separator()
+                .quit()
+                .build()?;
+
+            let file_menu = SubmenuBuilder::new(app, "File")
+                .text("new_project", "New Project")
+                .separator()
+                .text("open_project", "Open Project...")
+                .separator()
+                .text("save", "Save")
+                .text("save_as", "Save As...")
+                .separator()
+                .close_window()
+                .build()?;
+
+            file_menu
+                .get("save")
+                .unwrap()
+                .as_menuitem_unchecked()
+                .set_enabled(false)?;
+
+            file_menu
+                .get("save_as")
+                .unwrap()
+                .as_menuitem_unchecked()
+                .set_enabled(false)?;
+
+            let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
+
+            let menu = MenuBuilder::new(app)
+                .items(&[&about_menu, &file_menu, &window_menu])
+                .build()?;
+
+            app.set_menu(menu)?;
 
             Ok(())
         })
