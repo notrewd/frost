@@ -124,10 +124,20 @@ pub fn run() {
                 .close_window()
                 .build()?;
 
+            let edit_menu = SubmenuBuilder::new(app, "Edit")
+                .undo()
+                .redo()
+                .separator()
+                .cut()
+                .copy()
+                .paste()
+                .select_all()
+                .build()?;
+
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
 
             let menu = MenuBuilder::new(app)
-                .items(&[&about_menu, &file_menu, &window_menu])
+                .items(&[&about_menu, &file_menu, &edit_menu, &window_menu])
                 .build()?;
 
             app.set_menu(menu)?;
