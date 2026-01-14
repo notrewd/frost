@@ -1,5 +1,5 @@
 use tauri::{
-    menu::{MenuBuilder, SubmenuBuilder},
+    menu::{MenuBuilder, MenuItem, SubmenuBuilder},
     AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 
@@ -105,28 +105,24 @@ pub fn run() {
                 .quit()
                 .build()?;
 
+            let new_project_item =
+                MenuItem::with_id(app, "new_project", "New Project", true, Some("CMD+N"))?;
+            let open_project_item =
+                MenuItem::with_id(app, "open_project", "Open Project...", true, Some("CMD+O"))?;
+            let save_item = MenuItem::with_id(app, "save", "Save", false, Some("CMD+S"))?;
+            let save_as_item =
+                MenuItem::with_id(app, "save_as", "Save As...", false, Some("CMD+SHIFT+S"))?;
+
             let file_menu = SubmenuBuilder::new(app, "File")
-                .text("new_project", "New Project")
+                .item(&new_project_item)
                 .separator()
-                .text("open_project", "Open Project...")
+                .item(&open_project_item)
                 .separator()
-                .text("save", "Save")
-                .text("save_as", "Save As...")
+                .item(&save_item)
+                .item(&save_as_item)
                 .separator()
                 .close_window()
                 .build()?;
-
-            file_menu
-                .get("save")
-                .unwrap()
-                .as_menuitem_unchecked()
-                .set_enabled(false)?;
-
-            file_menu
-                .get("save_as")
-                .unwrap()
-                .as_menuitem_unchecked()
-                .set_enabled(false)?;
 
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
 
