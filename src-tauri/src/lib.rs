@@ -1,4 +1,7 @@
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{
+    menu::{MenuBuilder, SubmenuBuilder},
+    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
+};
 
 // for some reason, when creating a new window, the function needs to be async, otherwise the whole applications freezes up
 #[tauri::command]
@@ -61,6 +64,20 @@ async fn open_editor_window(app: AppHandle) -> tauri::Result<()> {
             window.set_focus()?;
         }
     }
+
+    let file_menu = SubmenuBuilder::new(&app, "About")
+        .services()
+        .separator()
+        .hide()
+        .hide_others()
+        .show_all()
+        .separator()
+        .quit()
+        .build()?;
+
+    let menu = MenuBuilder::new(&app).items(&[&file_menu]).build()?;
+
+    app.set_menu(menu)?;
 
     Ok(())
 }
