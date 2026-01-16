@@ -1,7 +1,26 @@
+use std::sync::Mutex;
+
 use tauri::{
     menu::{MenuBuilder, MenuItem, SubmenuBuilder},
-    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, Wry,
 };
+use tauri_plugin_dialog::DialogExt;
+
+struct AppState {
+    project_details: ProjectDetails,
+    menu_items: MenuItems,
+}
+
+#[derive(Clone)]
+struct MenuItems {
+    save: MenuItem<Wry>,
+    save_as: MenuItem<Wry>,
+}
+
+struct ProjectDetails {
+    name: Option<String>,
+    path: Option<String>,
+}
 
 // for some reason, when creating a new window, the function needs to be async, otherwise the whole applications freezes up
 #[tauri::command]
@@ -48,7 +67,17 @@ async fn open_welcome_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-async fn open_editor_window(app: AppHandle) -> tauri::Result<()> {
+async fn open_editor_window(
+    app: AppHandle,
+    state: tauri::State<'_, Mutex<AppState>>,
+    project_name: String,
+    project_path: String,
+) -> tauri::Result<()> {
+    let mut state = state.lock().unwrap();
+
+    state.project_details.name = Some(project_name);
+    state.project_details.path = Some(project_path);
+
     match app.webview_windows().get("editor") {
         None => {
             WebviewWindowBuilder::new(&app, "editor", WebviewUrl::App("/editor".into()))
@@ -59,6 +88,9 @@ async fn open_editor_window(app: AppHandle) -> tauri::Result<()> {
                 .decorations(if cfg!(windows) { false } else { true })
                 .theme(Some(tauri::Theme::Dark))
                 .build()?;
+
+            state.menu_items.save.set_enabled(true)?;
+            state.menu_items.save_as.set_enabled(true)?;
         }
         Some(window) => {
             window.set_focus()?;
@@ -73,6 +105,7 @@ async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
     if let Some(window) = app.webview_windows().get(&label) {
         window.close()?;
     }
+
     Ok(())
 }
 
@@ -113,6 +146,17 @@ pub fn run() {
             let save_as_item =
                 MenuItem::with_id(app, "save_as", "Save As...", false, Some("CMD+SHIFT+S"))?;
 
+            app.manage(Mutex::new(AppState {
+                menu_items: MenuItems {
+                    save: save_item.clone(),
+                    save_as: save_as_item.clone(),
+                },
+                project_details: ProjectDetails {
+                    name: None,
+                    path: None,
+                },
+            }));
+
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_project_item)
                 .separator()
@@ -141,6 +185,28 @@ pub fn run() {
                 .build()?;
 
             app.set_menu(menu)?;
+
+            app.on_menu_event(move |app: &AppHandle, event| match event.id().0.as_str() {
+                "new_project" => {
+                    let app_handle = app.clone();
+                    tauri::async_runtime::spawn(async move {
+                        let _ = open_new_project_window(app_handle).await;
+                    });
+                }
+                "open_project" => {
+                    app.dialog().file().pick_file(|file_path| {
+                        if let Some(path) = file_path {
+                            println!("Selected file: {:?}", path);
+                            // Here you can add logic to open the project file
+                        } else {
+                            println!("No file selected");
+                        }
+                    });
+                }
+                _ => {
+                    println!("Unhandled menu item: {}", event.id().0);
+                }
+            });
 
             Ok(())
         })

@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/inputs/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import PathInput from "@/components/ui/inputs/path-input.tsx";
 import { invoke } from "@tauri-apps/api/core";
+import { convertProjectNameToFileName } from "@/lib/utils";
 
 const formSchema = z.object({
   projectName: projectNameSchema,
@@ -30,8 +31,17 @@ const NewProjectRoute = () => {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: async () => {
-      await invoke("open_editor_window");
+    onSubmit: async (values) => {
+      const { projectName, projectPath } = values.value;
+
+      const fileName = convertProjectNameToFileName(projectName);
+
+      await Promise.all([
+        invoke("open_editor_window", {
+          projectName: projectName,
+          projectPath: `${projectPath}/${fileName}`,
+        }),
+      ]);
 
       await Promise.all([
         invoke("close_window", { label: "welcome" }),
@@ -95,8 +105,7 @@ const NewProjectRoute = () => {
                     variant="small"
                   />
                   <FieldDescription>
-                    A new folder will be created at this location for your
-                    project.
+                    A new project file will be created at this location.
                   </FieldDescription>
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
