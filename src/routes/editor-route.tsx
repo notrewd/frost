@@ -227,7 +227,7 @@ const EditorRoute = () => {
                 hideAttribution: true,
               }}
               fitView
-              panOnScroll
+              zoomOnScroll
               selectionOnDrag
               panOnDrag={[1, 2]}
             >
