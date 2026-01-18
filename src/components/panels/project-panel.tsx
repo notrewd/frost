@@ -4,6 +4,7 @@ import TreeView, {
   TreeViewMenuItemsByType,
 } from "../ui/tree-view";
 import { FC, useEffect, useMemo, useState } from "react";
+import { useProject } from "../providers/project-provider";
 
 const iconMap = {
   root: <FolderRoot className="size-4" />,
@@ -17,6 +18,12 @@ interface ProjectPanelProps {
 }
 
 const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
+  const { projectName } = useProject();
+
+  useEffect(() => {
+    console.log("ProjectPanel mounted with projectName:", projectName);
+  }, [projectName]);
+
   const [data, setData] = useState<TreeViewItem[]>([]);
 
   const menuItems: TreeViewMenuItemsByType = useMemo(() => {
@@ -43,14 +50,14 @@ const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
     if (initialData) {
       const rootItem: TreeViewItem = {
         id: "root",
-        name: "Project",
+        name: projectName || "Project",
         type: "root",
         children: initialData,
       };
 
       setData([rootItem]);
     }
-  }, [initialData]);
+  }, [initialData, projectName]);
 
   return (
     <TreeView

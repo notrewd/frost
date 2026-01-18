@@ -26,6 +26,7 @@ import ObjectNode from "@/components/nodes/object-node";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
 import type { DragEventData } from "@neodrag/react";
 import type { LibraryPaletteItem } from "@/components/panels/library-panel";
+import { ProjectProvider } from "@/components/providers/project-provider";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -137,7 +138,7 @@ const EditorRoute = () => {
 
   const onConnect = useCallback(
     (params: any) => setEdges((els) => addEdge(params, els)),
-    []
+    [],
   );
 
   const projectData = useMemo(() => {
@@ -152,10 +153,10 @@ const EditorRoute = () => {
     (id: string) => {
       setNodes((nds) => nds.filter((node) => node.id !== id));
       setEdges((eds) =>
-        eds.filter((edge) => edge.source !== id && edge.target !== id)
+        eds.filter((edge) => edge.source !== id && edge.target !== id),
       );
     },
-    [setNodes, setEdges]
+    [setNodes, setEdges],
   );
 
   const handleLibraryItemDropped = useCallback(
@@ -191,76 +192,85 @@ const EditorRoute = () => {
             position,
             data: item.template.data,
           },
-        ])
+        ]),
       );
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance, setNodes],
   );
 
   return (
-    <ResizablePanelGroup orientation="horizontal" className="text-sm">
-      <ResizablePanel
-        className="bg-secondary flex flex-col"
-        minSize={300}
-        defaultSize={300}
-      >
-        <PanelBar>Library</PanelBar>
-        <div className="flex flex-col flex-1 px-4 py-3">
-          <LibraryPanel onItemDropped={handleLibraryItemDropped} />
-        </div>
-      </ResizablePanel>
-      <ResizablePanel className="flex flex-col" minSize={300}>
-        <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
-          <ReactFlow
-            className="frost-editor-flow"
-            nodes={nodes}
-            edges={edges}
-            colorMode="dark"
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={(instance) => setReactFlowInstance(instance)}
-            proOptions={{
-              hideAttribution: true,
-            }}
-            fitView
-            panOnScroll
-            selectionOnDrag
-            panOnDrag={[1, 2]}
-          >
-            <MiniMap />
-            <Background />
-            <Controls />
-          </ReactFlow>
-        </div>
-      </ResizablePanel>
-      <ResizablePanel className="bg-secondary" minSize={300} defaultSize={300}>
-        <ResizablePanelGroup orientation="vertical">
-          <ResizablePanel
-            className="flex flex-col"
-            minSize={200}
-            defaultSize={150}
-          >
-            <PanelBar>Project</PanelBar>
-            <div className="flex flex-col h-full pl-4 py-2 pb-7">
-              <ProjectPanel initialData={projectData} onDelete={handleDelete} />
-            </div>
-          </ResizablePanel>
-          <ResizableHandle className="bg-muted-foreground/25" />
-          <ResizablePanel
-            className="flex flex-col"
-            minSize={200}
-            defaultSize={200}
-          >
-            <PanelBar>Properties</PanelBar>
-            <div className="flex flex-col flex-1 px-4 py-2">
-              <PropertiesPanel />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <ProjectProvider>
+      <ResizablePanelGroup orientation="horizontal" className="text-sm">
+        <ResizablePanel
+          className="bg-secondary flex flex-col"
+          minSize={300}
+          defaultSize={300}
+        >
+          <PanelBar>Library</PanelBar>
+          <div className="flex flex-col flex-1 px-4 py-3">
+            <LibraryPanel onItemDropped={handleLibraryItemDropped} />
+          </div>
+        </ResizablePanel>
+        <ResizablePanel className="flex flex-col" minSize={300}>
+          <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
+            <ReactFlow
+              className="frost-editor-flow"
+              nodes={nodes}
+              edges={edges}
+              colorMode="dark"
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onInit={(instance) => setReactFlowInstance(instance)}
+              proOptions={{
+                hideAttribution: true,
+              }}
+              fitView
+              panOnScroll
+              selectionOnDrag
+              panOnDrag={[1, 2]}
+            >
+              <MiniMap />
+              <Background />
+              <Controls />
+            </ReactFlow>
+          </div>
+        </ResizablePanel>
+        <ResizablePanel
+          className="bg-secondary"
+          minSize={300}
+          defaultSize={300}
+        >
+          <ResizablePanelGroup orientation="vertical">
+            <ResizablePanel
+              className="flex flex-col"
+              minSize={200}
+              defaultSize={150}
+            >
+              <PanelBar>Project</PanelBar>
+              <div className="flex flex-col h-full pl-4 py-2 pb-7">
+                <ProjectPanel
+                  initialData={projectData}
+                  onDelete={handleDelete}
+                />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle className="bg-muted-foreground/25" />
+            <ResizablePanel
+              className="flex flex-col"
+              minSize={200}
+              defaultSize={200}
+            >
+              <PanelBar>Properties</PanelBar>
+              <div className="flex flex-col flex-1 px-4 py-2">
+                <PropertiesPanel />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </ProjectProvider>
   );
 };
 

@@ -81,7 +81,14 @@ async fn open_editor_window(
     match app.webview_windows().get("editor") {
         None => {
             WebviewWindowBuilder::new(&app, "editor", WebviewUrl::App("/editor".into()))
-                .title("Frost Editor")
+                .title(
+                    state
+                        .project_details
+                        .name
+                        .as_ref()
+                        .map(|name| format!("{} - Frost Editor", name))
+                        .unwrap_or_else(|| "Frost Editor".to_string()),
+                )
                 .inner_size(800.0, 600.0)
                 .min_inner_size(600.0, 400.0)
                 .maximized(true)
@@ -109,6 +116,17 @@ async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
     Ok(())
 }
 
+#[tauri::command]
+fn request_project_details(app: AppHandle) -> tauri::Result<(Option<String>, Option<String>)> {
+    let state = app.state::<Mutex<AppState>>();
+    let state = state.lock().unwrap();
+
+    Ok((
+        state.project_details.name.clone(),
+        state.project_details.path.clone(),
+    ))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -119,7 +137,8 @@ pub fn run() {
             open_new_project_window,
             open_editor_window,
             open_welcome_window,
-            close_window
+            close_window,
+            request_project_details
         ])
         .setup(|app| {
             let handle = app.handle().clone();
