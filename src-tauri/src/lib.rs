@@ -86,7 +86,7 @@ async fn open_editor_window(
                         .project_details
                         .name
                         .as_ref()
-                        .map(|name| format!("{} - Frost Editor", name))
+                        .map(|name| format!("{} – Frost Editor", name))
                         .unwrap_or_else(|| "Frost Editor".to_string()),
                 )
                 .inner_size(800.0, 600.0)
