@@ -34,11 +34,12 @@ export interface ObjectNodeData extends Record<string, unknown> {
 
 interface ObjectNodeProps {
   data: ObjectNodeData;
+  selected: boolean;
 }
 
-const ObjectNode: FC<ObjectNodeProps> = ({ data }) => {
+const ObjectNode: FC<ObjectNodeProps> = ({ data, selected }) => {
   return (
-    <Card className="gap-2 py-4 font-mono">
+    <Card className={cn("gap-2 py-4 font-mono", selected && "ring")}>
       {data.stereotype && (
         <div className="px-4 w-full flex items-center justify-center text-muted-foreground">
           <ChevronsLeft className="size-4" />
