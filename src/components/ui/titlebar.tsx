@@ -15,6 +15,7 @@ import {
 } from "./menubar";
 import { Separator } from "./separator";
 import { invoke } from "@tauri-apps/api/core";
+import { useProject } from "../providers/project-provider";
 
 const appWindow = getCurrentWindow();
 const windowTitle = appWindow.title();
@@ -24,6 +25,13 @@ interface TitlebarProps {
 }
 
 const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
+  let projectData = "";
+
+  if (variant === "default") {
+    const { projectData: pdata } = useProject();
+    projectData = pdata;
+  }
+
   const handleMinimize = useCallback(async () => {
     await appWindow.minimize();
   }, []);
@@ -37,8 +45,8 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   }, []);
 
   const handleSaveAs = useCallback(async () => {
-    await invoke("save_file_as");
-  }, []);
+    await invoke("save_file_as", { data: projectData });
+  }, [projectData]);
 
   if (type() !== "windows") {
     return null;

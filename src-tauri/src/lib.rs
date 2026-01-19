@@ -20,7 +20,6 @@ struct MenuItems {
 struct ProjectDetails {
     name: Option<String>,
     path: Option<String>,
-    data: Option<String>,
 }
 
 // for some reason, when creating a new window, the function needs to be async, otherwise the whole applications freezes up
@@ -130,56 +129,29 @@ async fn request_project_details(
 }
 
 #[tauri::command]
-async fn set_project_data(
-    state: tauri::State<'_, Mutex<AppState>>,
-    data: String,
-) -> tauri::Result<()> {
-    let mut state = state.lock().unwrap();
-
-    state.project_details.data = Some(data);
-
-    Ok(())
-}
-
-#[tauri::command]
-async fn save_file_as(
-    app: AppHandle,
-    state: tauri::State<'_, Mutex<AppState>>,
-) -> tauri::Result<()> {
-    let state = state.lock().unwrap();
-    let project_data = state.project_details.data.clone();
-
+async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
     app.dialog()
         .file()
         .set_file_name("untitled.fr")
-        .set_title("Save As")
+        .set_title("Save Project As")
+        .add_filter("Frost Files", &["fr"])
         .save_file(move |file| {
             if let Some(path) = file {
                 let file_path = path.to_string();
 
-                if let Some(data) = &project_data {
-                    match std::fs::write(&file_path, data) {
-                        Ok(_) => {
-                            println!("File saved to {:?}", path);
-                        }
-                        Err(e) => {
-                            println!("Failed to save file: {}", e);
-                            let _ = app
-                                .dialog()
-                                .message(&format!("Failed to save file: {}", e))
-                                .title("Error")
-                                .kind(tauri_plugin_dialog::MessageDialogKind::Error)
-                                .show(|_| {});
-                        }
+                match std::fs::write(&file_path, &data) {
+                    Ok(_) => {
+                        println!("File saved to {:?}", path);
                     }
-                } else {
-                    println!("No project data to save");
-                    let _ = app
-                        .dialog()
-                        .message("No project data to save")
-                        .title("Error")
-                        .kind(tauri_plugin_dialog::MessageDialogKind::Error)
-                        .show(|_| {});
+                    Err(e) => {
+                        println!("Failed to save file: {}", e);
+                        let _ = app
+                            .dialog()
+                            .message(&format!("Failed to save file: {}", e))
+                            .title("Error")
+                            .kind(tauri_plugin_dialog::MessageDialogKind::Error)
+                            .show(|_| {});
+                    }
                 }
             }
         });
@@ -199,7 +171,6 @@ pub fn run() {
             open_welcome_window,
             close_window,
             request_project_details,
-            set_project_data,
             save_file_as
         ])
         .setup(|app| {
@@ -235,7 +206,6 @@ pub fn run() {
                 project_details: ProjectDetails {
                     name: None,
                     path: None,
-                    data: None,
                 },
             }));
 

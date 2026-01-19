@@ -131,7 +131,7 @@ const initialNodes: Node<ObjectNodeData>[] = [
 const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 const EditorRoute = () => {
-  const { projectData, setProjectData } = useProject();
+  const { setProjectData } = useProject();
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);

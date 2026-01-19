@@ -19,8 +19,6 @@ type ProjectDetailsResult = [string | null, string | null, string | null];
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 const ProjectProvider = ({ children }: { children: ReactNode }) => {
-  const [mounted, setMounted] = useState(false);
-
   const [projectName, setProjectName] = useState("");
   const [projectPath, setProjectPath] = useState("");
   const [projectData, setProjectData] = useState("");
@@ -35,8 +33,6 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
         setProjectName(name ?? "");
         setProjectPath(path ?? "");
         setProjectData(data ?? "");
-
-        setMounted(true);
       } catch (error) {
         console.error("Failed to fetch project details:", error);
       }
@@ -44,21 +40,6 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
     fetchProjectDetails();
   }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const setProjectData = async () => {
-      try {
-        await invoke("set_project_data", { data: projectData });
-        console.log("Project data saved successfully.");
-      } catch (error) {
-        console.error("Failed to save project data:", error);
-      }
-    };
-
-    setProjectData();
-  }, [projectData, mounted]);
 
   return (
     <ProjectContext.Provider
