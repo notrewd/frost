@@ -30,6 +30,7 @@ import {
   ProjectProvider,
   useProject,
 } from "@/components/providers/project-provider";
+import { useEditorActions } from "@/components/providers/editor-actions-provider";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -132,10 +133,16 @@ const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 const EditorRoute = () => {
   const { setProjectData } = useProject();
+  const { setHandlers, setState } = useEditorActions();
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
+  const clipboardRef = useRef<{
+    nodes: Node<ObjectNodeData>[];
+    edges: Edge[];
+  } | null>(null);
+  const pasteCountRef = useRef(0);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
     Node<ObjectNodeData>,
     Edge
@@ -153,6 +160,224 @@ const EditorRoute = () => {
     const serializedData = JSON.stringify(flowData);
     setProjectData(serializedData);
   }, [reactFlowInstance, setProjectData, nodes, edges]);
+
+  const cloneData = useCallback(<T,>(value: T): T => {
+    if (typeof structuredClone === "function") {
+      return structuredClone(value);
+    }
+
+    return JSON.parse(JSON.stringify(value)) as T;
+  }, []);
+
+  const getSelectedNodes = useCallback(() => {
+    return nodes.filter((node) => node.selected);
+  }, [nodes]);
+
+  const copyNodes = useCallback(() => {
+    const selectedNodes = getSelectedNodes();
+
+    if (selectedNodes.length === 0) {
+      return;
+    }
+
+    const selectedIds = new Set(selectedNodes.map((node) => node.id));
+    const selectedEdges = edges.filter(
+      (edge) => selectedIds.has(edge.source) && selectedIds.has(edge.target),
+    );
+
+    clipboardRef.current = {
+      nodes: selectedNodes.map((node) => ({
+        ...node,
+        data: cloneData(node.data),
+        position: { ...node.position },
+        selected: false,
+      })),
+      edges: selectedEdges.map((edge) => ({
+        ...edge,
+        data: edge.data ? cloneData(edge.data) : edge.data,
+        selected: false,
+      })),
+    };
+
+    pasteCountRef.current = 0;
+    setState((prev) => ({ ...prev, canPaste: true }));
+  }, [cloneData, edges, getSelectedNodes, setState]);
+
+  const selectAllNodes = useCallback(() => {
+    setNodes((nds) => nds.map((node) => ({ ...node, selected: true })));
+    setEdges((eds) => eds.map((edge) => ({ ...edge, selected: true })));
+  }, [setEdges, setNodes]);
+
+  const cutNodes = useCallback(() => {
+    const selectedNodes = getSelectedNodes();
+
+    if (selectedNodes.length === 0) {
+      return;
+    }
+
+    const selectedIds = new Set(selectedNodes.map((node) => node.id));
+
+    clipboardRef.current = {
+      nodes: selectedNodes.map((node) => ({
+        ...node,
+        data: cloneData(node.data),
+        position: { ...node.position },
+        selected: false,
+      })),
+      edges: edges
+        .filter(
+          (edge) =>
+            selectedIds.has(edge.source) && selectedIds.has(edge.target),
+        )
+        .map((edge) => ({
+          ...edge,
+          data: edge.data ? cloneData(edge.data) : edge.data,
+          selected: false,
+        })),
+    };
+
+    pasteCountRef.current = 0;
+    setState((prev) => ({ ...prev, canPaste: true }));
+
+    setNodes((nds) => nds.filter((node) => !selectedIds.has(node.id)));
+    setEdges((eds) =>
+      eds.filter(
+        (edge) =>
+          !selectedIds.has(edge.source) && !selectedIds.has(edge.target),
+      ),
+    );
+  }, [cloneData, edges, getSelectedNodes, setEdges, setNodes, setState]);
+
+  const pasteNodes = useCallback(() => {
+    const clipboard = clipboardRef.current;
+
+    if (!clipboard || clipboard.nodes.length === 0) {
+      return;
+    }
+
+    pasteCountRef.current += 1;
+    const offset = 24 * pasteCountRef.current;
+    const timestamp = Date.now().toString(36);
+    const idMap = new Map<string, string>();
+
+    const newNodes = clipboard.nodes.map((node, index) => {
+      const newId = `n${timestamp}${index}${Math.random()
+        .toString(36)
+        .slice(2, 7)}`;
+
+      idMap.set(node.id, newId);
+
+      return {
+        ...node,
+        id: newId,
+        position: {
+          x: node.position.x + offset,
+          y: node.position.y + offset,
+        },
+        selected: true,
+      };
+    });
+
+    const newEdges: Edge[] = [];
+
+    clipboard.edges.forEach((edge, index) => {
+      const source = idMap.get(edge.source);
+      const target = idMap.get(edge.target);
+
+      if (!source || !target) {
+        return;
+      }
+
+      newEdges.push({
+        ...edge,
+        id: `e${timestamp}${index}${Math.random().toString(36).slice(2, 7)}`,
+        source,
+        target,
+        selected: true,
+      });
+    });
+
+    setNodes((nds) => {
+      const resetNodes = nds.map((node) => ({
+        ...node,
+        selected: false,
+      })) as Node<ObjectNodeData>[];
+      return resetNodes.concat(newNodes);
+    });
+    setEdges((eds) => {
+      const resetEdges = eds.map((edge) => ({
+        ...edge,
+        selected: false,
+      })) as Edge[];
+      return resetEdges.concat(newEdges);
+    });
+  }, [setEdges, setNodes]);
+
+  useEffect(() => {
+    const hasSelection = nodes.some((node) => node.selected);
+    setState((prev) => ({ ...prev, canCutCopy: hasSelection }));
+  }, [nodes, setState]);
+
+  useEffect(() => {
+    setHandlers({
+      cut: cutNodes,
+      copy: copyNodes,
+      paste: pasteNodes,
+      selectAll: selectAllNodes,
+    });
+
+    return () => {
+      setHandlers(null);
+    };
+  }, [copyNodes, cutNodes, pasteNodes, selectAllNodes, setHandlers]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isModifier = event.ctrlKey || event.metaKey;
+
+      if (!isModifier) {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      const isEditableTarget =
+        !!target &&
+        (target.isContentEditable ||
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA");
+
+      if (isEditableTarget) {
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case "x":
+          event.preventDefault();
+          cutNodes();
+          break;
+        case "c":
+          event.preventDefault();
+          copyNodes();
+          break;
+        case "v":
+          event.preventDefault();
+          pasteNodes();
+          break;
+        case "a":
+          event.preventDefault();
+          selectAllNodes();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [copyNodes, cutNodes, pasteNodes, selectAllNodes]);
 
   const treeData = useMemo(() => {
     return nodes.map((node) => ({

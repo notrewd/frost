@@ -16,6 +16,7 @@ import {
 import { Separator } from "./separator";
 import { invoke } from "@tauri-apps/api/core";
 import { useProject } from "../providers/project-provider";
+import { useEditorActions } from "../providers/editor-actions-provider";
 
 const appWindow = getCurrentWindow();
 const windowTitle = appWindow.title();
@@ -26,6 +27,7 @@ interface TitlebarProps {
 
 const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   let projectData = "";
+  const { cut, copy, paste, selectAll, state } = useEditorActions();
 
   if (variant === "default") {
     const { projectData: pdata } = useProject();
@@ -100,14 +102,18 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     Redo <MenubarShortcut>Ctrl+Y</MenubarShortcut>
                   </MenubarItem>
                   <MenubarSeparator />
-                  <MenubarItem>
+                  <MenubarItem onClick={cut} disabled={!state.canCutCopy}>
                     Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
                   </MenubarItem>
-                  <MenubarItem>
+                  <MenubarItem onClick={copy} disabled={!state.canCutCopy}>
                     Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
                   </MenubarItem>
-                  <MenubarItem>
+                  <MenubarItem onClick={paste} disabled={!state.canPaste}>
                     Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
+                  </MenubarItem>
+                  <MenubarSeparator />
+                  <MenubarItem onClick={selectAll}>
+                    Select All <MenubarShortcut>Ctrl+A</MenubarShortcut>
                   </MenubarItem>
                 </MenubarContent>
               </MenubarMenu>
