@@ -14,6 +14,7 @@ import {
   MenubarTrigger,
 } from "./menubar";
 import { Separator } from "./separator";
+import { invoke } from "@tauri-apps/api/core";
 
 const appWindow = getCurrentWindow();
 const windowTitle = appWindow.title();
@@ -33,6 +34,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
 
   const handleClose = useCallback(async () => {
     await appWindow.close();
+  }, []);
+
+  const handleSaveAs = useCallback(async () => {
+    await invoke("save_file_as");
   }, []);
 
   if (type() !== "windows") {
@@ -72,7 +77,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                   <MenubarItem>
                     Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
                   </MenubarItem>
-                  <MenubarItem>
+                  <MenubarItem onClick={handleSaveAs}>
                     Save As... <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
                   </MenubarItem>
                 </MenubarContent>

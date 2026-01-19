@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/resizable";
 import "@xyflow/react/dist/style.css";
 import "./editor-route.css";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   addEdge,
@@ -26,7 +26,10 @@ import ObjectNode from "@/components/nodes/object-node";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
 import type { DragEventData } from "@neodrag/react";
 import type { LibraryPaletteItem } from "@/components/panels/library-panel";
-import { ProjectProvider } from "@/components/providers/project-provider";
+import {
+  ProjectProvider,
+  useProject,
+} from "@/components/providers/project-provider";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -128,6 +131,8 @@ const initialNodes: Node<ObjectNodeData>[] = [
 const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 const EditorRoute = () => {
+  const { projectData, setProjectData } = useProject();
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
@@ -141,7 +146,15 @@ const EditorRoute = () => {
     [],
   );
 
-  const projectData = useMemo(() => {
+  useEffect(() => {
+    if (!reactFlowInstance) return;
+
+    const flowData = reactFlowInstance.toObject();
+    const serializedData = JSON.stringify(flowData);
+    setProjectData(serializedData);
+  }, [reactFlowInstance, setProjectData, nodes, edges]);
+
+  const treeData = useMemo(() => {
     return nodes.map((node) => ({
       id: node.id,
       name: node.data.name,
@@ -250,10 +263,7 @@ const EditorRoute = () => {
             >
               <PanelBar>Project</PanelBar>
               <div className="flex flex-col h-full pl-4 py-2 pb-7">
-                <ProjectPanel
-                  initialData={projectData}
-                  onDelete={handleDelete}
-                />
+                <ProjectPanel initialData={treeData} onDelete={handleDelete} />
               </div>
             </ResizablePanel>
             <ResizableHandle className="bg-muted-foreground/25" />
