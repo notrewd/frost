@@ -157,7 +157,7 @@ const EditorRoute = () => {
     if (!reactFlowInstance) return;
 
     const flowData = reactFlowInstance.toObject();
-    const serializedData = JSON.stringify(flowData);
+    const serializedData = JSON.stringify(flowData, null, 2);
     setProjectData(serializedData);
   }, [reactFlowInstance, setProjectData, nodes, edges]);
 

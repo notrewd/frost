@@ -1,6 +1,6 @@
 import { type } from "@tauri-apps/plugin-os";
 import FrostIcon from "@/assets/graphics/frost.svg";
-import { FC, useCallback } from "react";
+import { FC, useCallback, useEffect } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "@/components/ui/button.tsx";
 import { Minus, Square, X } from "lucide-react";
@@ -17,6 +17,7 @@ import { Separator } from "./separator";
 import { invoke } from "@tauri-apps/api/core";
 import { useProject } from "../providers/project-provider";
 import { useEditorActions } from "../providers/editor-actions-provider";
+import { listen } from "@tauri-apps/api/event";
 
 const appWindow = getCurrentWindow();
 const windowTitle = appWindow.title();
@@ -49,6 +50,37 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   const handleSaveAs = useCallback(async () => {
     await invoke("save_file_as", { data: projectData });
   }, [projectData]);
+
+  useEffect(() => {
+    const saveAsUnlisten = listen("save-as-requested", async () => {
+      await handleSaveAs();
+    });
+
+    const cutUnlisten = listen("editor-cut", async () => {
+      cut();
+      console.log("cut event received");
+    });
+
+    const copyUnlisten = listen("editor-copy", async () => {
+      copy();
+    });
+
+    const pasteUnlisten = listen("editor-paste", async () => {
+      paste();
+    });
+
+    const selectAllUnlisten = listen("editor-select_all", async () => {
+      selectAll();
+    });
+
+    return () => {
+      saveAsUnlisten.then((f) => f());
+      cutUnlisten.then((f) => f());
+      copyUnlisten.then((f) => f());
+      pasteUnlisten.then((f) => f());
+      selectAllUnlisten.then((f) => f());
+    };
+  }, [handleSaveAs, cut, copy, paste, selectAll]);
 
   if (type() !== "windows") {
     return null;

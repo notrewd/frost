@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use tauri::{
     menu::{MenuBuilder, MenuItem, SubmenuBuilder},
-    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, Wry,
+    AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Wry,
 };
 use tauri_plugin_dialog::DialogExt;
 
@@ -220,6 +220,13 @@ pub fn run() {
                 .close_window()
                 .build()?;
 
+            let cut_node_item = MenuItem::with_id(app, "cut", "Cut Node", true, Some("CMD+X"))?;
+            let copy_node_item = MenuItem::with_id(app, "copy", "Copy Node", true, Some("CMD+C"))?;
+            let paste_node_item =
+                MenuItem::with_id(app, "paste", "Paste Node", true, Some("CMD+V"))?;
+            let select_all_nodes_item =
+                MenuItem::with_id(app, "select_all", "Select All Nodes", true, Some("CMD+A"))?;
+
             let edit_menu = SubmenuBuilder::new(app, "Edit")
                 .undo()
                 .redo()
@@ -228,6 +235,11 @@ pub fn run() {
                 .copy()
                 .paste()
                 .select_all()
+                .separator()
+                .item(&cut_node_item)
+                .item(&copy_node_item)
+                .item(&paste_node_item)
+                .item(&select_all_nodes_item)
                 .build()?;
 
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
@@ -254,6 +266,13 @@ pub fn run() {
                             println!("No file selected");
                         }
                     });
+                }
+                "save_as" => {
+                    app.emit("save-as-requested", ()).unwrap();
+                }
+                "cut" | "copy" | "paste" | "select_all" => {
+                    app.emit(format!("editor-{}", event.id().0).as_str(), ())
+                        .unwrap();
                 }
                 _ => {
                     println!("Unhandled menu item: {}", event.id().0);
