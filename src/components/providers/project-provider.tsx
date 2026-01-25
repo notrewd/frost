@@ -17,6 +17,12 @@ type ProjectContextValue = {
 
 type ProjectDetailsResult = [string | null, string | null, string | null];
 
+type ProjectOpenedEvent = {
+  name: string;
+  path: string;
+  data: string;
+};
+
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 const ProjectProvider = ({ children }: { children: ReactNode }) => {
@@ -41,13 +47,16 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
     fetchProjectDetails();
 
-    const unlisten = listen("project-opened", async (event) => {
-      const path = event.payload as string;
-      const name = path.split("/").pop()?.split(".")[0] || "";
+    const unlisten = listen<ProjectOpenedEvent>(
+      "project-opened",
+      async (event) => {
+        const { name, path, data } = event.payload;
 
-      setProjectName(name);
-      setProjectPath(path);
-    });
+        setProjectName(name);
+        setProjectPath(path);
+        setProjectData(data);
+      },
+    );
 
     return () => {
       unlisten.then((f) => f());

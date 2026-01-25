@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::{path::Path, sync::Mutex};
 
 use tauri::{
     menu::{MenuBuilder, MenuEvent, MenuItem, SubmenuBuilder},
@@ -20,6 +20,13 @@ struct MenuItems {
 struct ProjectDetails {
     name: Option<String>,
     path: Option<String>,
+}
+
+#[derive(serde::Serialize, Clone)]
+struct ProjectOpenedEvent {
+    name: String,
+    path: String,
+    data: String,
 }
 
 // for some reason, when creating a new window, the function needs to be async, otherwise the whole applications freezes up
@@ -168,8 +175,27 @@ fn open_project_file(app: AppHandle) {
     let file_path = app.dialog().file().blocking_pick_file();
 
     if let Some(path) = file_path {
-        let file_path_str = path.to_string();
-        let _ = app.emit("project-opened", file_path_str);
+        let path_str = path.to_string();
+        let path = Path::new(&path_str);
+        let exact_name = path.file_name().unwrap().to_string_lossy().to_string();
+        let parts = exact_name.split('.').collect::<Vec<&str>>();
+        let parts = parts[..parts.len() - 1].to_vec();
+
+        let name = if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join("."))
+        };
+
+        let data = std::fs::read_to_string(&path_str).unwrap_or_default();
+
+        let event = ProjectOpenedEvent {
+            name: name.unwrap().to_string(),
+            path: path_str,
+            data,
+        };
+
+        let _ = app.emit("project-opened", event);
     }
 }
 
