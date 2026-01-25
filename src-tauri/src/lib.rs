@@ -177,8 +177,13 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-async fn open_project_file(app: AppHandle) -> tauri::Result<()> {
-    let file_path = app.dialog().file().blocking_pick_file();
+async fn open_project_file(app: AppHandle) -> Result<(), String> {
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Frost Files", &["fr"])
+        .set_title("Open Project")
+        .blocking_pick_file();
 
     if let Some(path) = file_path {
         let path_str = path.to_string();
@@ -200,10 +205,14 @@ async fn open_project_file(app: AppHandle) -> tauri::Result<()> {
         let state = app_handle.state::<Mutex<AppState>>().clone();
         let app_handle = app.clone();
 
-        open_editor_window(app_handle, state, name, path_str, Some(data)).await?;
-    }
+        open_editor_window(app_handle, state, name, path_str, Some(data))
+            .await
+            .unwrap();
 
-    Ok(())
+        Ok(())
+    } else {
+        Err("No file selected".to_string())
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

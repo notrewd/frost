@@ -29,9 +29,15 @@ const WelcomeRoute = () => {
   const handleOpenProject = useCallback(async () => {
     try {
       await invoke("open_project_file");
-      await invoke("close_window", { label: "welcome" });
     } catch (error) {
       console.error("Failed to open project file:", error);
+      return;
+    }
+
+    try {
+      await invoke("close_window", { label: "welcome" });
+    } catch (error) {
+      console.error("Failed to close welcome window:", error);
     }
   }, []);
 
