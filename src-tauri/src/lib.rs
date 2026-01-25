@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use tauri::{
-    menu::{MenuBuilder, MenuItem, SubmenuBuilder},
+    menu::{MenuBuilder, MenuEvent, MenuItem, SubmenuBuilder},
     AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Wry,
 };
 use tauri_plugin_dialog::DialogExt;
@@ -72,6 +72,7 @@ async fn open_editor_window(
     state: tauri::State<'_, Mutex<AppState>>,
     project_name: String,
     project_path: String,
+    project_data: Option<String>,
 ) -> tauri::Result<()> {
     let mut state = state.lock().unwrap();
 
@@ -102,6 +103,10 @@ async fn open_editor_window(
         Some(window) => {
             window.set_focus()?;
         }
+    }
+
+    if let Some(data) = project_data {
+        app.emit_to("editor", "load-project-data", data)?;
     }
 
     Ok(())
@@ -157,6 +162,15 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
         });
 
     Ok(())
+}
+
+fn open_project_file(app: AppHandle) {
+    let file_path = app.dialog().file().blocking_pick_file();
+
+    if let Some(path) = file_path {
+        let file_path_str = path.to_string();
+        let _ = app.emit("project-opened", file_path_str);
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -250,32 +264,30 @@ pub fn run() {
 
             app.set_menu(menu)?;
 
-            app.on_menu_event(move |app: &AppHandle, event| match event.id().0.as_str() {
-                "new_project" => {
-                    let app_handle = app.clone();
-                    tauri::async_runtime::spawn(async move {
-                        let _ = open_new_project_window(app_handle).await;
-                    });
-                }
-                "open_project" => {
-                    app.dialog().file().pick_file(|file_path| {
-                        if let Some(path) = file_path {
-                            println!("Selected file: {:?}", path);
-                            // Here you can add logic to open the project file
-                        } else {
-                            println!("No file selected");
-                        }
-                    });
-                }
-                "save_as" => {
-                    app.emit("save-as-requested", ()).unwrap();
-                }
-                "cut" | "copy" | "paste" | "select_all" => {
-                    app.emit(format!("editor-{}", event.id().0).as_str(), ())
-                        .unwrap();
-                }
-                _ => {
-                    println!("Unhandled menu item: {}", event.id().0);
+            app.on_menu_event(move |app: &AppHandle, event: MenuEvent| {
+                match event.id().0.as_str() {
+                    "new_project" => {
+                        let app_handle = app.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let _ = open_new_project_window(app_handle).await;
+                        });
+                    }
+                    "open_project" => {
+                        let app_handle = app.clone();
+                        tauri::async_runtime::spawn(async move {
+                            open_project_file(app_handle);
+                        });
+                    }
+                    "save_as" => {
+                        app.emit("save-as-requested", ()).unwrap();
+                    }
+                    "cut" | "copy" | "paste" | "select_all" => {
+                        app.emit(format!("editor-{}", event.id().0).as_str(), ())
+                            .unwrap();
+                    }
+                    _ => {
+                        println!("Unhandled menu item: {}", event.id().0);
+                    }
                 }
             });
 

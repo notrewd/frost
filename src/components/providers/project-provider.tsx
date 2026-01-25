@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import {
   createContext,
   ReactNode,
@@ -39,6 +40,18 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchProjectDetails();
+
+    const unlisten = listen("project-opened", async (event) => {
+      const path = event.payload as string;
+      const name = path.split("/").pop()?.split(".")[0] || "";
+
+      setProjectName(name);
+      setProjectPath(path);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
   }, []);
 
   return (

@@ -26,10 +26,7 @@ import ObjectNode from "@/components/nodes/object-node";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
 import type { DragEventData } from "@neodrag/react";
 import type { LibraryPaletteItem } from "@/components/panels/library-panel";
-import {
-  ProjectProvider,
-  useProject,
-} from "@/components/providers/project-provider";
+import { useProject } from "@/components/providers/project-provider";
 import { useEditorActions } from "@/components/providers/editor-actions-provider";
 
 const nodeTypes = {
@@ -132,11 +129,41 @@ const initialNodes: Node<ObjectNodeData>[] = [
 const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 const EditorRoute = () => {
-  const { setProjectData } = useProject();
+  const { projectData, setProjectData } = useProject();
   const { setHandlers, setState } = useEditorActions();
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const data = useMemo(() => {
+    if (projectData) {
+      try {
+        return JSON.parse(projectData);
+      } catch (error) {
+        console.error("Failed to parse project data:", error);
+      }
+    }
+    return null;
+  }, [projectData]);
+
+  const [nodes, setNodes, onNodesChange] =
+    useNodesState<Node<ObjectNodeData>>(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
+
+  useEffect(() => {
+    if (data) {
+      if (Array.isArray(data.nodes)) {
+        setNodes(
+          data.nodes.map((node: any) => ({
+            ...node,
+            position: node.position || { x: 0, y: 0 },
+          })),
+        );
+      }
+
+      if (Array.isArray(data.edges)) {
+        setEdges(data.edges);
+      }
+    }
+  }, [data, setEdges, setNodes]);
+
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const clipboardRef = useRef<{
     nodes: Node<ObjectNodeData>[];
@@ -437,75 +464,69 @@ const EditorRoute = () => {
   );
 
   return (
-    <ProjectProvider>
-      <ResizablePanelGroup orientation="horizontal" className="text-sm">
-        <ResizablePanel
-          className="bg-secondary flex flex-col"
-          minSize={300}
-          defaultSize={300}
-        >
-          <PanelBar>Library</PanelBar>
-          <div className="flex flex-col flex-1 px-4 py-3">
-            <LibraryPanel onItemDropped={handleLibraryItemDropped} />
-          </div>
-        </ResizablePanel>
-        <ResizablePanel className="flex flex-col" minSize={300}>
-          <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
-            <ReactFlow
-              className="frost-editor-flow"
-              nodes={nodes}
-              edges={edges}
-              colorMode="dark"
-              nodeTypes={nodeTypes}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onInit={(instance) => setReactFlowInstance(instance)}
-              proOptions={{
-                hideAttribution: true,
-              }}
-              fitView
-              zoomOnScroll
-              selectionOnDrag
-              panOnDrag={[1, 2]}
-            >
-              <MiniMap />
-              <Background />
-              <Controls />
-            </ReactFlow>
-          </div>
-        </ResizablePanel>
-        <ResizablePanel
-          className="bg-secondary"
-          minSize={300}
-          defaultSize={300}
-        >
-          <ResizablePanelGroup orientation="vertical">
-            <ResizablePanel
-              className="flex flex-col"
-              minSize={200}
-              defaultSize={150}
-            >
-              <PanelBar>Project</PanelBar>
-              <div className="flex flex-col h-full pl-4 py-2 pb-7">
-                <ProjectPanel initialData={treeData} onDelete={handleDelete} />
-              </div>
-            </ResizablePanel>
-            <ResizableHandle className="bg-muted-foreground/25" />
-            <ResizablePanel
-              className="flex flex-col"
-              minSize={200}
-              defaultSize={200}
-            >
-              <PanelBar>Properties</PanelBar>
-              <div className="flex flex-col flex-1 px-4 py-2">
-                <PropertiesPanel />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </ProjectProvider>
+    <ResizablePanelGroup orientation="horizontal" className="text-sm">
+      <ResizablePanel
+        className="bg-secondary flex flex-col"
+        minSize={300}
+        defaultSize={300}
+      >
+        <PanelBar>Library</PanelBar>
+        <div className="flex flex-col flex-1 px-4 py-3">
+          <LibraryPanel onItemDropped={handleLibraryItemDropped} />
+        </div>
+      </ResizablePanel>
+      <ResizablePanel className="flex flex-col" minSize={300}>
+        <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
+          <ReactFlow
+            className="frost-editor-flow"
+            nodes={nodes}
+            edges={edges}
+            colorMode="dark"
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onInit={(instance) => setReactFlowInstance(instance)}
+            proOptions={{
+              hideAttribution: true,
+            }}
+            fitView
+            zoomOnScroll
+            selectionOnDrag
+            panOnDrag={[1, 2]}
+          >
+            <MiniMap />
+            <Background />
+            <Controls />
+          </ReactFlow>
+        </div>
+      </ResizablePanel>
+      <ResizablePanel className="bg-secondary" minSize={300} defaultSize={300}>
+        <ResizablePanelGroup orientation="vertical">
+          <ResizablePanel
+            className="flex flex-col"
+            minSize={200}
+            defaultSize={150}
+          >
+            <PanelBar>Project</PanelBar>
+            <div className="flex flex-col h-full pl-4 py-2 pb-7">
+              <ProjectPanel initialData={treeData} onDelete={handleDelete} />
+            </div>
+          </ResizablePanel>
+          <ResizableHandle className="bg-muted-foreground/25" />
+          <ResizablePanel
+            className="flex flex-col"
+            minSize={200}
+            defaultSize={200}
+          >
+            <PanelBar>Properties</PanelBar>
+            <div className="flex flex-col flex-1 px-4 py-2">
+              <PropertiesPanel />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 };
 

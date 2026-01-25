@@ -2,7 +2,10 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the default windows",
-  "windows": ["welcome", "editor"],
+  "windows": [
+    "welcome",
+    "editor"
+  ],
   "permissions": [
     "core:default",
     "opener:default",
