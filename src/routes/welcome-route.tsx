@@ -26,6 +26,15 @@ const WelcomeRoute = () => {
     }
   }, []);
 
+  const handleOpenProject = useCallback(async () => {
+    try {
+      await invoke("open_project_file");
+      await invoke("close_window", { label: "welcome" });
+    } catch (error) {
+      console.error("Failed to open project file:", error);
+    }
+  }, []);
+
   return (
     <>
       <Titlebar variant="no-title" />
@@ -48,7 +57,7 @@ const WelcomeRoute = () => {
                 <CirclePlus />
                 Create New Project
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleOpenProject}>
                 <FolderOpen />
                 Open Existing Project
               </Button>

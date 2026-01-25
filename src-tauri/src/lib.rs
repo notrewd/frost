@@ -83,8 +83,8 @@ async fn open_editor_window(
 ) -> tauri::Result<()> {
     let mut state = state.lock().unwrap();
 
-    state.project_details.name = Some(project_name);
-    state.project_details.path = Some(project_path);
+    state.project_details.name = Some(project_name.clone());
+    state.project_details.path = Some(project_path.clone());
 
     match app.webview_windows().get("editor") {
         None => {
@@ -108,13 +108,18 @@ async fn open_editor_window(
             state.menu_items.save_as.set_enabled(true)?;
         }
         Some(window) => {
+            window.set_title(&format!("{} – Frost Editor", project_name))?;
             window.set_focus()?;
         }
     }
 
-    if let Some(data) = project_data {
-        app.emit_to("editor", "load-project-data", data)?;
-    }
+    let event = ProjectOpenedEvent {
+        name: state.project_details.name.clone().unwrap_or_default(),
+        path: state.project_details.path.clone().unwrap_or_default(),
+        data: project_data.clone().unwrap_or_default(),
+    };
+
+    app.emit_to("editor", "project-opened", event)?;
 
     Ok(())
 }
@@ -171,7 +176,8 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
     Ok(())
 }
 
-fn open_project_file(app: AppHandle) {
+#[tauri::command]
+async fn open_project_file(app: AppHandle) -> tauri::Result<()> {
     let file_path = app.dialog().file().blocking_pick_file();
 
     if let Some(path) = file_path {
@@ -187,16 +193,17 @@ fn open_project_file(app: AppHandle) {
             Some(parts.join("."))
         };
 
+        let name = name.unwrap_or(String::from("Untitled")).to_string();
         let data = std::fs::read_to_string(&path_str).unwrap_or_default();
 
-        let event = ProjectOpenedEvent {
-            name: name.unwrap().to_string(),
-            path: path_str,
-            data,
-        };
+        let app_handle = app.clone();
+        let state = app_handle.state::<Mutex<AppState>>().clone();
+        let app_handle = app.clone();
 
-        let _ = app.emit("project-opened", event);
+        open_editor_window(app_handle, state, name, path_str, Some(data)).await?;
     }
+
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -211,7 +218,8 @@ pub fn run() {
             open_welcome_window,
             close_window,
             request_project_details,
-            save_file_as
+            save_file_as,
+            open_project_file
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -301,7 +309,7 @@ pub fn run() {
                     "open_project" => {
                         let app_handle = app.clone();
                         tauri::async_runtime::spawn(async move {
-                            open_project_file(app_handle);
+                            let _ = open_project_file(app_handle).await;
                         });
                     }
                     "save_as" => {
