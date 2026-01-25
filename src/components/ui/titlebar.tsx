@@ -47,8 +47,28 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     await appWindow.close();
   }, []);
 
+  const handleNewProject = useCallback(async () => {
+    try {
+      await invoke("open_new_project_window");
+    } catch (error) {
+      console.error("Failed to open new project window:", error);
+    }
+  }, []);
+
+  const handleOpenProject = useCallback(async () => {
+    try {
+      await invoke("open_project_file");
+    } catch (error) {
+      console.error("Failed to open project file:", error);
+    }
+  }, []);
+
   const handleSaveAs = useCallback(async () => {
-    await invoke("save_file_as", { data: projectData });
+    try {
+      await invoke("save_file_as", { data: projectData });
+    } catch (error) {
+      console.error("Failed to save file as:", error);
+    }
   }, [projectData]);
 
   useEffect(() => {
@@ -108,11 +128,11 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
               <MenubarMenu>
                 <MenubarTrigger>File</MenubarTrigger>
                 <MenubarContent>
-                  <MenubarItem>
+                  <MenubarItem onClick={handleNewProject}>
                     New Project <MenubarShortcut>Ctrl+N</MenubarShortcut>
                   </MenubarItem>
                   <MenubarSeparator />
-                  <MenubarItem>
+                  <MenubarItem onClick={handleOpenProject}>
                     Open Project... <MenubarShortcut>Ctrl+O</MenubarShortcut>
                   </MenubarItem>
                   <MenubarSeparator />
