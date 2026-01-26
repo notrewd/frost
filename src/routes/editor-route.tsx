@@ -163,6 +163,13 @@ const EditorRoute = () => {
       "project-opened",
       async (event) => {
         const { data } = event.payload;
+
+        if (!data) {
+          setNodes([]);
+          setEdges([]);
+          return;
+        }
+
         try {
           const flowData = JSON.parse(data);
           if (!flowData) return;
