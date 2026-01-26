@@ -28,7 +28,7 @@ struct ProjectDetails {
 struct ProjectOpenedEvent {
     name: String,
     path: String,
-    data: String,
+    data: Option<String>,
 }
 
 // for some reason, when creating a new window, the function needs to be async, otherwise the whole applications freezes up
@@ -118,7 +118,7 @@ async fn open_editor_window(
     let event = ProjectOpenedEvent {
         name: state.project_details.name.clone().unwrap_or_default(),
         path: state.project_details.path.clone().unwrap_or_default(),
-        data: project_data.clone().unwrap_or_default(),
+        data: project_data,
     };
 
     app.emit_to("editor", "project-opened", event)?;
