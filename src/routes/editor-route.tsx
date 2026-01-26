@@ -201,7 +201,19 @@ const EditorRoute = () => {
   );
 
   useEffect(() => {
-    const unlisten = listen("save-as-requested", async () => {
+    const saveUnlisten = listen("save-requested", async () => {
+      if (!reactFlowInstance) return;
+      const flowData = reactFlowInstance.toObject();
+      const serializedData = JSON.stringify(flowData, null, 2);
+      try {
+        await invoke("save_file", { data: serializedData });
+        setProjectEdited(false);
+      } catch (error) {
+        console.error("Failed to save file:", error);
+      }
+    });
+
+    const saveAsUnlisten = listen("save-as-requested", async () => {
       if (!reactFlowInstance) return;
       const flowData = reactFlowInstance.toObject();
       const serializedData = JSON.stringify(flowData, null, 2);
@@ -215,7 +227,8 @@ const EditorRoute = () => {
     });
 
     return () => {
-      unlisten.then((f) => f());
+      saveUnlisten.then((f) => f());
+      saveAsUnlisten.then((f) => f());
     };
   }, [reactFlowInstance]);
 

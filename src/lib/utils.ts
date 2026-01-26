@@ -11,7 +11,7 @@ export function convertProjectNameToFileName(name: string) {
   }
 
   if (!name.trim().includes(" ")) {
-    return name.endsWith(".frost") ? name.trim() : `${name.trim()}.frost`;
+    return name.endsWith(".fr") ? name.trim() : `${name.trim()}.fr`;
   }
 
   return name
@@ -19,5 +19,5 @@ export function convertProjectNameToFileName(name: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .concat(".frost");
+    .concat(".fr");
 }

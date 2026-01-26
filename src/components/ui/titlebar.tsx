@@ -77,6 +77,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     }
   }, []);
 
+  const handleSave = useCallback(async () => {
+    emit("save-requested");
+  }, []);
+
   const handleSaveAs = useCallback(async () => {
     emit("save-as-requested");
   }, []);
@@ -144,7 +148,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     Open Project... <MenubarShortcut>Ctrl+O</MenubarShortcut>
                   </MenubarItem>
                   <MenubarSeparator />
-                  <MenubarItem>
+                  <MenubarItem onClick={handleSave}>
                     Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
                   </MenubarItem>
                   <MenubarItem onClick={handleSaveAs}>

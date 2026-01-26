@@ -165,6 +165,25 @@ async fn request_project_data(
 }
 
 #[tauri::command]
+async fn save_file(state: tauri::State<'_, Mutex<AppState>>, data: String) -> tauri::Result<()> {
+    let state = state.lock().unwrap();
+    let path = state.project_details.path.clone();
+
+    if let Some(path) = path {
+        match std::fs::write(&path, &data) {
+            Ok(_) => {
+                println!("File saved to {:?}", path);
+            }
+            Err(e) => {
+                println!("Failed to save file: {}", e);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
     let file_path = app
         .dialog()
@@ -253,6 +272,7 @@ pub fn run() {
             close_window,
             request_project_details,
             request_project_data,
+            save_file,
             save_file_as,
             open_project_file
         ])
@@ -346,6 +366,9 @@ pub fn run() {
                         tauri::async_runtime::spawn(async move {
                             let _ = open_project_file(app_handle).await;
                         });
+                    }
+                    "save" => {
+                        app.emit("save-requested", ()).unwrap();
                     }
                     "save_as" => {
                         app.emit("save-as-requested", ()).unwrap();
