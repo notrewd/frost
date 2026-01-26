@@ -141,6 +141,22 @@ const EditorRoute = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   useEffect(() => {
+    const fetchProjectData = async () => {
+      try {
+        const data = await invoke<string>("request_project_data");
+        if (!data) return;
+
+        const flowData = JSON.parse(data);
+        if (!flowData) return;
+        setNodes(flowData.nodes || []);
+        setEdges(flowData.edges || []);
+      } catch (error) {
+        console.error("Failed to fetch project data:", error);
+      }
+    };
+
+    fetchProjectData();
+
     const unlisten = listen<ProjectOpenedEvent>(
       "project-opened",
       async (event) => {

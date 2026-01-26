@@ -146,6 +146,23 @@ async fn request_project_details(
 }
 
 #[tauri::command]
+async fn request_project_data(
+    state: tauri::State<'_, Mutex<AppState>>,
+) -> tauri::Result<Option<String>> {
+    let state = state.lock().unwrap();
+    let path = state.project_details.path.clone();
+
+    if let Some(path) = path {
+        match std::fs::read_to_string(&path) {
+            Ok(data) => Ok(Some(data)),
+            Err(_) => Ok(None),
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+#[tauri::command]
 async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
     app.dialog()
         .file()
@@ -227,6 +244,7 @@ pub fn run() {
             open_welcome_window,
             close_window,
             request_project_details,
+            request_project_data,
             save_file_as,
             open_project_file
         ])
