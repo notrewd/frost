@@ -86,6 +86,54 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   }, []);
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isModifier = event.ctrlKey || event.metaKey;
+
+      if (!isModifier) {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      const isEditableTarget =
+        !!target &&
+        (target.isContentEditable ||
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA");
+
+      if (isEditableTarget) {
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case "n":
+          event.preventDefault();
+          handleNewProject();
+          break;
+        case "o":
+          event.preventDefault();
+          handleOpenProject();
+          break;
+        case "s":
+          event.preventDefault();
+          if (event.shiftKey) {
+            handleSaveAs();
+          } else {
+            handleSave();
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleNewProject, handleOpenProject, handleSave, handleSaveAs]);
+
+  useEffect(() => {
     const cutUnlisten = listen("editor-cut", async () => {
       cut();
       console.log("cut event received");
