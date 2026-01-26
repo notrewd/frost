@@ -15,12 +15,11 @@ type ProjectContextValue = {
   setProjectData: (data: string) => void;
 };
 
-type ProjectDetailsResult = [string | null, string | null, string | null];
+type ProjectDetailsResult = [string | null, string | null];
 
 type ProjectOpenedEvent = {
   name: string;
   path: string;
-  data: string;
 };
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
@@ -33,13 +32,12 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchProjectDetails = async () => {
       try {
-        const [name, path, data] = await invoke<ProjectDetailsResult>(
+        const [name, path] = await invoke<ProjectDetailsResult>(
           "request_project_details",
         );
 
         setProjectName(name ?? "");
         setProjectPath(path ?? "");
-        setProjectData(data ?? "");
       } catch (error) {
         console.error("Failed to fetch project details:", error);
       }
@@ -50,11 +48,10 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
     const unlisten = listen<ProjectOpenedEvent>(
       "project-opened",
       async (event) => {
-        const { name, path, data } = event.payload;
+        const { name, path } = event.payload;
 
         setProjectName(name);
         setProjectPath(path);
-        setProjectData(data);
       },
     );
 

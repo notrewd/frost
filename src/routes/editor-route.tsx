@@ -26,11 +26,18 @@ import ObjectNode from "@/components/nodes/object-node";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
 import type { DragEventData } from "@neodrag/react";
 import type { LibraryPaletteItem } from "@/components/panels/library-panel";
-import { useProject } from "@/components/providers/project-provider";
 import { useEditorActions } from "@/components/providers/editor-actions-provider";
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 
 const nodeTypes = {
   object: ObjectNode,
+};
+
+type ProjectOpenedEvent = {
+  name: string;
+  path: string;
+  data: string;
 };
 
 const initialNodes: Node<ObjectNodeData>[] = [
@@ -126,43 +133,34 @@ const initialNodes: Node<ObjectNodeData>[] = [
   },
 ];
 
-const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }];
-
 const EditorRoute = () => {
-  const { projectData, setProjectData } = useProject();
   const { setHandlers, setState } = useEditorActions();
-
-  const data = useMemo(() => {
-    if (projectData) {
-      try {
-        return JSON.parse(projectData);
-      } catch (error) {
-        console.error("Failed to parse project data:", error);
-      }
-    }
-    return null;
-  }, [projectData]);
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<Node<ObjectNodeData>>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   useEffect(() => {
-    if (data) {
-      if (Array.isArray(data.nodes)) {
-        setNodes(
-          data.nodes.map((node: any) => ({
-            ...node,
-            position: node.position || { x: 0, y: 0 },
-          })),
-        );
-      }
+    const unlisten = listen<ProjectOpenedEvent>(
+      "project-opened",
+      async (event) => {
+        const { data } = event.payload;
+        try {
+          const flowData = JSON.parse(data);
+          if (!flowData) return;
 
-      if (Array.isArray(data.edges)) {
-        setEdges(data.edges);
-      }
-    }
-  }, [data, setEdges, setNodes]);
+          setNodes(flowData.nodes || []);
+          setEdges(flowData.edges || []);
+        } catch (error) {
+          console.error("Failed to load project data:", error);
+        }
+      },
+    );
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
 
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const clipboardRef = useRef<{
@@ -181,12 +179,22 @@ const EditorRoute = () => {
   );
 
   useEffect(() => {
-    if (!reactFlowInstance) return;
+    const unlisten = listen("save-as-requested", async () => {
+      if (!reactFlowInstance) return;
+      const flowData = reactFlowInstance.toObject();
+      const serializedData = JSON.stringify(flowData, null, 2);
 
-    const flowData = reactFlowInstance.toObject();
-    const serializedData = JSON.stringify(flowData, null, 2);
-    setProjectData(serializedData);
-  }, [reactFlowInstance, setProjectData, nodes, edges]);
+      try {
+        await invoke("save_file_as", { data: serializedData });
+      } catch (error) {
+        console.error("Failed to save file as:", error);
+      }
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [reactFlowInstance]);
 
   const cloneData = useCallback(<T,>(value: T): T => {
     if (typeof structuredClone === "function") {

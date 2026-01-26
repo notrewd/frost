@@ -1,6 +1,6 @@
 import { type } from "@tauri-apps/plugin-os";
 import FrostIcon from "@/assets/graphics/frost.svg";
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "@/components/ui/button.tsx";
 import { Minus, Square, X } from "lucide-react";
@@ -15,25 +15,36 @@ import {
 } from "./menubar";
 import { Separator } from "./separator";
 import { invoke } from "@tauri-apps/api/core";
-import { useProject } from "../providers/project-provider";
 import { useEditorActions } from "../providers/editor-actions-provider";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
+import { ProjectOpenedEvent } from "@/types/events";
 
 const appWindow = getCurrentWindow();
-const windowTitle = appWindow.title();
 
 interface TitlebarProps {
   variant?: "default" | "no-title" | "dialog";
 }
 
 const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
-  let projectData = "";
+  const [title, setTitle] = useState("Frost Editor");
   const { cut, copy, paste, selectAll, state } = useEditorActions();
 
-  if (variant === "default") {
-    const { projectData: pdata } = useProject();
-    projectData = pdata;
-  }
+  useEffect(() => {
+    const fetchWindowTitle = async () => {
+      const currentTitle = await appWindow.title();
+      setTitle(currentTitle);
+    };
+
+    fetchWindowTitle();
+
+    const unlisten = listen<ProjectOpenedEvent>("project-opened", (event) => {
+      setTitle(`${event.payload.name} – Frost Editor`);
+    });
+
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, []);
 
   const handleMinimize = useCallback(async () => {
     await appWindow.minimize();
@@ -64,18 +75,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   }, []);
 
   const handleSaveAs = useCallback(async () => {
-    try {
-      await invoke("save_file_as", { data: projectData });
-    } catch (error) {
-      console.error("Failed to save file as:", error);
-    }
-  }, [projectData]);
+    emit("save-as-requested");
+  }, []);
 
   useEffect(() => {
-    const saveAsUnlisten = listen("save-as-requested", async () => {
-      await handleSaveAs();
-    });
-
     const cutUnlisten = listen("editor-cut", async () => {
       cut();
       console.log("cut event received");
@@ -94,13 +97,12 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     });
 
     return () => {
-      saveAsUnlisten.then((f) => f());
       cutUnlisten.then((f) => f());
       copyUnlisten.then((f) => f());
       pasteUnlisten.then((f) => f());
       selectAllUnlisten.then((f) => f());
     };
-  }, [handleSaveAs, cut, copy, paste, selectAll]);
+  }, [cut, copy, paste, selectAll]);
 
   if (type() !== "windows") {
     return null;
@@ -115,9 +117,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
         {(variant === "default" || variant === "dialog") && (
           <div className="flex items-center gap-2 pointer-events-none">
             <img src={FrostIcon} alt="Application Icon" className="size-4" />
-            <span className="text-sm font-medium text-nowrap">
-              {windowTitle}
-            </span>
+            <span className="text-sm font-medium text-nowrap">{title}</span>
           </div>
         )}
 
