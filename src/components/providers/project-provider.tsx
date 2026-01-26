@@ -12,7 +12,9 @@ type ProjectContextValue = {
   projectName: string;
   projectPath: string;
   projectData: string;
+  projectEdited: boolean;
   setProjectData: (data: string) => void;
+  setProjectEdited: (edited: boolean) => void;
 };
 
 type ProjectDetailsResult = [string | null, string | null];
@@ -28,6 +30,7 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const [projectName, setProjectName] = useState("");
   const [projectPath, setProjectPath] = useState("");
   const [projectData, setProjectData] = useState("");
+  const [projectEdited, setProjectEdited] = useState(false);
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -62,7 +65,14 @@ const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <ProjectContext.Provider
-      value={{ projectName, projectPath, projectData, setProjectData }}
+      value={{
+        projectName,
+        projectPath,
+        projectData,
+        setProjectData,
+        projectEdited,
+        setProjectEdited,
+      }}
     >
       {children}
     </ProjectContext.Provider>

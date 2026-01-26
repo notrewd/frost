@@ -1,10 +1,12 @@
-use std::{path::Path, sync::Mutex};
+use std::sync::Mutex;
 
 use tauri::{
     menu::{MenuBuilder, MenuEvent, MenuItem, SubmenuBuilder},
     AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Wry,
 };
 use tauri_plugin_dialog::DialogExt;
+
+mod util;
 
 struct AppState {
     project_details: ProjectDetails,
@@ -164,31 +166,48 @@ async fn request_project_data(
 
 #[tauri::command]
 async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
-    app.dialog()
+    let file_path = app
+        .dialog()
         .file()
         .set_file_name("untitled.fr")
         .set_title("Save Project As")
         .add_filter("Frost Files", &["fr"])
-        .save_file(move |file| {
-            if let Some(path) = file {
-                let file_path = path.to_string();
+        .blocking_save_file();
 
-                match std::fs::write(&file_path, &data) {
-                    Ok(_) => {
-                        println!("File saved to {:?}", path);
-                    }
-                    Err(e) => {
-                        println!("Failed to save file: {}", e);
-                        let _ = app
-                            .dialog()
-                            .message(&format!("Failed to save file: {}", e))
-                            .title("Error")
-                            .kind(tauri_plugin_dialog::MessageDialogKind::Error)
-                            .show(|_| {});
-                    }
-                }
+    if let Some(path) = file_path {
+        let file_path = path.to_string();
+
+        match std::fs::write(&file_path, &data) {
+            Ok(_) => {
+                println!("File saved to {:?}", path);
+
+                let project_data = util::get_project_data_from_path(&file_path)?;
+
+                let app_handle = app.clone();
+                let state = app_handle.state::<Mutex<AppState>>().clone();
+                let app_handle = app.clone();
+
+                open_editor_window(
+                    app_handle,
+                    state,
+                    project_data.name,
+                    project_data.path,
+                    Some(project_data.content),
+                )
+                .await
+                .unwrap();
             }
-        });
+            Err(e) => {
+                println!("Failed to save file: {}", e);
+                let _ = app
+                    .dialog()
+                    .message(&format!("Failed to save file: {}", e))
+                    .title("Error")
+                    .kind(tauri_plugin_dialog::MessageDialogKind::Error)
+                    .show(|_| {});
+            }
+        }
+    }
 
     Ok(())
 }
@@ -204,25 +223,14 @@ async fn open_project_file(app: AppHandle) -> Result<(), String> {
 
     if let Some(path) = file_path {
         let path_str = path.to_string();
-        let path = Path::new(&path_str);
-        let exact_name = path.file_name().unwrap().to_string_lossy().to_string();
-        let parts = exact_name.split('.').collect::<Vec<&str>>();
-        let parts = parts[..parts.len() - 1].to_vec();
-
-        let name = if parts.is_empty() {
-            None
-        } else {
-            Some(parts.join("."))
-        };
-
-        let name = name.unwrap_or(String::from("Untitled")).to_string();
-        let data = std::fs::read_to_string(&path_str).unwrap_or_default();
+        let data = util::get_project_data_from_path(&path_str)
+            .map_err(|e| format!("Failed to read project file: {}", e))?;
 
         let app_handle = app.clone();
         let state = app_handle.state::<Mutex<AppState>>().clone();
         let app_handle = app.clone();
 
-        open_editor_window(app_handle, state, name, path_str, Some(data))
+        open_editor_window(app_handle, state, data.name, data.path, Some(data.content))
             .await
             .unwrap();
 

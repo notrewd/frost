@@ -8,24 +8,27 @@ import NewProjectRoute from "@/routes/new-project-route.tsx";
 import DialogLayout from "@/layouts/dialog-layout.tsx";
 import MainLayout from "./layouts/main-layout.tsx";
 import EditorRoute from "./routes/editor-route.tsx";
+import { ProjectProvider } from "./components/providers/project-provider.tsx";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <EditorActionsProvider>
-        <div className="h-dvh flex flex-col font-manrope">
-          <BrowserRouter>
-            <Routes>
-              <Route index element={<WelcomeRoute />} />
-              <Route element={<DialogLayout />}>
-                <Route path="/new-project" element={<NewProjectRoute />} />
-              </Route>
-              <Route element={<MainLayout />}>
-                <Route path="/editor" element={<EditorRoute />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </div>
+        <ProjectProvider>
+          <div className="h-dvh flex flex-col font-manrope">
+            <BrowserRouter>
+              <Routes>
+                <Route index element={<WelcomeRoute />} />
+                <Route element={<DialogLayout />}>
+                  <Route path="/new-project" element={<NewProjectRoute />} />
+                </Route>
+                <Route element={<MainLayout />}>
+                  <Route path="/editor" element={<EditorRoute />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </div>
+        </ProjectProvider>
       </EditorActionsProvider>
     </ThemeProvider>
   </React.StrictMode>,

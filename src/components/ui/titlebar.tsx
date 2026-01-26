@@ -18,6 +18,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEditorActions } from "../providers/editor-actions-provider";
 import { emit, listen } from "@tauri-apps/api/event";
 import { ProjectOpenedEvent } from "@/types/events";
+import { useProject } from "../providers/project-provider";
 
 const appWindow = getCurrentWindow();
 
@@ -27,6 +28,8 @@ interface TitlebarProps {
 
 const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   const [title, setTitle] = useState("Frost Editor");
+
+  const { projectEdited } = useProject();
   const { cut, copy, paste, selectAll, state } = useEditorActions();
 
   useEffect(() => {
@@ -118,6 +121,11 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
           <div className="flex items-center gap-2 pointer-events-none">
             <img src={FrostIcon} alt="Application Icon" className="size-4" />
             <span className="text-sm font-medium text-nowrap">{title}</span>
+            {projectEdited && (
+              <span className="text-sm text-nowrap text-muted-foreground">
+                Unsaved
+              </span>
+            )}
           </div>
         )}
 

@@ -29,6 +29,7 @@ import type { LibraryPaletteItem } from "@/components/panels/library-panel";
 import { useEditorActions } from "@/components/providers/editor-actions-provider";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { useProject } from "@/components/providers/project-provider";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -134,6 +135,7 @@ const initialNodes: Node<ObjectNodeData>[] = [
 ];
 
 const EditorRoute = () => {
+  const { setProjectEdited } = useProject();
   const { setHandlers, setState } = useEditorActions();
 
   const [nodes, setNodes, onNodesChange] =
@@ -178,6 +180,10 @@ const EditorRoute = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setProjectEdited(true);
+  }, [nodes, edges]);
+
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const clipboardRef = useRef<{
     nodes: Node<ObjectNodeData>[];
@@ -202,6 +208,7 @@ const EditorRoute = () => {
 
       try {
         await invoke("save_file_as", { data: serializedData });
+        setProjectEdited(false);
       } catch (error) {
         console.error("Failed to save file as:", error);
       }
