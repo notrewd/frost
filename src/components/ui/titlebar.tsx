@@ -159,7 +159,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
                   </MenubarItem>
                   <MenubarItem>
-                    Redo <MenubarShortcut>Ctrl+Y</MenubarShortcut>
+                    Redo <MenubarShortcut>Ctrl+Shift+Z</MenubarShortcut>
                   </MenubarItem>
                   <MenubarSeparator />
                   <MenubarItem onClick={cut} disabled={!state.canCutCopy}>
