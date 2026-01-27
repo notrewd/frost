@@ -59,7 +59,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
 
   const handleClose = useCallback(async () => {
     await appWindow.close();
-  }, []);
+  }, [projectEdited]);
 
   const handleNewProject = useCallback(async () => {
     try {
@@ -164,103 +164,105 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   }
 
   return (
-    <div
-      data-tauri-drag-region
-      className="h-8 bg-secondary backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none w-full"
-    >
-      <div className="flex items-center gap-2">
-        {(variant === "default" || variant === "dialog") && (
-          <div className="flex items-center gap-2 pointer-events-none">
-            <img src={FrostIcon} alt="Application Icon" className="size-4" />
-            <span className="text-sm font-medium text-nowrap">{title}</span>
-            {projectEdited && (
-              <span className="text-sm text-nowrap text-muted-foreground">
-                Unsaved
-              </span>
-            )}
-          </div>
-        )}
+    <>
+      <div
+        data-tauri-drag-region
+        className="h-8 bg-secondary backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none w-full"
+      >
+        <div className="flex items-center gap-2">
+          {(variant === "default" || variant === "dialog") && (
+            <div className="flex items-center gap-2 pointer-events-none">
+              <img src={FrostIcon} alt="Application Icon" className="size-4" />
+              <span className="text-sm font-medium text-nowrap">{title}</span>
+              {projectEdited && (
+                <span className="text-sm text-nowrap text-muted-foreground">
+                  Unsaved
+                </span>
+              )}
+            </div>
+          )}
 
-        {variant === "default" && (
-          <>
-            <Separator orientation="vertical" className="min-h-4 ml-2" />
-            <Menubar className="px-0">
-              <MenubarMenu>
-                <MenubarTrigger>File</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem onClick={handleNewProject}>
-                    New Project <MenubarShortcut>Ctrl+N</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarItem onClick={handleOpenProject}>
-                    Open Project... <MenubarShortcut>Ctrl+O</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarItem onClick={handleSave}>
-                    Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarItem onClick={handleSaveAs}>
-                    Save As... <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-              <MenubarMenu>
-                <MenubarTrigger>Edit</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem>
-                    Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarItem>
-                    Redo <MenubarShortcut>Ctrl+Shift+Z</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarItem onClick={cut} disabled={!state.canCutCopy}>
-                    Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarItem onClick={copy} disabled={!state.canCutCopy}>
-                    Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarItem onClick={paste} disabled={!state.canPaste}>
-                    Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
-                  </MenubarItem>
-                  <MenubarSeparator />
-                  <MenubarItem onClick={selectAll}>
-                    Select All <MenubarShortcut>Ctrl+A</MenubarShortcut>
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-            </Menubar>
-          </>
-        )}
+          {variant === "default" && (
+            <>
+              <Separator orientation="vertical" className="min-h-4 ml-2" />
+              <Menubar className="px-0">
+                <MenubarMenu>
+                  <MenubarTrigger>File</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={handleNewProject}>
+                      New Project <MenubarShortcut>Ctrl+N</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={handleOpenProject}>
+                      Open Project... <MenubarShortcut>Ctrl+O</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={handleSave}>
+                      Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem onClick={handleSaveAs}>
+                      Save As... <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>Edit</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>
+                      Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem>
+                      Redo <MenubarShortcut>Ctrl+Shift+Z</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={cut} disabled={!state.canCutCopy}>
+                      Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem onClick={copy} disabled={!state.canCutCopy}>
+                      Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem onClick={paste} disabled={!state.canPaste}>
+                      Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={selectAll}>
+                      Select All <MenubarShortcut>Ctrl+A</MenubarShortcut>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {variant !== "dialog" && (
+            <>
+              <Button
+                className="size-6 hover:bg-muted-foreground!"
+                variant="ghost"
+                onClick={handleMinimize}
+              >
+                <Minus className="size-4" />
+              </Button>
+              <Button
+                className="size-6 hover:bg-muted-foreground!"
+                variant="ghost"
+                onClick={handleMaximize}
+              >
+                <Square className="size-3" />
+              </Button>
+            </>
+          )}
+          <Button
+            className="size-6 hover:bg-destructive!"
+            variant="ghost"
+            onClick={handleClose}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        {variant !== "dialog" && (
-          <>
-            <Button
-              className="size-6 hover:bg-muted-foreground!"
-              variant="ghost"
-              onClick={handleMinimize}
-            >
-              <Minus className="size-4" />
-            </Button>
-            <Button
-              className="size-6 hover:bg-muted-foreground!"
-              variant="ghost"
-              onClick={handleMaximize}
-            >
-              <Square className="size-3" />
-            </Button>
-          </>
-        )}
-        <Button
-          className="size-6 hover:bg-destructive!"
-          variant="ghost"
-          onClick={handleClose}
-        >
-          <X className="size-4" />
-        </Button>
-      </div>
-    </div>
+    </>
   );
 };
 

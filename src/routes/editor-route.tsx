@@ -30,6 +30,8 @@ import { useEditorActions } from "@/components/providers/editor-actions-provider
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useProject } from "@/components/providers/project-provider";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import UnsavedDialog from "@/components/ui/dialogs/unsaved-dialog";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -40,6 +42,8 @@ type ProjectOpenedEvent = {
   path: string;
   data: string;
 };
+
+const appWindow = getCurrentWindow();
 
 const initialNodes: Node<ObjectNodeData>[] = [
   {
@@ -135,8 +139,14 @@ const initialNodes: Node<ObjectNodeData>[] = [
 ];
 
 const EditorRoute = () => {
-  const { setProjectEdited } = useProject();
+  const { projectEdited, setProjectEdited } = useProject();
   const { setHandlers, setState } = useEditorActions();
+
+  const [allowClose, setAllowClose] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const allowCloseRef = useRef(allowClose);
+  const projectEditedRef = useRef(projectEdited);
+  const closeUnlistenRef = useRef<(() => void) | null>(null);
 
   const [nodes, setNodes, onNodesChange] =
     useNodesState<Node<ObjectNodeData>>(initialNodes);
@@ -410,6 +420,43 @@ const EditorRoute = () => {
   }, [copyNodes, cutNodes, pasteNodes, selectAllNodes, setHandlers]);
 
   useEffect(() => {
+    allowCloseRef.current = allowClose;
+  }, [allowClose]);
+
+  useEffect(() => {
+    projectEditedRef.current = projectEdited;
+  }, [projectEdited]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    appWindow
+      .onCloseRequested((event) => {
+        if (allowCloseRef.current) {
+          return;
+        }
+
+        if (projectEditedRef.current) {
+          event.preventDefault();
+          setShowCloseDialog(true);
+        }
+      })
+      .then((dispose) => {
+        if (cancelled) {
+          dispose();
+          return;
+        }
+        closeUnlistenRef.current = dispose;
+      });
+
+    return () => {
+      cancelled = true;
+      closeUnlistenRef.current?.();
+      closeUnlistenRef.current = null;
+    };
+  }, [setShowCloseDialog]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const isModifier = event.ctrlKey || event.metaKey;
 
@@ -514,70 +561,93 @@ const EditorRoute = () => {
     [reactFlowInstance, setNodes],
   );
 
+  const handleUnsaveConfirm = useCallback(async () => {
+    setShowCloseDialog(false);
+    allowCloseRef.current = true;
+    projectEditedRef.current = false;
+    closeUnlistenRef.current?.();
+    closeUnlistenRef.current = null;
+    setAllowClose(true);
+    setProjectEdited(false);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await appWindow.close();
+  }, [setAllowClose, setProjectEdited, setShowCloseDialog]);
+
   return (
-    <ResizablePanelGroup orientation="horizontal" className="text-sm">
-      <ResizablePanel
-        className="bg-secondary flex flex-col"
-        minSize={300}
-        defaultSize={300}
-      >
-        <PanelBar>Library</PanelBar>
-        <div className="flex flex-col flex-1 px-4 py-3">
-          <LibraryPanel onItemDropped={handleLibraryItemDropped} />
-        </div>
-      </ResizablePanel>
-      <ResizablePanel className="flex flex-col" minSize={300}>
-        <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
-          <ReactFlow
-            className="frost-editor-flow"
-            nodes={nodes}
-            edges={edges}
-            colorMode="dark"
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={(instance) => setReactFlowInstance(instance)}
-            proOptions={{
-              hideAttribution: true,
-            }}
-            fitView
-            zoomOnScroll
-            selectionOnDrag
-            panOnDrag={[1, 2]}
-          >
-            <MiniMap />
-            <Background />
-            <Controls />
-          </ReactFlow>
-        </div>
-      </ResizablePanel>
-      <ResizablePanel className="bg-secondary" minSize={300} defaultSize={300}>
-        <ResizablePanelGroup orientation="vertical">
-          <ResizablePanel
-            className="flex flex-col"
-            minSize={200}
-            defaultSize={150}
-          >
-            <PanelBar>Project</PanelBar>
-            <div className="flex flex-col h-full pl-4 py-2 pb-7">
-              <ProjectPanel initialData={treeData} onDelete={handleDelete} />
-            </div>
-          </ResizablePanel>
-          <ResizableHandle className="bg-muted-foreground/25" />
-          <ResizablePanel
-            className="flex flex-col"
-            minSize={200}
-            defaultSize={200}
-          >
-            <PanelBar>Properties</PanelBar>
-            <div className="flex flex-col flex-1 px-4 py-2">
-              <PropertiesPanel />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <>
+      <ResizablePanelGroup orientation="horizontal" className="text-sm">
+        <ResizablePanel
+          className="bg-secondary flex flex-col"
+          minSize={300}
+          defaultSize={300}
+        >
+          <PanelBar>Library</PanelBar>
+          <div className="flex flex-col flex-1 px-4 py-3">
+            <LibraryPanel onItemDropped={handleLibraryItemDropped} />
+          </div>
+        </ResizablePanel>
+        <ResizablePanel className="flex flex-col" minSize={300}>
+          <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
+            <ReactFlow
+              className="frost-editor-flow"
+              nodes={nodes}
+              edges={edges}
+              colorMode="dark"
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onInit={(instance) => setReactFlowInstance(instance)}
+              proOptions={{
+                hideAttribution: true,
+              }}
+              fitView
+              zoomOnScroll
+              selectionOnDrag
+              panOnDrag={[1, 2]}
+            >
+              <MiniMap />
+              <Background />
+              <Controls />
+            </ReactFlow>
+          </div>
+        </ResizablePanel>
+        <ResizablePanel
+          className="bg-secondary"
+          minSize={300}
+          defaultSize={300}
+        >
+          <ResizablePanelGroup orientation="vertical">
+            <ResizablePanel
+              className="flex flex-col"
+              minSize={200}
+              defaultSize={150}
+            >
+              <PanelBar>Project</PanelBar>
+              <div className="flex flex-col h-full pl-4 py-2 pb-7">
+                <ProjectPanel initialData={treeData} onDelete={handleDelete} />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle className="bg-muted-foreground/25" />
+            <ResizablePanel
+              className="flex flex-col"
+              minSize={200}
+              defaultSize={200}
+            >
+              <PanelBar>Properties</PanelBar>
+              <div className="flex flex-col flex-1 px-4 py-2">
+                <PropertiesPanel />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+      <UnsavedDialog
+        open={showCloseDialog}
+        setOpen={setShowCloseDialog}
+        onConfirm={handleUnsaveConfirm}
+      />
+    </>
   );
 };
 
