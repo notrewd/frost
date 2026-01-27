@@ -439,7 +439,13 @@ const EditorRoute = () => {
         if (projectEditedRef.current) {
           event.preventDefault();
           setShowCloseDialog(true);
+          return;
         }
+
+        event.preventDefault();
+        allowCloseRef.current = true;
+        setAllowClose(true);
+        appWindow.close();
       })
       .then((dispose) => {
         if (cancelled) {
@@ -454,7 +460,7 @@ const EditorRoute = () => {
       closeUnlistenRef.current?.();
       closeUnlistenRef.current = null;
     };
-  }, [setShowCloseDialog]);
+  }, [setAllowClose, setShowCloseDialog]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
