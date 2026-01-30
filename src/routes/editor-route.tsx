@@ -31,7 +31,7 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useProject } from "@/components/providers/project-provider";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import UnsavedDialog from "@/components/ui/dialogs/unsaved-dialog";
+import DiscardDialog from "@/components/ui/dialogs/discard-dialog";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -143,7 +143,8 @@ const EditorRoute = () => {
   const { setHandlers, setState } = useEditorActions();
 
   const [allowClose, setAllowClose] = useState(false);
-  const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+
   const allowCloseRef = useRef(allowClose);
   const projectEditedRef = useRef(projectEdited);
   const closeUnlistenRef = useRef<(() => void) | null>(null);
@@ -438,7 +439,7 @@ const EditorRoute = () => {
 
         if (projectEditedRef.current) {
           event.preventDefault();
-          setShowCloseDialog(true);
+          setShowDiscardDialog(true);
           return;
         }
 
@@ -460,7 +461,7 @@ const EditorRoute = () => {
       closeUnlistenRef.current?.();
       closeUnlistenRef.current = null;
     };
-  }, [setAllowClose, setShowCloseDialog]);
+  }, [setAllowClose, setShowDiscardDialog]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -567,8 +568,8 @@ const EditorRoute = () => {
     [reactFlowInstance, setNodes],
   );
 
-  const handleUnsaveConfirm = useCallback(async () => {
-    setShowCloseDialog(false);
+  const handleDiscardConfirm = useCallback(async () => {
+    setShowDiscardDialog(false);
     allowCloseRef.current = true;
     projectEditedRef.current = false;
     closeUnlistenRef.current?.();
@@ -577,7 +578,7 @@ const EditorRoute = () => {
     setProjectEdited(false);
     await new Promise((resolve) => setTimeout(resolve, 0));
     await appWindow.close();
-  }, [setAllowClose, setProjectEdited, setShowCloseDialog]);
+  }, [setAllowClose, setProjectEdited, setShowDiscardDialog]);
 
   return (
     <>
@@ -648,10 +649,10 @@ const EditorRoute = () => {
           </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
-      <UnsavedDialog
-        open={showCloseDialog}
-        setOpen={setShowCloseDialog}
-        onConfirm={handleUnsaveConfirm}
+      <DiscardDialog
+        open={showDiscardDialog}
+        onChange={setShowDiscardDialog}
+        onConfirm={handleDiscardConfirm}
       />
     </>
   );

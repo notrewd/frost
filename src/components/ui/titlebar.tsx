@@ -19,6 +19,7 @@ import { useEditorActions } from "../providers/editor-actions-provider";
 import { emit, listen } from "@tauri-apps/api/event";
 import { ProjectOpenedEvent } from "@/types/events";
 import { useProject } from "../providers/project-provider";
+import DiscardDialog from "./dialogs/discard-dialog";
 
 const appWindow = getCurrentWindow();
 
@@ -28,6 +29,11 @@ interface TitlebarProps {
 
 const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   const [title, setTitle] = useState("Frost Editor");
+
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+  const [onConfirmDiscard, setOnConfirmDiscard] = useState<() => void>(
+    () => {},
+  );
 
   const { projectEdited } = useProject();
   const { cut, copy, paste, selectAll, state } = useEditorActions();
@@ -61,7 +67,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     await appWindow.close();
   }, [projectEdited]);
 
-  const handleNewProject = useCallback(async () => {
+  const showNewProjectWindow = useCallback(async () => {
     try {
       await invoke("open_new_project_window");
     } catch (error) {
@@ -69,13 +75,39 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     }
   }, []);
 
-  const handleOpenProject = useCallback(async () => {
+  const showOpenProjectDialog = useCallback(async () => {
     try {
       await invoke("open_project_file");
     } catch (error) {
       console.error("Failed to open project file:", error);
     }
   }, []);
+
+  const handleNewProject = useCallback(async () => {
+    if (projectEdited) {
+      setOnConfirmDiscard(() => async () => {
+        await showNewProjectWindow();
+      });
+
+      setDiscardDialogOpen(true);
+      return;
+    }
+
+    await showNewProjectWindow();
+  }, [projectEdited, showNewProjectWindow]);
+
+  const handleOpenProject = useCallback(async () => {
+    if (projectEdited) {
+      setOnConfirmDiscard(() => async () => {
+        await showOpenProjectDialog();
+      });
+
+      setDiscardDialogOpen(true);
+      return;
+    }
+
+    await showOpenProjectDialog();
+  }, [projectEdited, showOpenProjectDialog]);
 
   const handleSave = useCallback(async () => {
     emit("save-requested");
@@ -86,6 +118,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   }, []);
 
   useEffect(() => {
+    if (type() !== "windows") {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       const isModifier = event.ctrlKey || event.metaKey;
 
@@ -134,6 +170,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
   }, [handleNewProject, handleOpenProject, handleSave, handleSaveAs]);
 
   useEffect(() => {
+    const newProjectUnlisten = listen("editor-new-project", async () => {
+      handleNewProject();
+    });
+
+    const openProjectUnlisten = listen("editor-open-project", async () => {
+      handleOpenProject();
+    });
+
     const cutUnlisten = listen("editor-cut", async () => {
       cut();
       console.log("cut event received");
@@ -152,6 +196,8 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     });
 
     return () => {
+      newProjectUnlisten.then((f) => f());
+      openProjectUnlisten.then((f) => f());
       cutUnlisten.then((f) => f());
       copyUnlisten.then((f) => f());
       pasteUnlisten.then((f) => f());
@@ -262,6 +308,11 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
           </Button>
         </div>
       </div>
+      <DiscardDialog
+        open={discardDialogOpen}
+        onChange={setDiscardDialogOpen}
+        onConfirm={onConfirmDiscard}
+      />
     </>
   );
 };

@@ -9,16 +9,16 @@ import {
 import { Button } from "../button";
 import { FC, useCallback } from "react";
 
-interface UnsavedDialogProps {
+interface DiscardDialogProps {
   open: boolean;
-  setOpen: (open: boolean) => void;
+  onChange: (open: boolean) => void;
   onCancel?: () => void;
   onConfirm?: () => void;
 }
 
-const UnsavedDialog: FC<UnsavedDialogProps> = ({
+const DiscardDialog: FC<DiscardDialogProps> = ({
   open,
-  setOpen,
+  onChange,
   onCancel,
   onConfirm,
 }) => {
@@ -27,25 +27,32 @@ const UnsavedDialog: FC<UnsavedDialogProps> = ({
       onCancel();
     }
 
-    setOpen(false);
-  }, [onCancel, setOpen]);
+    onChange(false);
+  }, [onCancel, onChange]);
+
+  const handleOnConfirm = useCallback(() => {
+    if (onConfirm) {
+      onConfirm();
+    }
+
+    onChange(false);
+  }, [onConfirm, onChange]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Unsaved changes</DialogTitle>
           <DialogDescription>
-            This project has unsaved changes. Do you want to discard them and
-            exit?
+            This project has unsaved changes. Do you want to discard them?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={handleOnCancel}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Discard and Exit
+          <Button variant="destructive" onClick={handleOnConfirm}>
+            Discard Changes
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -53,4 +60,4 @@ const UnsavedDialog: FC<UnsavedDialogProps> = ({
   );
 };
 
-export default UnsavedDialog;
+export default DiscardDialog;

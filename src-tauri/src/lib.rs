@@ -356,16 +356,10 @@ pub fn run() {
             app.on_menu_event(move |app: &AppHandle, event: MenuEvent| {
                 match event.id().0.as_str() {
                     "new_project" => {
-                        let app_handle = app.clone();
-                        tauri::async_runtime::spawn(async move {
-                            let _ = open_new_project_window(app_handle).await;
-                        });
+                        app.emit("editor-new-project", ()).unwrap();
                     }
                     "open_project" => {
-                        let app_handle = app.clone();
-                        tauri::async_runtime::spawn(async move {
-                            let _ = open_project_file(app_handle).await;
-                        });
+                        app.emit("editor-open-project", ()).unwrap();
                     }
                     "save" => {
                         app.emit("save-requested", ()).unwrap();
