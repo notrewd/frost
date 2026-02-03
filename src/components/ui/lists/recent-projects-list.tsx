@@ -10,7 +10,7 @@ import {
   EmptyDescription,
 } from "../empty";
 import { invoke } from "@tauri-apps/api/core";
-import { ScrollArea } from "../scroll-area";
+import { ScrollArea, ScrollBar } from "../scroll-area";
 
 interface RecentProjectsListProps {
   recentProjects: RecentProject[];
@@ -49,6 +49,7 @@ const RecentProjectsList: FC<RecentProjectsListProps> = ({
                 onRemove={handleRemoveProject}
               />
             ))}
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </>
       )}
