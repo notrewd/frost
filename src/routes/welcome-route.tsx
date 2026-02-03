@@ -1,12 +1,5 @@
 import { Button } from "@/components/ui/button.tsx";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty.tsx";
-import { CirclePlus, FolderOpen, FolderX } from "lucide-react";
+import { CirclePlus, FolderOpen } from "lucide-react";
 import Titlebar from "@/components/ui/titlebar.tsx";
 import FrostIcon from "@/assets/graphics/frost.svg";
 import {
@@ -14,10 +7,27 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable.tsx";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { RecentProject } from "@/types/app";
+import RecentProjectsList from "@/components/ui/lists/recent-projects-list";
 
 const WelcomeRoute = () => {
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
+
+  useEffect(() => {
+    const fetchRecentProjects = async () => {
+      try {
+        const projects: RecentProject[] = await invoke("get_recent_projects");
+        setRecentProjects(projects);
+      } catch (error) {
+        console.error("Failed to fetch recent projects:", error);
+      }
+    };
+
+    fetchRecentProjects();
+  }, []);
+
   const handleNewProject = useCallback(async () => {
     try {
       await invoke("open_new_project_window");
@@ -71,17 +81,10 @@ const WelcomeRoute = () => {
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel className="flex flex-col" minSize={300}>
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <FolderX />
-                </EmptyMedia>
-                <EmptyTitle>No recent projects found</EmptyTitle>
-                <EmptyDescription>
-                  Get started by creating a new project.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+            <RecentProjectsList
+              recentProjects={recentProjects}
+              setRecentProjects={setRecentProjects}
+            />
           </ResizablePanel>
         </ResizablePanelGroup>
       </main>

@@ -6,6 +6,8 @@ use tauri::{
 };
 use tauri_plugin_dialog::DialogExt;
 
+use crate::util::RecentProject;
+
 mod util;
 
 struct AppState {
@@ -167,9 +169,14 @@ async fn request_project_data(
 #[tauri::command]
 async fn save_file(state: tauri::State<'_, Mutex<AppState>>, data: String) -> tauri::Result<()> {
     let state = state.lock().unwrap();
+    let name = state
+        .project_details
+        .name
+        .clone()
+        .unwrap_or_else(|| "untitled".to_string());
     let path = state.project_details.path.clone();
 
-    if let Some(path) = path {
+    if let Some(path) = &path {
         match std::fs::write(&path, &data) {
             Ok(_) => {
                 println!("File saved to {:?}", path);
@@ -178,6 +185,8 @@ async fn save_file(state: tauri::State<'_, Mutex<AppState>>, data: String) -> ta
                 println!("Failed to save file: {}", e);
             }
         }
+
+        util::add_recent_project(RecentProject::new(name, path.clone()));
     }
 
     Ok(())
@@ -206,6 +215,11 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
                 let state = app_handle.state::<Mutex<AppState>>().clone();
                 let app_handle = app.clone();
 
+                util::add_recent_project(RecentProject::new(
+                    project_data.name.clone(),
+                    file_path.clone(),
+                ));
+
                 open_editor_window(
                     app_handle,
                     state,
@@ -232,6 +246,39 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+async fn open_project_path(app: AppHandle, path: String) -> Result<(), String> {
+    let data = util::get_project_data_from_path(&path);
+
+    if data.is_err() {
+        app.dialog()
+            .message(&format!(
+                "Failed to open project at path: {}\n\nError: {}",
+                path,
+                data.err().unwrap()
+            ))
+            .title("Error")
+            .kind(tauri_plugin_dialog::MessageDialogKind::Error)
+            .show(|_| {});
+
+        return Err("Failed to open project".to_string());
+    }
+
+    let data = data.unwrap();
+
+    let app_handle = app.clone();
+    let state = app_handle.state::<Mutex<AppState>>().clone();
+    let app_handle = app.clone();
+
+    util::add_recent_project(RecentProject::new(data.name.clone(), data.path.clone()));
+
+    open_editor_window(app_handle, state, data.name, data.path, Some(data.content))
+        .await
+        .unwrap();
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn open_project_file(app: AppHandle) -> Result<(), String> {
     let file_path = app
         .dialog()
@@ -241,22 +288,25 @@ async fn open_project_file(app: AppHandle) -> Result<(), String> {
         .blocking_pick_file();
 
     if let Some(path) = file_path {
-        let path_str = path.to_string();
-        let data = util::get_project_data_from_path(&path_str)
-            .map_err(|e| format!("Failed to read project file: {}", e))?;
-
-        let app_handle = app.clone();
-        let state = app_handle.state::<Mutex<AppState>>().clone();
-        let app_handle = app.clone();
-
-        open_editor_window(app_handle, state, data.name, data.path, Some(data.content))
-            .await
-            .unwrap();
-
-        Ok(())
+        open_project_path(app, path.to_string()).await
     } else {
         Err("No file selected".to_string())
     }
+}
+
+#[tauri::command]
+async fn get_recent_projects() -> Vec<util::RecentProject> {
+    util::get_recent_projects()
+}
+
+#[tauri::command]
+async fn clear_recent_projects() {
+    util::clear_recent_projects();
+}
+
+#[tauri::command]
+async fn remove_recent_project(path: String) {
+    util::remove_recent_project(&path);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -274,7 +324,11 @@ pub fn run() {
             request_project_data,
             save_file,
             save_file_as,
-            open_project_file
+            open_project_file,
+            open_project_path,
+            get_recent_projects,
+            clear_recent_projects,
+            remove_recent_project
         ])
         .setup(|app| {
             let handle = app.handle().clone();
