@@ -19,6 +19,10 @@ struct AppState {
 struct MenuItems {
     save: MenuItem<Wry>,
     save_as: MenuItem<Wry>,
+    cut_node: MenuItem<Wry>,
+    copy_node: MenuItem<Wry>,
+    paste_node: MenuItem<Wry>,
+    select_all_nodes: MenuItem<Wry>,
 }
 
 struct ProjectDetails {
@@ -309,6 +313,39 @@ async fn remove_recent_project(path: String) {
     util::remove_recent_project(&path);
 }
 
+#[tauri::command]
+async fn toggle_menu_item(
+    state: tauri::State<'_, Mutex<AppState>>,
+    item: &str,
+    enabled: bool,
+) -> tauri::Result<()> {
+    let state = state.lock().unwrap();
+
+    match item {
+        "save" => {
+            state.menu_items.save.set_enabled(enabled)?;
+        }
+        "save_as" => {
+            state.menu_items.save_as.set_enabled(enabled)?;
+        }
+        "cut_node" => {
+            state.menu_items.cut_node.set_enabled(enabled)?;
+        }
+        "copy_node" => {
+            state.menu_items.copy_node.set_enabled(enabled)?;
+        }
+        "paste_node" => {
+            state.menu_items.paste_node.set_enabled(enabled)?;
+        }
+        "select_all_nodes" => {
+            state.menu_items.select_all_nodes.set_enabled(enabled)?;
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -328,7 +365,8 @@ pub fn run() {
             open_project_path,
             get_recent_projects,
             clear_recent_projects,
-            remove_recent_project
+            remove_recent_project,
+            toggle_menu_item
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -355,17 +393,6 @@ pub fn run() {
             let save_as_item =
                 MenuItem::with_id(app, "save_as", "Save As...", false, Some("CMD+SHIFT+S"))?;
 
-            app.manage(Mutex::new(AppState {
-                menu_items: MenuItems {
-                    save: save_item.clone(),
-                    save_as: save_as_item.clone(),
-                },
-                project_details: ProjectDetails {
-                    name: None,
-                    path: None,
-                },
-            }));
-
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_project_item)
                 .separator()
@@ -377,12 +404,12 @@ pub fn run() {
                 .close_window()
                 .build()?;
 
-            let cut_node_item = MenuItem::with_id(app, "cut", "Cut Node", true, Some("CMD+X"))?;
-            let copy_node_item = MenuItem::with_id(app, "copy", "Copy Node", true, Some("CMD+C"))?;
+            let cut_node_item = MenuItem::with_id(app, "cut", "Cut Node", false, Some("CMD+X"))?;
+            let copy_node_item = MenuItem::with_id(app, "copy", "Copy Node", false, Some("CMD+C"))?;
             let paste_node_item =
-                MenuItem::with_id(app, "paste", "Paste Node", true, Some("CMD+V"))?;
+                MenuItem::with_id(app, "paste", "Paste Node", false, Some("CMD+V"))?;
             let select_all_nodes_item =
-                MenuItem::with_id(app, "select_all", "Select All Nodes", true, Some("CMD+A"))?;
+                MenuItem::with_id(app, "select_all", "Select All Nodes", false, Some("CMD+A"))?;
 
             let edit_menu = SubmenuBuilder::new(app, "Edit")
                 .undo()
@@ -404,6 +431,21 @@ pub fn run() {
             let menu = MenuBuilder::new(app)
                 .items(&[&about_menu, &file_menu, &edit_menu, &window_menu])
                 .build()?;
+
+            app.manage(Mutex::new(AppState {
+                menu_items: MenuItems {
+                    save: save_item.clone(),
+                    save_as: save_as_item.clone(),
+                    cut_node: cut_node_item.clone(),
+                    copy_node: copy_node_item.clone(),
+                    paste_node: paste_node_item.clone(),
+                    select_all_nodes: select_all_nodes_item.clone(),
+                },
+                project_details: ProjectDetails {
+                    name: None,
+                    path: None,
+                },
+            }));
 
             app.set_menu(menu)?;
 

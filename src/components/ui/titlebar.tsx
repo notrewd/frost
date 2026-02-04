@@ -205,6 +205,25 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     };
   }, [cut, copy, paste, selectAll]);
 
+  useEffect(() => {
+    try {
+      invoke("toggle_menu_item", {
+        item: "cut_node",
+        enabled: state.canCutCopy,
+      });
+      invoke("toggle_menu_item", {
+        item: "copy_node",
+        enabled: state.canCutCopy,
+      });
+      invoke("toggle_menu_item", {
+        item: "paste_node",
+        enabled: state.canPaste,
+      });
+    } catch (error) {
+      console.error("Failed to toggle menu items:", error);
+    }
+  }, [state.canCutCopy, state.canPaste]);
+
   if (type() !== "windows") {
     return null;
   }

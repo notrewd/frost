@@ -154,6 +154,8 @@ const EditorRoute = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   useEffect(() => {
+    invoke("toggle_menu_item", { item: "select_all_nodes", enabled: true });
+
     const fetchProjectData = async () => {
       try {
         const data = await invoke<string>("request_project_data");
