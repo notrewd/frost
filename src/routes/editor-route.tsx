@@ -6,23 +6,11 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./editor-route.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ReactFlow,
-  addEdge,
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  type ReactFlowInstance,
-  type Node,
-  type Edge,
-} from "@xyflow/react";
+import { type Node, type Edge } from "@xyflow/react";
 import PropertiesPanel from "@/components/panels/properties-panel";
 import LibraryPanel from "@/components/panels/library-panel";
 import PanelBar from "@/components/ui/panel-bar";
 import ProjectPanel from "@/components/panels/project-panel";
-import ObjectNode from "@/components/nodes/object-node";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
 import type { DragEventData } from "@neodrag/react";
 import type { LibraryPaletteItem } from "@/components/panels/library-panel";
@@ -32,10 +20,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { useProject } from "@/components/providers/project-provider";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import DiscardDialog from "@/components/ui/dialogs/discard-dialog";
-
-const nodeTypes = {
-  object: ObjectNode,
-};
+import { useShallow } from "zustand/react/shallow";
+import { FlowState } from "@/stores";
+import useFlowStore from "@/stores/flow-store";
+import FlowEditor from "@/components/ui/editor";
 
 type ProjectOpenedEvent = {
   name: string;
@@ -44,99 +32,6 @@ type ProjectOpenedEvent = {
 };
 
 const appWindow = getCurrentWindow();
-
-const initialNodes: Node<ObjectNodeData>[] = [
-  {
-    id: "n1",
-    type: "object",
-    position: { x: 0, y: 0 },
-    data: {
-      name: "Person",
-      attributes: [
-        { name: "firstName", type: "string", accessModifier: "private" },
-        { name: "lastName", type: "string", accessModifier: "private" },
-        {
-          name: "age",
-          type: "number",
-          accessModifier: "private",
-          defaultValue: "0",
-        },
-      ],
-      methods: [
-        {
-          name: "setFullName",
-          accessModifier: "public",
-          returnType: "void",
-          parameters: [
-            { name: "firstName", type: "string" },
-            { name: "lastName", type: "string" },
-          ],
-        },
-        {
-          name: "getFullName",
-          accessModifier: "public",
-          returnType: "string",
-          parameters: [],
-        },
-        {
-          name: "setAge",
-          accessModifier: "public",
-          returnType: "void",
-          parameters: [{ name: "age", type: "number" }],
-        },
-      ],
-    },
-  },
-  {
-    id: "n2",
-    type: "object",
-    position: { x: 0, y: 100 },
-    data: {
-      name: "Employee",
-      attributes: [
-        { name: "employeeId", type: "string", accessModifier: "private" },
-      ],
-      methods: [
-        {
-          name: "getEmployeeDetails",
-          accessModifier: "public",
-          returnType: "string",
-          parameters: [],
-        },
-      ],
-    },
-  },
-  {
-    id: "n3",
-    type: "object",
-    position: { x: 300, y: 200 },
-    data: {
-      name: "Status",
-      stereotype: "enumeration",
-      attributes: [
-        {
-          name: "Active",
-          accessModifier: "public",
-          defaultValue: "1",
-          static: true,
-        },
-        {
-          name: "Inactive",
-          accessModifier: "public",
-          defaultValue: "0",
-          static: true,
-        },
-        {
-          name: "Pending",
-          accessModifier: "public",
-          defaultValue: "2",
-          static: true,
-        },
-      ],
-      methods: [],
-    },
-  },
-];
 
 const EditorRoute = () => {
   const { projectEdited, setProjectEdited } = useProject();
@@ -149,9 +44,21 @@ const EditorRoute = () => {
   const projectEditedRef = useRef(projectEdited);
   const closeUnlistenRef = useRef<(() => void) | null>(null);
 
-  const [nodes, setNodes, onNodesChange] =
-    useNodesState<Node<ObjectNodeData>>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const selector = useShallow((state: FlowState) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+    instance: state.instance,
+    setNodes: state.setNodes,
+    setEdges: state.setEdges,
+  }));
+
+  const {
+    nodes,
+    edges,
+    instance: reactFlowInstance,
+    setNodes,
+    setEdges,
+  } = useFlowStore(selector);
 
   useEffect(() => {
     invoke("toggle_menu_item", { item: "select_all_nodes", enabled: true });
@@ -178,8 +85,8 @@ const EditorRoute = () => {
         const { data } = event.payload;
 
         if (!data) {
-          setNodes([]);
-          setEdges([]);
+          setNodes(() => []);
+          setEdges(() => []);
           return;
         }
 
@@ -187,8 +94,8 @@ const EditorRoute = () => {
           const flowData = JSON.parse(data);
           if (!flowData) return;
 
-          setNodes(flowData.nodes || []);
-          setEdges(flowData.edges || []);
+          setNodes(() => flowData.nodes || []);
+          setEdges(() => flowData.edges || []);
         } catch (error) {
           console.error("Failed to load project data:", error);
         }
@@ -210,15 +117,6 @@ const EditorRoute = () => {
     edges: Edge[];
   } | null>(null);
   const pasteCountRef = useRef(0);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance<
-    Node<ObjectNodeData>,
-    Edge
-  > | null>(null);
-
-  const onConnect = useCallback(
-    (params: any) => setEdges((els) => addEdge(params, els)),
-    [],
-  );
 
   useEffect(() => {
     const saveUnlisten = listen("save-requested", async () => {
@@ -295,8 +193,8 @@ const EditorRoute = () => {
   }, [cloneData, edges, getSelectedNodes, setState]);
 
   const selectAllNodes = useCallback(() => {
-    setNodes((nds) => nds.map((node) => ({ ...node, selected: true })));
-    setEdges((eds) => eds.map((edge) => ({ ...edge, selected: true })));
+    setNodes((nodes) => nodes.map((node) => ({ ...node, selected: true })));
+    setEdges((edges) => edges.map((edge) => ({ ...edge, selected: true })));
   }, [setEdges, setNodes]);
 
   const cutNodes = useCallback(() => {
@@ -330,9 +228,9 @@ const EditorRoute = () => {
     pasteCountRef.current = 0;
     setState((prev) => ({ ...prev, canPaste: true }));
 
-    setNodes((nds) => nds.filter((node) => !selectedIds.has(node.id)));
-    setEdges((eds) =>
-      eds.filter(
+    setNodes((nodes) => nodes.filter((node) => !selectedIds.has(node.id)));
+    setEdges((edges) =>
+      edges.filter(
         (edge) =>
           !selectedIds.has(edge.source) && !selectedIds.has(edge.target),
       ),
@@ -388,21 +286,27 @@ const EditorRoute = () => {
       });
     });
 
-    setNodes((nds) => {
-      const resetNodes = nds.map((node) => ({
-        ...node,
-        selected: false,
-      })) as Node<ObjectNodeData>[];
-      return resetNodes.concat(newNodes);
-    });
-    setEdges((eds) => {
-      const resetEdges = eds.map((edge) => ({
-        ...edge,
-        selected: false,
-      })) as Edge[];
-      return resetEdges.concat(newEdges);
-    });
-  }, [setEdges, setNodes]);
+    setNodes((nodes) =>
+      nodes
+        .map((node) => ({
+          ...node,
+          selected: false,
+        }))
+        .concat(newNodes),
+    );
+
+    setEdges((edges) =>
+      edges
+        .map(
+          (edge) =>
+            ({
+              ...edge,
+              selected: false,
+            }) as Edge,
+        )
+        .concat(newEdges),
+    );
+  }, [edges, nodes, setEdges, setNodes]);
 
   useEffect(() => {
     const hasSelection = nodes.some((node) => node.selected);
@@ -523,9 +427,9 @@ const EditorRoute = () => {
 
   const handleDelete = useCallback(
     (id: string) => {
-      setNodes((nds) => nds.filter((node) => node.id !== id));
-      setEdges((eds) =>
-        eds.filter((edge) => edge.source !== id && edge.target !== id),
+      setNodes((nodes) => nodes.filter((node) => node.id !== id));
+      setEdges((edges) =>
+        edges.filter((edge) => edge.source !== id && edge.target !== id),
       );
     },
     [setNodes, setEdges],
@@ -597,28 +501,7 @@ const EditorRoute = () => {
         </ResizablePanel>
         <ResizablePanel className="flex flex-col" minSize={300}>
           <div ref={reactFlowWrapperRef} className="flex flex-col flex-1">
-            <ReactFlow
-              className="frost-editor-flow"
-              nodes={nodes}
-              edges={edges}
-              colorMode="dark"
-              nodeTypes={nodeTypes}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onInit={(instance) => setReactFlowInstance(instance)}
-              proOptions={{
-                hideAttribution: true,
-              }}
-              fitView
-              zoomOnScroll
-              selectionOnDrag
-              panOnDrag={[1, 2]}
-            >
-              <MiniMap />
-              <Background />
-              <Controls />
-            </ReactFlow>
+            <FlowEditor />
           </div>
         </ResizablePanel>
         <ResizablePanel
