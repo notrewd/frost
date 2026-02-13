@@ -4,7 +4,7 @@ import TreeView, {
   TreeViewMenuItemsByType,
 } from "../ui/tree-view";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useProject } from "../providers/project-provider";
+import { useProjectStore } from "@/stores/project-store";
 import useFlowStore from "@/stores/flow-store";
 import { useShallow } from "zustand/react/shallow";
 import { FlowState } from "@/stores";
@@ -16,7 +16,7 @@ const iconMap = {
 };
 
 const ProjectPanel = () => {
-  const { projectName } = useProject();
+  const projectName = useProjectStore((state) => state.projectName);
 
   const selector = useShallow((state: FlowState) => ({
     nodes: state.nodes,

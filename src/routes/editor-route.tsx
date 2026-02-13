@@ -17,7 +17,7 @@ import type { LibraryPaletteItem } from "@/components/panels/library-panel";
 import { useEditorActions } from "@/components/providers/editor-actions-provider";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { useProject } from "@/components/providers/project-provider";
+import { useProjectStore } from "@/stores/project-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import DiscardDialog from "@/components/ui/dialogs/discard-dialog";
 import { useShallow } from "zustand/react/shallow";
@@ -28,7 +28,12 @@ import FlowEditor from "@/components/ui/editor";
 const appWindow = getCurrentWindow();
 
 const EditorRoute = () => {
-  const { projectEdited, setProjectEdited } = useProject();
+  const { projectEdited, setProjectEdited } = useProjectStore(
+    useShallow((state) => ({
+      projectEdited: state.projectEdited,
+      setProjectEdited: state.setProjectEdited,
+    })),
+  );
   const { setHandlers, setState } = useEditorActions();
 
   const [allowClose, setAllowClose] = useState(false);

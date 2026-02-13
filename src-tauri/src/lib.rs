@@ -463,6 +463,9 @@ pub fn run() {
                     "save_as" => {
                         app.emit("save-as-requested", ()).unwrap();
                     }
+                    "undo" | "redo" => {
+                        app.emit(event.id().0.as_str(), ()).unwrap();
+                    }
                     "cut" | "copy" | "paste" | "select_all" => {
                         app.emit(format!("editor-{}", event.id().0).as_str(), ())
                             .unwrap();

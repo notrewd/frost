@@ -18,8 +18,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEditorActions } from "../providers/editor-actions-provider";
 import { emit, listen } from "@tauri-apps/api/event";
 import { ProjectOpenedEvent } from "@/types/events";
-import { useProject } from "../providers/project-provider";
+import { useProjectStore } from "@/stores/project-store";
 import DiscardDialog from "./dialogs/discard-dialog";
+import { useShallow } from "zustand/react/shallow";
 
 const appWindow = getCurrentWindow();
 
@@ -35,7 +36,13 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     () => {},
   );
 
-  const { projectEdited } = useProject();
+  const { projectEdited, canUndo, canRedo } = useProjectStore(
+    useShallow((state) => ({
+      projectEdited: state.projectEdited,
+      canUndo: state.canUndo,
+      canRedo: state.canRedo,
+    })),
+  );
   const { cut, copy, paste, selectAll, state } = useEditorActions();
 
   useEffect(() => {
@@ -115,6 +122,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
 
   const handleSaveAs = useCallback(async () => {
     emit("save-as-requested");
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    emit("undo");
+  }, []);
+
+  const handleRedo = useCallback(() => {
+    emit("redo");
   }, []);
 
   useEffect(() => {
@@ -273,10 +288,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                 <MenubarMenu>
                   <MenubarTrigger>Edit</MenubarTrigger>
                   <MenubarContent>
-                    <MenubarItem>
+                    <MenubarItem onClick={handleUndo} disabled={!canUndo}>
                       Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
                     </MenubarItem>
-                    <MenubarItem>
+                    <MenubarItem onClick={handleRedo} disabled={!canRedo}>
                       Redo <MenubarShortcut>Ctrl+Shift+Z</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />

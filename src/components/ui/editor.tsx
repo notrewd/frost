@@ -1,12 +1,17 @@
 import { FlowState } from "@/stores";
 import useFlowStore from "@/stores/flow-store";
-import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
+import { Background, Controls, MiniMap, Panel, ReactFlow } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
 import { ProjectOpenedEvent } from "@/types/events";
 import { listen } from "@tauri-apps/api/event";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useStore } from "zustand";
+import { Button } from "./button";
+import { Undo, Redo } from "lucide-react";
+import { useProjectStore } from "@/stores/project-store";
+import { type } from "@tauri-apps/plugin-os";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -35,6 +40,71 @@ const FlowEditor = () => {
     setInstance,
   } = useFlowStore(selector);
 
+  // Undo/Redo hooks
+  const { undo, redo, pause, resume, canUndo, canRedo } = useStore(
+    (useFlowStore as any).temporal,
+    useShallow((state: any) => ({
+      undo: state.undo,
+      redo: state.redo,
+      pause: state.pause,
+      resume: state.resume,
+      canUndo: state.pastStates.length > 0,
+      canRedo: state.futureStates.length > 0,
+    })),
+  );
+
+  const { setCanUndo, setCanRedo } = useProjectStore(
+    useShallow((state) => ({
+      setCanUndo: state.setCanUndo,
+      setCanRedo: state.setCanRedo,
+    })),
+  );
+
+  useEffect(() => {
+    setCanUndo(canUndo);
+    setCanRedo(canRedo);
+  }, [canUndo, canRedo, setCanUndo, setCanRedo]);
+
+  const onNodeDragStart = useCallback(() => {
+    // Snapshot current state before drag
+    setNodes((nodes) => [...nodes]);
+    pause();
+  }, [setNodes, pause]);
+
+  const onNodeDragStop = useCallback(() => {
+    resume();
+  }, [resume]);
+
+  useEffect(() => {
+    if (type() !== "windows") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if input is focused
+      if (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (canRedo) redo();
+        } else {
+          if (canUndo) undo();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+        e.preventDefault();
+        if (canRedo) redo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo, canUndo, canRedo]);
+
   useEffect(() => {
     invoke("toggle_menu_item", { item: "select_all_nodes", enabled: true });
 
@@ -54,7 +124,7 @@ const FlowEditor = () => {
 
     fetchProjectData();
 
-    const unlisten = listen<ProjectOpenedEvent>(
+    const projectOpenedUnlisten = listen<ProjectOpenedEvent>(
       "project-opened",
       async (event) => {
         const { data } = event.payload;
@@ -79,8 +149,18 @@ const FlowEditor = () => {
       },
     );
 
+    const undoUnlisten = listen("undo", () => {
+      if (useProjectStore.getState().canUndo) undo();
+    });
+
+    const redoUnlisten = listen("redo", () => {
+      if (useProjectStore.getState().canRedo) redo();
+    });
+
     return () => {
-      unlisten.then((f) => f());
+      projectOpenedUnlisten.then((f) => f());
+      undoUnlisten.then((f) => f());
+      redoUnlisten.then((f) => f());
     };
   }, []);
 
@@ -95,6 +175,8 @@ const FlowEditor = () => {
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onInit={(instance) => setInstance(instance)}
+      onNodeDragStart={onNodeDragStart}
+      onNodeDragStop={onNodeDragStop}
       proOptions={{
         hideAttribution: true,
       }}
@@ -103,6 +185,26 @@ const FlowEditor = () => {
       selectionOnDrag
       panOnDrag={[1, 2]}
     >
+      <Panel position="top-left" className="flex gap-2">
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => undo()}
+          disabled={!canUndo}
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => redo()}
+          disabled={!canRedo}
+          title="Redo (Ctrl+Y)"
+        >
+          <Redo className="w-4 h-4" />
+        </Button>
+      </Panel>
       <MiniMap />
       <Background />
       <Controls />
