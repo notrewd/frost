@@ -25,12 +25,6 @@ import { FlowState } from "@/stores";
 import useFlowStore from "@/stores/flow-store";
 import FlowEditor from "@/components/ui/editor";
 
-type ProjectOpenedEvent = {
-  name: string;
-  path: string;
-  data: string;
-};
-
 const appWindow = getCurrentWindow();
 
 const EditorRoute = () => {
@@ -59,53 +53,6 @@ const EditorRoute = () => {
     setNodes,
     setEdges,
   } = useFlowStore(selector);
-
-  useEffect(() => {
-    invoke("toggle_menu_item", { item: "select_all_nodes", enabled: true });
-
-    const fetchProjectData = async () => {
-      try {
-        const data = await invoke<string>("request_project_data");
-        if (!data) return;
-
-        const flowData = JSON.parse(data);
-        if (!flowData) return;
-        setNodes(flowData.nodes || []);
-        setEdges(flowData.edges || []);
-      } catch (error) {
-        console.error("Failed to fetch project data:", error);
-      }
-    };
-
-    fetchProjectData();
-
-    const unlisten = listen<ProjectOpenedEvent>(
-      "project-opened",
-      async (event) => {
-        const { data } = event.payload;
-
-        if (!data) {
-          setNodes(() => []);
-          setEdges(() => []);
-          return;
-        }
-
-        try {
-          const flowData = JSON.parse(data);
-          if (!flowData) return;
-
-          setNodes(() => flowData.nodes || []);
-          setEdges(() => flowData.edges || []);
-        } catch (error) {
-          console.error("Failed to load project data:", error);
-        }
-      },
-    );
-
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, []);
 
   useEffect(() => {
     setProjectEdited(true);
