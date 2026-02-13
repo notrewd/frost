@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/resizable";
 import "@xyflow/react/dist/style.css";
 import "./editor-route.css";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { type Node, type Edge } from "@xyflow/react";
 import PropertiesPanel from "@/components/panels/properties-panel";
 import LibraryPanel from "@/components/panels/library-panel";
@@ -417,24 +417,6 @@ const EditorRoute = () => {
     };
   }, [copyNodes, cutNodes, pasteNodes, selectAllNodes]);
 
-  const treeData = useMemo(() => {
-    return nodes.map((node) => ({
-      id: node.id,
-      name: node.data.name,
-      type: "node" as const,
-    }));
-  }, [nodes]);
-
-  const handleDelete = useCallback(
-    (id: string) => {
-      setNodes((nodes) => nodes.filter((node) => node.id !== id));
-      setEdges((edges) =>
-        edges.filter((edge) => edge.source !== id && edge.target !== id),
-      );
-    },
-    [setNodes, setEdges],
-  );
-
   const handleLibraryItemDropped = useCallback(
     (item: LibraryPaletteItem, drag: DragEventData) => {
       if (!reactFlowInstance) return;
@@ -517,7 +499,7 @@ const EditorRoute = () => {
             >
               <PanelBar>Project</PanelBar>
               <div className="flex flex-col h-full pl-4 py-2 pb-7">
-                <ProjectPanel initialData={treeData} onDelete={handleDelete} />
+                <ProjectPanel />
               </div>
             </ResizablePanel>
             <ResizableHandle className="bg-muted-foreground/25" />

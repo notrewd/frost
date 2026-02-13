@@ -3,8 +3,11 @@ import TreeView, {
   TreeViewItem,
   TreeViewMenuItemsByType,
 } from "../ui/tree-view";
-import { FC, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useProject } from "../providers/project-provider";
+import useFlowStore from "@/stores/flow-store";
+import { useShallow } from "zustand/react/shallow";
+import { FlowState } from "@/stores";
 
 const iconMap = {
   root: <FolderRoot className="size-4" />,
@@ -12,17 +15,34 @@ const iconMap = {
   node: <SquareChartGantt className="size-4" />,
 };
 
-interface ProjectPanelProps {
-  initialData?: TreeViewItem[];
-  onDelete?: (id: string) => void;
-}
-
-const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
+const ProjectPanel = () => {
   const { projectName } = useProject();
 
-  useEffect(() => {
-    console.log("ProjectPanel mounted with projectName:", projectName);
-  }, [projectName]);
+  const selector = useShallow((state: FlowState) => ({
+    nodes: state.nodes,
+    setNodes: state.setNodes,
+    setEdges: state.setEdges,
+  }));
+
+  const { setNodes, setEdges, nodes } = useFlowStore(selector);
+
+  const treeData = useMemo(() => {
+    return nodes.map((node) => ({
+      id: node.id,
+      name: node.data.name,
+      type: "node" as const,
+    }));
+  }, [nodes]);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      setNodes((nodes) => nodes.filter((node) => node.id !== id));
+      setEdges((edges) =>
+        edges.filter((edge) => edge.source !== id && edge.target !== id),
+      );
+    },
+    [setNodes, setEdges],
+  );
 
   const [data, setData] = useState<TreeViewItem[]>([]);
 
@@ -36,28 +56,24 @@ const ProjectPanel: FC<ProjectPanelProps> = ({ initialData, onDelete }) => {
           variant: "destructive",
           action: (items: TreeViewItem[]) => {
             items.forEach((item) => {
-              if (onDelete) {
-                onDelete(item.id);
-              }
+              handleDelete(item.id);
             });
           },
         },
       ],
     };
-  }, [onDelete]);
+  }, [handleDelete]);
 
   useEffect(() => {
-    if (initialData) {
-      const rootItem: TreeViewItem = {
-        id: "root",
-        name: projectName || "Project",
-        type: "root",
-        children: initialData,
-      };
+    const rootItem: TreeViewItem = {
+      id: "root",
+      name: projectName || "Project",
+      type: "root",
+      children: treeData,
+    };
 
-      setData([rootItem]);
-    }
-  }, [initialData, projectName]);
+    setData([rootItem]);
+  }, [treeData, projectName]);
 
   return (
     <TreeView
