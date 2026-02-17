@@ -11,7 +11,6 @@ import { useStore } from "zustand";
 import { Button } from "./button";
 import { Undo, Redo } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
-import { type } from "@tauri-apps/plugin-os";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -76,8 +75,6 @@ const FlowEditor = () => {
   }, [resume]);
 
   useEffect(() => {
-    if (type() !== "windows") return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if input is focused
       if (
