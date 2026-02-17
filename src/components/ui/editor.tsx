@@ -1,19 +1,75 @@
 import { FlowState } from "@/stores";
 import useFlowStore from "@/stores/flow-store";
-import { Background, Controls, MiniMap, Panel, ReactFlow } from "@xyflow/react";
+import {
+  Background,
+  MiniMap,
+  Panel,
+  ReactFlow,
+  useReactFlow,
+} from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
 import { ProjectOpenedEvent } from "@/types/events";
 import { listen } from "@tauri-apps/api/event";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo } from "lucide-react";
+import { Undo, Redo, Plus, Minus, Maximize, Lock, Unlock } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 
 const nodeTypes = {
   object: ObjectNode,
+};
+
+interface EditorControlsProps {
+  isLocked: boolean;
+  setIsLocked: (locked: boolean) => void;
+}
+
+const EditorControls = ({ isLocked, setIsLocked }: EditorControlsProps) => {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+
+  return (
+    <Panel position="bottom-left" className="flex gap-2">
+      <Button
+        variant="secondary"
+        size="icon"
+        onClick={() => zoomIn()}
+        title="Zoom In"
+      >
+        <Plus className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="secondary"
+        size="icon"
+        onClick={() => zoomOut()}
+        title="Zoom Out"
+      >
+        <Minus className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="secondary"
+        size="icon"
+        onClick={() => fitView()}
+        title="Fit View"
+      >
+        <Maximize className="w-4 h-4" />
+      </Button>
+      <Button
+        variant="secondary"
+        size="icon"
+        onClick={() => setIsLocked(!isLocked)}
+        title={isLocked ? "Unlock" : "Lock"}
+      >
+        {isLocked ? (
+          <Lock className="w-4 h-4" />
+        ) : (
+          <Unlock className="w-4 h-4" />
+        )}
+      </Button>
+    </Panel>
+  );
 };
 
 const FlowEditor = () => {
@@ -58,6 +114,8 @@ const FlowEditor = () => {
       setCanRedo: state.setCanRedo,
     })),
   );
+
+  const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
     setCanUndo(canUndo);
@@ -178,10 +236,14 @@ const FlowEditor = () => {
         hideAttribution: true,
       }}
       fitView
-      zoomOnScroll
-      selectionOnDrag
-      panOnDrag={[1, 2]}
+      zoomOnScroll={!isLocked}
+      selectionOnDrag={!isLocked}
+      panOnDrag={isLocked ? false : [1, 2]}
+      nodesDraggable={!isLocked}
+      nodesConnectable={!isLocked}
+      elementsSelectable={!isLocked}
     >
+      <EditorControls isLocked={isLocked} setIsLocked={setIsLocked} />
       <Panel position="top-left" className="flex gap-2">
         <Button
           variant="secondary"
@@ -204,7 +266,6 @@ const FlowEditor = () => {
       </Panel>
       <MiniMap />
       <Background />
-      <Controls />
     </ReactFlow>
   );
 };
