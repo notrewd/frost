@@ -30,16 +30,6 @@ const PathInput: FC<FileInputProps> = ({
     setValue(initialValue);
   }, [initialValue]);
 
-  const handleChange = useCallback(
-    () => (e: ChangeEvent<HTMLInputElement>) => {
-      setValue(e.target.value);
-      if (onChange) {
-        onChange(e);
-      }
-    },
-    [],
-  );
-
   const handleFileSelect = useCallback(async () => {
     const file = await open({
       multiple: false,
@@ -62,7 +52,7 @@ const PathInput: FC<FileInputProps> = ({
       <Input
         className={cn("flex-1", className)}
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
         {...props}
       />
       <Button
