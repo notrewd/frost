@@ -1,3 +1,5 @@
+import { ThemeChangedEvent } from "@/types/events";
+import { listen } from "@tauri-apps/api/event";
 import {
   createContext,
   ReactNode,
@@ -53,6 +55,18 @@ export function ThemeProvider({
 
     root.classList.add(theme);
   }, [theme]);
+
+  useEffect(() => {
+    const unlisten = listen<ThemeChangedEvent>("theme-changed", (event) => {
+      const newTheme = event.payload.theme as Theme;
+      setTheme(newTheme);
+      console.log("Theme changed to:", newTheme);
+    });
+
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
   const value = {
     theme,

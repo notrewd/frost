@@ -10,28 +10,31 @@ import MainLayout from "./layouts/main-layout.tsx";
 import EditorRoute from "./routes/editor-route.tsx";
 import { initProjectListeners } from "@/stores/project-store";
 import SettingsRoute from "./routes/settings-route.tsx";
+import { TooltipProvider } from "./components/ui/tooltip.tsx";
 
 initProjectListeners();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <EditorActionsProvider>
-        <div className="h-dvh flex flex-col font-manrope">
-          <BrowserRouter>
-            <Routes>
-              <Route index element={<WelcomeRoute />} />
-              <Route element={<DialogLayout />}>
-                <Route path="/new-project" element={<NewProjectRoute />} />
-                <Route path="/settings" element={<SettingsRoute />} />
-              </Route>
-              <Route element={<MainLayout />}>
-                <Route path="/editor" element={<EditorRoute />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </div>
-      </EditorActionsProvider>
+    <ThemeProvider defaultTheme="dark">
+      <TooltipProvider>
+        <EditorActionsProvider>
+          <div className="h-dvh flex flex-col font-manrope">
+            <BrowserRouter>
+              <Routes>
+                <Route index element={<WelcomeRoute />} />
+                <Route element={<DialogLayout />}>
+                  <Route path="/new-project" element={<NewProjectRoute />} />
+                  <Route path="/settings" element={<SettingsRoute />} />
+                </Route>
+                <Route element={<MainLayout />}>
+                  <Route path="/editor" element={<EditorRoute />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </div>
+        </EditorActionsProvider>
+      </TooltipProvider>
     </ThemeProvider>
   </React.StrictMode>,
 );

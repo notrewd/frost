@@ -4,7 +4,8 @@
   "description": "Capability for the default windows",
   "windows": [
     "welcome",
-    "editor"
+    "editor",
+    "settings"
   ],
   "permissions": [
     "core:default",

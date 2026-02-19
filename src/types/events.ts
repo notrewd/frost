@@ -3,3 +3,7 @@ export type ProjectOpenedEvent = {
   path: string;
   data: string;
 };
+
+export type ThemeChangedEvent = {
+  theme: "light" | "dark" | "system";
+};
