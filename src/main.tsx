@@ -9,6 +9,7 @@ import DialogLayout from "@/layouts/dialog-layout.tsx";
 import MainLayout from "./layouts/main-layout.tsx";
 import EditorRoute from "./routes/editor-route.tsx";
 import { initProjectListeners } from "@/stores/project-store";
+import SettingsRoute from "./routes/settings-route.tsx";
 
 initProjectListeners();
 
@@ -22,6 +23,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
               <Route index element={<WelcomeRoute />} />
               <Route element={<DialogLayout />}>
                 <Route path="/new-project" element={<NewProjectRoute />} />
+                <Route path="/settings" element={<SettingsRoute />} />
               </Route>
               <Route element={<MainLayout />}>
                 <Route path="/editor" element={<EditorRoute />} />

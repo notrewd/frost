@@ -133,6 +133,26 @@ async fn open_editor_window(
 }
 
 #[tauri::command]
+async fn open_settings_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("settings") {
+        None => {
+            WebviewWindowBuilder::new(&app, "settings", WebviewUrl::App("/settings".into()))
+                .title("Settings")
+                .inner_size(800.0, 600.0)
+                .min_inner_size(400.0, 600.0)
+                .decorations(if cfg!(windows) { false } else { true })
+                .theme(Some(tauri::Theme::Dark))
+                .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
     if let Some(window) = app.webview_windows().get(&label) {
         window.close()?;
@@ -356,6 +376,7 @@ pub fn run() {
             open_new_project_window,
             open_editor_window,
             open_welcome_window,
+            open_settings_window,
             close_window,
             request_project_details,
             request_project_data,
@@ -375,7 +396,12 @@ pub fn run() {
                 let _ = open_welcome_window(handle).await;
             });
 
+            let settings_item =
+                MenuItem::with_id(app, "settings", "Settings", true, Some("CMD+,")).unwrap();
+
             let about_menu = SubmenuBuilder::new(app, "About")
+                .item(&settings_item)
+                .separator()
                 .services()
                 .separator()
                 .hide()
@@ -451,6 +477,9 @@ pub fn run() {
 
             app.on_menu_event(move |app: &AppHandle, event: MenuEvent| {
                 match event.id().0.as_str() {
+                    "settings" => {
+                        tauri::async_runtime::spawn(open_settings_window(app.clone()));
+                    }
                     "new_project" => {
                         app.emit("editor-new-project", ()).unwrap();
                     }

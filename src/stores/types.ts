@@ -23,3 +23,27 @@ export interface FlowState {
     instance: ReactFlowInstance<Node<ObjectNodeData>, Edge>,
   ) => void;
 }
+
+export interface ProjectState {
+  projectName: string;
+  projectPath: string;
+  projectData: string;
+  projectEdited: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  setProjectName: (name: string) => void;
+  setProjectPath: (path: string) => void;
+  setProjectData: (data: string) => void;
+  setProjectEdited: (edited: boolean) => void;
+  setCanUndo: (canUndo: boolean) => void;
+  setCanRedo: (canRedo: boolean) => void;
+}
+
+export interface SettingsState {
+  theme: "light" | "dark" | "system";
+  panOnScroll: boolean;
+  showMinimap: boolean;
+  setTheme: (theme: "light" | "dark" | "system") => void;
+  setPanOnScroll: (enabled: boolean) => void;
+  setShowMinimap: (enabled: boolean) => void;
+}

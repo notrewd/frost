@@ -74,6 +74,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     await appWindow.close();
   }, [projectEdited]);
 
+  const handleSettings = useCallback(async () => {
+    try {
+      await invoke("open_settings_window");
+    } catch (error) {
+      console.error("Failed to open settings window:", error);
+    }
+  }, []);
+
   const showNewProjectWindow = useCallback(async () => {
     try {
       await invoke("open_new_project_window");
@@ -156,6 +164,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
       }
 
       switch (event.key.toLowerCase()) {
+        case ",":
+          event.preventDefault();
+          handleSettings();
+          break;
         case "n":
           event.preventDefault();
           handleNewProject();
@@ -282,6 +294,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     </MenubarItem>
                     <MenubarItem onClick={handleSaveAs}>
                       Save As... <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={handleSettings}>
+                      Settings <MenubarShortcut>Ctrl+,</MenubarShortcut>
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>

@@ -1,22 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { create } from "zustand";
-
-interface ProjectState {
-  projectName: string;
-  projectPath: string;
-  projectData: string;
-  projectEdited: boolean;
-  canUndo: boolean;
-  canRedo: boolean;
-
-  setProjectName: (name: string) => void;
-  setProjectPath: (path: string) => void;
-  setProjectData: (data: string) => void;
-  setProjectEdited: (edited: boolean) => void;
-  setCanUndo: (canUndo: boolean) => void;
-  setCanRedo: (canRedo: boolean) => void;
-}
+import { ProjectState } from "./types";
 
 export const useProjectStore = create<ProjectState>((set) => ({
   projectName: "",

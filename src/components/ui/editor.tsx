@@ -1,12 +1,6 @@
 import { FlowState } from "@/stores";
 import useFlowStore from "@/stores/flow-store";
-import {
-  Background,
-  MiniMap,
-  Panel,
-  ReactFlow,
-  useReactFlow,
-} from "@xyflow/react";
+import { Background, MiniMap, Panel, ReactFlow } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
 import { ProjectOpenedEvent } from "@/types/events";
@@ -15,75 +9,16 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo, Plus, Minus, Maximize, Lock, Unlock } from "lucide-react";
+import { Undo, Redo } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
+import EditorControls from "./editor-controls";
+import { useSettingsStore } from "@/stores/settings-store";
 
 const nodeTypes = {
   object: ObjectNode,
 };
 
-interface EditorControlsProps {
-  isLocked: boolean;
-  setIsLocked: (locked: boolean) => void;
-}
-
-const EditorControls = ({ isLocked, setIsLocked }: EditorControlsProps) => {
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
-
-  return (
-    <Panel position="bottom-left" className="flex gap-2">
-      <Button
-        variant="secondary"
-        size="icon"
-        onClick={() => zoomIn()}
-        title="Zoom In"
-      >
-        <Plus className="w-4 h-4" />
-      </Button>
-      <Button
-        variant="secondary"
-        size="icon"
-        onClick={() => zoomOut()}
-        title="Zoom Out"
-      >
-        <Minus className="w-4 h-4" />
-      </Button>
-      <Button
-        variant="secondary"
-        size="icon"
-        onClick={() => fitView()}
-        title="Fit View"
-      >
-        <Maximize className="w-4 h-4" />
-      </Button>
-      <Button
-        variant="secondary"
-        size="icon"
-        onClick={() => setIsLocked(!isLocked)}
-        title={isLocked ? "Unlock" : "Lock"}
-      >
-        {isLocked ? (
-          <Lock className="w-4 h-4" />
-        ) : (
-          <Unlock className="w-4 h-4" />
-        )}
-      </Button>
-    </Panel>
-  );
-};
-
 const FlowEditor = () => {
-  const selector = useShallow((state: FlowState) => ({
-    nodes: state.nodes,
-    edges: state.edges,
-    onNodesChange: state.onNodesChange,
-    onEdgesChange: state.onEdgesChange,
-    onConnect: state.onConnect,
-    setNodes: state.setNodes,
-    setEdges: state.setEdges,
-    setInstance: state.setInstance,
-  }));
-
   const {
     nodes,
     edges,
@@ -93,7 +28,18 @@ const FlowEditor = () => {
     setNodes,
     setEdges,
     setInstance,
-  } = useFlowStore(selector);
+  } = useFlowStore(
+    useShallow((state: FlowState) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      onNodesChange: state.onNodesChange,
+      onEdgesChange: state.onEdgesChange,
+      onConnect: state.onConnect,
+      setNodes: state.setNodes,
+      setEdges: state.setEdges,
+      setInstance: state.setInstance,
+    })),
+  );
 
   // Undo/Redo hooks
   const { undo, redo, pause, resume, canUndo, canRedo } = useStore(
@@ -112,6 +58,14 @@ const FlowEditor = () => {
     useShallow((state) => ({
       setCanUndo: state.setCanUndo,
       setCanRedo: state.setCanRedo,
+    })),
+  );
+
+  const { theme, panOnScroll, showMinimap } = useSettingsStore(
+    useShallow((state) => ({
+      theme: state.theme,
+      panOnScroll: state.panOnScroll,
+      showMinimap: state.showMinimap,
     })),
   );
 
@@ -224,7 +178,8 @@ const FlowEditor = () => {
       className="frost-editor-flow"
       nodes={nodes}
       edges={edges}
-      colorMode="dark"
+      colorMode={theme}
+      panOnScroll={panOnScroll}
       nodeTypes={nodeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
@@ -236,9 +191,8 @@ const FlowEditor = () => {
         hideAttribution: true,
       }}
       fitView
-      zoomOnScroll={!isLocked}
       selectionOnDrag={!isLocked}
-      panOnDrag={isLocked ? false : [1, 2]}
+      panOnDrag={[1, 2]}
       nodesDraggable={!isLocked}
       nodesConnectable={!isLocked}
       elementsSelectable={!isLocked}
@@ -264,7 +218,7 @@ const FlowEditor = () => {
           <Redo className="w-4 h-4" />
         </Button>
       </Panel>
-      <MiniMap />
+      {showMinimap && <MiniMap />}
       <Background />
     </ReactFlow>
   );
