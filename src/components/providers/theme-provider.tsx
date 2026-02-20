@@ -1,4 +1,5 @@
-import { ThemeChangedEvent } from "@/types/events";
+import { useSettingsStore } from "@/stores/settings-store";
+import { SettingsUpdatedEvent } from "@/types/events";
 import { listen } from "@tauri-apps/api/event";
 import {
   createContext,
@@ -57,11 +58,15 @@ export function ThemeProvider({
   }, [theme]);
 
   useEffect(() => {
-    const unlisten = listen<ThemeChangedEvent>("theme-changed", (event) => {
-      const newTheme = event.payload.theme as Theme;
-      setTheme(newTheme);
-      console.log("Theme changed to:", newTheme);
-    });
+    setTheme(useSettingsStore.getState().theme);
+
+    const unlisten = listen<SettingsUpdatedEvent>(
+      "settings-updated",
+      (event) => {
+        const settings = event.payload as SettingsUpdatedEvent;
+        setTheme(settings.theme);
+      },
+    );
 
     return () => {
       unlisten.then((fn) => fn());

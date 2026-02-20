@@ -41,8 +41,8 @@ export interface ProjectState {
 
 export interface SettingsState {
   theme: "light" | "dark" | "system";
-  panOnScroll: boolean;
-  showMinimap: boolean;
+  pan_on_scroll: boolean;
+  show_minimap: boolean;
   setTheme: (theme: "light" | "dark" | "system") => void;
   setPanOnScroll: (enabled: boolean) => void;
   setShowMinimap: (enabled: boolean) => void;

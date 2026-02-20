@@ -64,8 +64,8 @@ const FlowEditor = () => {
   const { theme, panOnScroll, showMinimap } = useSettingsStore(
     useShallow((state) => ({
       theme: state.theme,
-      panOnScroll: state.panOnScroll,
-      showMinimap: state.showMinimap,
+      panOnScroll: state.pan_on_scroll,
+      showMinimap: state.show_minimap,
     })),
   );
 
@@ -85,6 +85,10 @@ const FlowEditor = () => {
   const onNodeDragStop = useCallback(() => {
     resume();
   }, [resume]);
+
+  useEffect(() => {
+    console.log(theme, panOnScroll, showMinimap);
+  }, [theme, panOnScroll, showMinimap]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

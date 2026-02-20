@@ -25,7 +25,7 @@ const GeneralSettings = () => {
           <FieldLabel>Theme</FieldLabel>
           <FieldDescription>Select the application theme.</FieldDescription>
         </FieldContent>
-        <Select defaultValue={theme} onValueChange={setTheme}>
+        <Select value={theme} onValueChange={setTheme}>
           <SelectTrigger className="w-50!">
             <SelectValue placeholder="Select theme" />
           </SelectTrigger>

@@ -13,6 +13,14 @@ mod util;
 struct AppState {
     project_details: ProjectDetails,
     menu_items: MenuItems,
+    settings: SettingsState,
+}
+
+#[derive(Clone, serde::Serialize)]
+struct SettingsState {
+    theme: String,
+    pan_on_scroll: bool,
+    show_minimap: bool,
 }
 
 #[derive(Clone)]
@@ -366,6 +374,38 @@ async fn toggle_menu_item(
     Ok(())
 }
 
+#[tauri::command]
+async fn set_settings_state(
+    app: AppHandle,
+    state: tauri::State<'_, Mutex<AppState>>,
+    theme: Option<String>,
+    pan_on_scroll: Option<bool>,
+    show_minimap: Option<bool>,
+) -> tauri::Result<()> {
+    let mut state = state.lock().unwrap();
+
+    state.settings.theme = theme.unwrap_or(state.settings.theme.clone());
+    state.settings.pan_on_scroll = pan_on_scroll.unwrap_or(state.settings.pan_on_scroll);
+    state.settings.show_minimap = show_minimap.unwrap_or(state.settings.show_minimap);
+
+    app.emit(
+        "settings-updated",
+        serde_json::json!({
+            "theme": state.settings.theme,
+            "panOnScroll": state.settings.pan_on_scroll,
+            "showMinimap": state.settings.show_minimap,
+        }),
+    )?;
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_settings_state(state: tauri::State<'_, Mutex<AppState>>) -> Result<SettingsState, ()> {
+    let state = state.lock().unwrap();
+    Ok(state.settings.clone())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -387,7 +427,9 @@ pub fn run() {
             get_recent_projects,
             clear_recent_projects,
             remove_recent_project,
-            toggle_menu_item
+            toggle_menu_item,
+            set_settings_state,
+            get_settings_state
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -470,6 +512,11 @@ pub fn run() {
                 project_details: ProjectDetails {
                     name: None,
                     path: None,
+                },
+                settings: SettingsState {
+                    theme: "dark".to_string(),
+                    pan_on_scroll: true,
+                    show_minimap: true,
                 },
             }));
 
