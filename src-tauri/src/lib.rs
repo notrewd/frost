@@ -515,7 +515,7 @@ pub fn run() {
                 },
                 settings: SettingsState {
                     theme: "dark".to_string(),
-                    pan_on_scroll: true,
+                    pan_on_scroll: false,
                     show_minimap: true,
                 },
             }));
