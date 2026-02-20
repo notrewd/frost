@@ -11,6 +11,8 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import { type } from "@tauri-apps/plugin-os";
 import { Settings2 } from "lucide-react";
 import { useState } from "react";
 
@@ -45,7 +47,10 @@ const SettingsRoute = () => {
 
   return (
     <SidebarProvider>
-      <Sidebar variant="floating">
+      <Sidebar
+        className={cn(type() === "windows" && "mt-8 h-auto!")}
+        variant="floating"
+      >
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>Settings</SidebarGroupLabel>
