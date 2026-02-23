@@ -1,5 +1,4 @@
 import { useSettingsStore } from "@/stores/settings-store";
-import { Field, FieldContent, FieldDescription, FieldLabel } from "../ui/field";
 import {
   Select,
   SelectContent,
@@ -9,6 +8,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useShallow } from "zustand/react/shallow";
+import SettingsField from "../ui/settings-field";
 
 const GeneralSettings = () => {
   const { theme, setTheme } = useSettingsStore(
@@ -20,11 +20,10 @@ const GeneralSettings = () => {
 
   return (
     <>
-      <Field className="flex-row gap-4">
-        <FieldContent className="flex-1 gap-0">
-          <FieldLabel>Theme</FieldLabel>
-          <FieldDescription>Select the application theme.</FieldDescription>
-        </FieldContent>
+      <SettingsField
+        label="Theme"
+        description="Select the theme for the application"
+      >
         <Select value={theme} onValueChange={setTheme}>
           <SelectTrigger className="w-50!">
             <SelectValue placeholder="Select theme" />
@@ -37,7 +36,7 @@ const GeneralSettings = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </Field>
+      </SettingsField>
     </>
   );
 };

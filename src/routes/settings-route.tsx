@@ -1,3 +1,4 @@
+import EditorSettings from "@/components/settings/editor";
 import GeneralSettings from "@/components/settings/general";
 import ContentHeader from "@/components/ui/content-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,13 +14,14 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { type } from "@tauri-apps/plugin-os";
-import { Settings2 } from "lucide-react";
+import { LucideIcon, Settings2, TvMinimal } from "lucide-react";
 import { useState } from "react";
 
 interface Category {
   id: string;
   title: string;
   description: string;
+  icon: LucideIcon;
 }
 
 const categories: Category[] = [
@@ -27,16 +29,13 @@ const categories: Category[] = [
     id: "general",
     title: "General",
     description: "General application settings.",
+    icon: Settings2,
   },
   {
-    id: "appearance",
-    title: "Appearance",
-    description: "Customize the look and feel of the application.",
-  },
-  {
-    id: "shortcuts",
-    title: "Shortcuts",
-    description: "Manage keyboard shortcuts for various actions.",
+    id: "editor",
+    title: "Editor",
+    description: "Customize the look and feel of the editor.",
+    icon: TvMinimal,
   },
 ];
 
@@ -54,19 +53,23 @@ const SettingsRoute = () => {
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>Settings</SidebarGroupLabel>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setSelectedCategory(categories[0])}
-                  className={
-                    selectedCategory === categories[0] ? "bg-muted" : ""
-                  }
-                >
-                  <Settings2 className="size-4" />
-                  General
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            <div className="flex flex-col gap-1">
+              {categories.map((category) => (
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setSelectedCategory(category)}
+                      className={
+                        selectedCategory === category ? "bg-muted" : ""
+                      }
+                    >
+                      <category.icon className="size-4" />
+                      {category.title}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              ))}
+            </div>
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
@@ -77,8 +80,9 @@ const SettingsRoute = () => {
           className="px-2"
         />
         <ScrollArea className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex flex-1 flex-col p-2">
+          <div className="flex flex-1 flex-col p-2 gap-4">
             {selectedCategory.id === "general" && <GeneralSettings />}
+            {selectedCategory.id === "editor" && <EditorSettings />}
           </div>
         </ScrollArea>
       </main>

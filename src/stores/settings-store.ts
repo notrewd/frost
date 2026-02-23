@@ -12,9 +12,9 @@ export const useSettingsStore = create<SettingsState>(() => ({
   setTheme: (theme) => {
     invoke("set_settings_state", { theme });
   },
-  setPanOnScroll: (enabled) =>
+  setPanOnScroll: (enabled: boolean) =>
     invoke("set_settings_state", { pan_on_scroll: enabled }),
-  setShowMinimap: (enabled) =>
+  setShowMinimap: (enabled: boolean) =>
     invoke("set_settings_state", { show_minimap: enabled }),
 }));
 

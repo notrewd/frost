@@ -69,6 +69,10 @@ const FlowEditor = () => {
     })),
   );
 
+  useEffect(() => {
+    console.log("Settings changed:", { theme, panOnScroll, showMinimap });
+  }, [theme, panOnScroll, showMinimap]);
+
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
@@ -222,7 +226,7 @@ const FlowEditor = () => {
           <Redo className="w-4 h-4" />
         </Button>
       </Panel>
-      {showMinimap && <MiniMap />}
+      {showMinimap && <MiniMap hidden={false} />}
       <Background />
     </ReactFlow>
   );

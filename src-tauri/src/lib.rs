@@ -397,6 +397,11 @@ async fn set_settings_state(
         }),
     )?;
 
+    println!(
+        "Settings updated: theme={}, pan_on_scroll={}, show_minimap={}",
+        state.settings.theme, state.settings.pan_on_scroll, state.settings.show_minimap
+    );
+
     Ok(())
 }
 
