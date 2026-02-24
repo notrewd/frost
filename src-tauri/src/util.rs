@@ -100,3 +100,25 @@ pub fn clear_recent_projects() {
 
     fs::write(&recent_projects_path, "[]").unwrap();
 }
+
+pub fn save_settings<T: serde::Serialize>(settings: &T) {
+    let app_dirs = AppDirs::new(Some("Frost"), true).unwrap();
+    let settings_path = app_dirs.data_dir.join("settings.json");
+
+    fs::create_dir_all(&app_dirs.data_dir).unwrap();
+
+    let data = serde_json::to_string_pretty(settings).unwrap();
+    fs::write(&settings_path, data).unwrap();
+}
+
+pub fn load_settings<T: serde::de::DeserializeOwned>() -> Option<T> {
+    let app_dirs = AppDirs::new(Some("Frost"), true).unwrap();
+    let settings_path = app_dirs.data_dir.join("settings.json");
+
+    if !settings_path.exists() {
+        return None;
+    }
+
+    let data = fs::read_to_string(&settings_path).ok()?;
+    serde_json::from_str(&data).ok()
+}

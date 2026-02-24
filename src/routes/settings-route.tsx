@@ -1,7 +1,9 @@
 import EditorSettings from "@/components/settings/editor";
 import GeneralSettings from "@/components/settings/general";
+import { Button } from "@/components/ui/button";
 import ContentHeader from "@/components/ui/content-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -13,9 +15,10 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { invoke } from "@tauri-apps/api/core";
 import { type } from "@tauri-apps/plugin-os";
-import { LucideIcon, Settings2, TvMinimal } from "lucide-react";
-import { useState } from "react";
+import { Loader2, LucideIcon, Save, Settings2, TvMinimal } from "lucide-react";
+import { useCallback, useState } from "react";
 
 interface Category {
   id: string;
@@ -43,6 +46,20 @@ const SettingsRoute = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>(
     categories[0],
   );
+
+  const [busy, setBusy] = useState(false);
+  const [changed, setChanged] = useState(false);
+
+  const handleSave = useCallback(async () => {
+    setBusy(true);
+    try {
+      await invoke("save_settings_state");
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   return (
     <SidebarProvider>
@@ -81,10 +98,33 @@ const SettingsRoute = () => {
         />
         <ScrollArea className="flex flex-col flex-1 overflow-hidden">
           <div className="flex flex-1 flex-col p-2 gap-4">
-            {selectedCategory.id === "general" && <GeneralSettings />}
-            {selectedCategory.id === "editor" && <EditorSettings />}
+            {selectedCategory.id === "general" && (
+              <GeneralSettings onChange={() => setChanged(true)} />
+            )}
+            {selectedCategory.id === "editor" && (
+              <EditorSettings onChange={() => setChanged(true)} />
+            )}
           </div>
         </ScrollArea>
+        <Separator className="my-2" />
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSave}
+            disabled={busy || !changed}
+          >
+            {busy ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="size-4" /> Save
+              </>
+            )}
+          </Button>
+        </div>
       </main>
     </SidebarProvider>
   );

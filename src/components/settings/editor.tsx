@@ -2,8 +2,13 @@ import { useSettingsStore } from "@/stores/settings-store";
 import SettingsField from "../ui/settings-field";
 import { Switch } from "../ui/switch";
 import { useShallow } from "zustand/react/shallow";
+import { FC } from "react";
 
-const EditorSettings = () => {
+interface EditorSettingsProps {
+  onChange?: () => void;
+}
+
+const EditorSettings: FC<EditorSettingsProps> = ({ onChange }) => {
   const { showMinimap, setShowMinimap, panOnScroll, setPanOnScroll } =
     useSettingsStore(
       useShallow((state) => ({
@@ -20,13 +25,25 @@ const EditorSettings = () => {
         label="Show Minimap"
         description="Toggle the visibility of the minimap in the editor"
       >
-        <Switch checked={showMinimap} onCheckedChange={setShowMinimap} />
+        <Switch
+          checked={showMinimap}
+          onCheckedChange={(checked) => {
+            setShowMinimap(checked);
+            onChange?.();
+          }}
+        />
       </SettingsField>
       <SettingsField
         label="Pan on Scroll"
         description="Enable or disable panning the editor when scrolling"
       >
-        <Switch checked={panOnScroll} onCheckedChange={setPanOnScroll} />
+        <Switch
+          checked={panOnScroll}
+          onCheckedChange={(checked) => {
+            setPanOnScroll(checked);
+            onChange?.();
+          }}
+        />
       </SettingsField>
     </>
   );

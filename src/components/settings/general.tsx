@@ -9,8 +9,13 @@ import {
 } from "../ui/select";
 import { useShallow } from "zustand/react/shallow";
 import SettingsField from "../ui/settings-field";
+import { FC } from "react";
 
-const GeneralSettings = () => {
+interface GeneralSettingsProps {
+  onChange?: () => void;
+}
+
+const GeneralSettings: FC<GeneralSettingsProps> = ({ onChange }) => {
   const { theme, setTheme } = useSettingsStore(
     useShallow((state) => ({
       theme: state.theme,
@@ -24,7 +29,13 @@ const GeneralSettings = () => {
         label="Theme"
         description="Select the theme for the application"
       >
-        <Select value={theme} onValueChange={setTheme}>
+        <Select
+          value={theme}
+          onValueChange={(value) => {
+            setTheme(value as "light" | "dark" | "system");
+            onChange?.();
+          }}
+        >
           <SelectTrigger className="w-50!">
             <SelectValue placeholder="Select theme" />
           </SelectTrigger>

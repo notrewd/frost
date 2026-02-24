@@ -16,7 +16,7 @@ struct AppState {
     settings: SettingsState,
 }
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 struct SettingsState {
     theme: String,
     pan_on_scroll: bool,
@@ -406,6 +406,13 @@ async fn get_settings_state(state: tauri::State<'_, Mutex<AppState>>) -> Result<
     Ok(state.settings.clone())
 }
 
+#[tauri::command]
+async fn save_settings_state(state: tauri::State<'_, Mutex<AppState>>) -> tauri::Result<()> {
+    let state = state.lock().unwrap();
+    util::save_settings(&state.settings);
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -429,7 +436,8 @@ pub fn run() {
             remove_recent_project,
             toggle_menu_item,
             set_settings_state,
-            get_settings_state
+            get_settings_state,
+            save_settings_state
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -500,6 +508,12 @@ pub fn run() {
                 .items(&[&about_menu, &file_menu, &edit_menu, &window_menu])
                 .build()?;
 
+            let settings_state = util::load_settings().unwrap_or_else(|| SettingsState {
+                theme: "dark".to_string(),
+                pan_on_scroll: false,
+                show_minimap: true,
+            });
+
             app.manage(Mutex::new(AppState {
                 menu_items: MenuItems {
                     save: save_item.clone(),
@@ -513,11 +527,7 @@ pub fn run() {
                     name: None,
                     path: None,
                 },
-                settings: SettingsState {
-                    theme: "dark".to_string(),
-                    pan_on_scroll: false,
-                    show_minimap: true,
-                },
+                settings: settings_state,
             }));
 
             app.set_menu(menu)?;
