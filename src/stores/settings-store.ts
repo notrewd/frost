@@ -13,9 +13,9 @@ export const useSettingsStore = create<SettingsState>(() => ({
     invoke("set_settings_state", { theme });
   },
   setPanOnScroll: (enabled: boolean) =>
-    invoke("set_settings_state", { pan_on_scroll: enabled }),
+    invoke("set_settings_state", { panOnScroll: enabled }),
   setShowMinimap: (enabled: boolean) =>
-    invoke("set_settings_state", { show_minimap: enabled }),
+    invoke("set_settings_state", { showMinimap: enabled }),
 }));
 
 const fetchSettings = async () => {
@@ -32,11 +32,12 @@ const fetchSettings = async () => {
 
 const subscribeToSettingsUpdates = () => {
   listen("settings-updated", (event) => {
-    const settings = event.payload as SettingsState;
+    const settings = event.payload as any;
+
     useSettingsStore.setState({
       theme: settings.theme,
-      pan_on_scroll: settings.pan_on_scroll,
-      show_minimap: settings.show_minimap,
+      pan_on_scroll: settings.panOnScroll,
+      show_minimap: settings.showMinimap,
     });
     setTheme(settings.theme);
   });
