@@ -1,5 +1,5 @@
 import { ChangeEvent, ComponentProps, FC } from "react";
-import { Input } from "./input";
+import { Input } from "../input";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 

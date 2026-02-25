@@ -11,7 +11,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field.tsx";
-import { Input } from "@/components/ui/inputs/input.tsx";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button.tsx";
 import PathInput from "@/components/ui/inputs/path-input.tsx";
 import { invoke } from "@tauri-apps/api/core";

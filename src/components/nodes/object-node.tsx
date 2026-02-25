@@ -31,6 +31,8 @@ export interface ObjectNodeData extends Record<string, unknown> {
   stereotype?: string;
   attributes?: ObjectNodeAttribute[];
   methods?: ObjectNodeMethod[];
+  abstract?: boolean;
+  note?: string;
 }
 
 interface ObjectNodeProps {

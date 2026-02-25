@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Input } from "@/components/ui/inputs/input.tsx";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button.tsx";
 import { cn } from "@/lib/utils.ts";
 import { Folder } from "lucide-react";
