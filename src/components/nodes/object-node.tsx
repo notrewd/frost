@@ -36,11 +36,12 @@ export interface ObjectNodeData extends Record<string, unknown> {
 }
 
 interface ObjectNodeProps {
+  id: string;
   data: ObjectNodeData;
   selected: boolean;
 }
 
-const ObjectNode: FC<ObjectNodeProps> = ({ data, selected }) => {
+const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -121,6 +122,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ data, selected }) => {
         )}
       </Card>
       <ObjectNodeDialog
+        id={id}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         data={data}
