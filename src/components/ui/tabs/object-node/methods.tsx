@@ -79,7 +79,7 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
       <div className="flex justify-between items-center">
         <span className="text-sm font-medium">Methods</span>
         <Button variant="outline" size="sm" onClick={addMethod}>
-          <Plus className="size-4 mr-1" /> Add
+          <Plus className="size-4" /> Add
         </Button>
       </div>
       <ScrollArea className="flex-1 border rounded-md p-2">
@@ -162,8 +162,8 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
                 </div>
 
                 {/* Parameters */}
-                <div className="mt-2 pl-4 border-l-2 border-muted">
-                  <div className="flex justify-between items-center mb-2">
+                <div className="mt-2 pl-4 border-l-2 border-muted flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
                     <span className="text-xs font-medium text-muted-foreground">
                       Parameters
                     </span>
@@ -173,11 +173,11 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
                       className="h-6 text-xs"
                       onClick={() => addParameter(index)}
                     >
-                      <Plus className="size-3 mr-1" /> Add Param
+                      <Plus className="size-3" /> Add Param
                     </Button>
                   </div>
-                  <div className="flex flex-col gap-2">
-                    {method.parameters?.map((param, pIndex) => (
+                  {method.parameters?.map((param, pIndex) => (
+                    <div className="flex flex-col gap-2">
                       <div key={pIndex} className="flex gap-2 items-center">
                         <Input
                           className="h-7 text-xs font-mono flex-1"
@@ -209,8 +209,8 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
                           <Trash2 className="size-3" />
                         </Button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

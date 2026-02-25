@@ -13,6 +13,7 @@ import MethodsTab from "../tabs/object-node/methods";
 import { Button } from "../button";
 import useFlowStore from "@/stores/flow-store";
 import UnsavedChangesDialog from "./unsaved-changes-dialog";
+import { Separator } from "../separator";
 
 interface ObjectNodeDialogProps {
   id: string;
@@ -88,13 +89,16 @@ const ObjectNodeDialog: FC<ObjectNodeDialogProps> = ({
               <GeneralTab data={internalData} setData={setInternalData} />
               <AttributesTab data={internalData} setData={setInternalData} />
               <MethodsTab data={internalData} setData={setInternalData} />
-              <div className="flex justify-end mt-2">
-                <Button onClick={handleApply} disabled={!hasChanges}>
-                  Apply
-                </Button>
-              </div>
             </div>
           </ResponsiveDialogContent>
+          <div className="flex flex-col gap-2 px-4">
+            <Separator />
+            <div className="flex justify-end mt-2">
+              <Button onClick={handleApply} disabled={!hasChanges}>
+                Apply
+              </Button>
+            </div>
+          </div>
         </ResponsiveDialog>
       </Tabs>
       <UnsavedChangesDialog
