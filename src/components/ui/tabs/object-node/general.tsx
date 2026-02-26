@@ -14,38 +14,38 @@ interface GeneralTabProps {
 const GeneralTab: FC<GeneralTabProps> = ({ data, setData }) => {
   return (
     <TabsContent value="general" className="flex flex-col gap-3">
-      <Field className="gap-1">
-        <FieldContent className="flex flex-col gap-0">
-          <FieldLabel>Name</FieldLabel>
-        </FieldContent>
-        <Input
-          className="font-mono"
-          value={data.name}
-          onChange={(e) => setData({ ...data, name: e.target.value })}
-          variant="small"
-        />
-      </Field>
-      <Field className="gap-1">
-        <FieldContent className="flex flex-col gap-0">
-          <FieldLabel>Stereotype</FieldLabel>
-        </FieldContent>
-        <Input
-          className="font-mono"
-          value={data.stereotype}
-          onChange={(e) => setData({ ...data, stereotype: e.target.value })}
-          placeholder="None"
-          variant="small"
-        />
-      </Field>
-      <Field orientation="horizontal">
-        <FieldContent className="flex flex-col gap-0 flex-1">
-          <FieldLabel>Abstract</FieldLabel>
-        </FieldContent>
+      <div className="flex gap-4">
+        <Field className="gap-1">
+          <FieldContent className="flex flex-col gap-0">
+            <FieldLabel>Name</FieldLabel>
+          </FieldContent>
+          <Input
+            className="font-mono"
+            value={data.name}
+            onChange={(e) => setData({ ...data, name: e.target.value })}
+            variant="small"
+          />
+        </Field>
+        <Field className="gap-1">
+          <FieldContent className="flex flex-col gap-0">
+            <FieldLabel>Stereotype</FieldLabel>
+          </FieldContent>
+          <Input
+            className="font-mono"
+            value={data.stereotype}
+            onChange={(e) => setData({ ...data, stereotype: e.target.value })}
+            placeholder="None"
+            variant="small"
+          />
+        </Field>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Abstract</span>
         <Switch
           checked={data.abstract}
           onCheckedChange={(checked) => setData({ ...data, abstract: checked })}
         />
-      </Field>
+      </div>
       <Field className="gap-1">
         <FieldContent className="flex flex-col gap-0">
           <FieldLabel>Note</FieldLabel>

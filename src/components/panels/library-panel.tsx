@@ -98,6 +98,7 @@ const LibraryPanel = ({ onItemDropped }: LibraryPanelProps) => {
       <SearchInput
         placeholder="Search library..."
         className="w-full mb-4"
+        value={query}
         onChange={handleSearch}
       />
       <div className="grid grid-cols-2 gap-4">

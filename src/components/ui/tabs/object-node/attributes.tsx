@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo, useState } from "react";
 import { TabsContent } from "../../tabs";
 import {
   ObjectNodeData,
@@ -16,6 +16,7 @@ import {
 import { Switch } from "../../switch";
 import { Plus, Trash2 } from "lucide-react";
 import { ScrollArea } from "../../scroll-area";
+import SearchInput from "../../inputs/search-input";
 
 interface AttributesTabProps {
   data: ObjectNodeData;
@@ -23,7 +24,14 @@ interface AttributesTabProps {
 }
 
 const AttributesTab: FC<AttributesTabProps> = ({ data, setData }) => {
-  const attributes = data.attributes || [];
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const attributes = useMemo(() => {
+    if (!data.attributes) return [];
+    return data.attributes.filter((attr) =>
+      attr.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [data.attributes, searchQuery]);
 
   const addAttribute = () => {
     const newAttribute: ObjectNodeAttribute = {
@@ -51,16 +59,25 @@ const AttributesTab: FC<AttributesTabProps> = ({ data, setData }) => {
 
   return (
     <TabsContent value="attributes" className="flex flex-col gap-3 h-75">
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-medium">Attributes</span>
-        <Button variant="outline" size="sm" onClick={addAttribute}>
-          <Plus className="size-4" /> Add
-        </Button>
+      <div className="flex flex-col sticky -top-px bg-background z-10 py-2">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-medium">Attributes</span>
+          <Button variant="outline" size="sm" onClick={addAttribute}>
+            <Plus className="size-4" /> Add
+          </Button>
+        </div>
+        <SearchInput
+          placeholder="Search attributes..."
+          className="mt-2"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
       <ScrollArea className="flex-1 border rounded-md p-2">
         {attributes.length === 0 ? (
           <div className="text-center text-muted-foreground text-sm py-4">
-            No attributes defined.
+            No attributes{" "}
+            {searchQuery ? `matching "${searchQuery}"` : "defined"}.
           </div>
         ) : (
           <div className="flex flex-col gap-4">

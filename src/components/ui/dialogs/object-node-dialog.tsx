@@ -74,10 +74,12 @@ const ObjectNodeDialog: FC<ObjectNodeDialogProps> = ({
           className="gap-2 sm:max-w-2xl"
         >
           <ResponsiveDialogHeader>
-            <DialogTitle>{data.name}</DialogTitle>
-            <DialogDescription>
-              Customize the properties and methods of the object node.
-            </DialogDescription>
+            <div className="flex flex-col gap-1 mb-1">
+              <DialogTitle>{data.name}</DialogTitle>
+              <DialogDescription>
+                Customize the properties and methods of the object node.
+              </DialogDescription>
+            </div>
             <TabsList>
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="attributes">Attributes</TabsTrigger>

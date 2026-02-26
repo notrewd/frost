@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo, useState } from "react";
 import { TabsContent } from "../../tabs";
 import {
   ObjectNodeData,
@@ -9,6 +9,7 @@ import { Button } from "../../button";
 import { Plus } from "lucide-react";
 import { ScrollArea } from "../../scroll-area";
 import ObjectNodeMethodItem from "../../items/object-node-method-item";
+import SearchInput from "../../inputs/search-input";
 
 interface MethodsTabProps {
   data: ObjectNodeData;
@@ -16,7 +17,14 @@ interface MethodsTabProps {
 }
 
 const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
-  const methods = data.methods || [];
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const methods = useMemo(() => {
+    if (!data.methods) return [];
+    return data.methods.filter((method) =>
+      method.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [data.methods, searchQuery]);
 
   const addMethod = () => {
     const newMethod: ObjectNodeMethod = {
@@ -67,17 +75,25 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
   };
 
   return (
-    <TabsContent value="methods" className="flex flex-col gap-3 h-75">
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-medium">Methods</span>
-        <Button variant="outline" size="sm" onClick={addMethod}>
-          <Plus className="size-4" /> Add
-        </Button>
+    <TabsContent value="methods" className="flex flex-col gap-3 h-75 relative">
+      <div className="flex flex-col sticky -top-px bg-background z-10 py-2">
+        <div className="flex justify-between items-center ">
+          <span className="text-sm font-medium">Methods</span>
+          <Button variant="outline" size="sm" onClick={addMethod}>
+            <Plus className="size-4" /> Add
+          </Button>
+        </div>
+        <SearchInput
+          placeholder="Search methods..."
+          className="mt-2"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
       <ScrollArea className="flex-1 border rounded-md p-2">
         {methods.length === 0 ? (
           <div className="text-center text-muted-foreground text-sm py-4">
-            No methods defined.
+            No methods {searchQuery ? `matching "${searchQuery}"` : "defined"}.
           </div>
         ) : (
           <div className="flex flex-col gap-4">
