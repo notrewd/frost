@@ -9,17 +9,17 @@ export interface ObjectNodeProperty {
   name: string;
   type?: string;
   static?: boolean;
+  defaultValue?: string;
 }
 
 export interface ObjectNodeAttribute extends ObjectNodeProperty {
   accessModifier: "public" | "private" | "protected";
   stereotype?: string;
-  defaultValue?: string;
 }
 
 export interface ObjectNodeMethod {
   name: string;
-  accessModifier: string;
+  accessModifier: "public" | "private" | "protected";
   abstract?: boolean;
   static?: boolean;
   returnType: string;
@@ -80,6 +80,12 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   <span className="text-blue-400">{attr.type}</span>
                 </>
               )}
+              {attr.defaultValue && (
+                <>
+                  {" = "}
+                  <span className="text-purple-400">{attr.defaultValue}</span>
+                </>
+              )}
             </span>
           </p>
         ))}
@@ -107,6 +113,14 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   <span className="text-orange-400">{param.name}</span>
                   <span className="text-red-400">:</span>{" "}
                   <span className="text-blue-400">{param.type}</span>
+                  {param.defaultValue && (
+                    <>
+                      {" = "}
+                      <span className="text-purple-400">
+                        {param.defaultValue}
+                      </span>
+                    </>
+                  )}
                   {index < method.parameters.length - 1 ? ", " : ""}
                 </>
               ))}

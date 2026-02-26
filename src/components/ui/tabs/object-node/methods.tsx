@@ -6,17 +6,9 @@ import {
   ObjectNodeProperty,
 } from "@/components/nodes/object-node";
 import { Button } from "../../button";
-import { Input } from "../../input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../select";
-import { Switch } from "../../switch";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { ScrollArea } from "../../scroll-area";
+import ObjectNodeMethodItem from "../../items/object-node-method-item";
 
 interface MethodsTabProps {
   data: ObjectNodeData;
@@ -90,129 +82,16 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
         ) : (
           <div className="flex flex-col gap-4">
             {methods.map((method, index) => (
-              <div
+              <ObjectNodeMethodItem
                 key={index}
-                className="flex flex-col gap-2 p-2 border rounded-md bg-muted/20"
-              >
-                <div className="flex gap-2 items-center">
-                  <Select
-                    value={method.accessModifier}
-                    onValueChange={(val: any) =>
-                      updateMethod(index, { accessModifier: val })
-                    }
-                  >
-                    <SelectTrigger className="h-8!">
-                      <SelectValue placeholder="Access" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">Public (+)</SelectItem>
-                      <SelectItem value="private">Private (-)</SelectItem>
-                      <SelectItem value="protected">Protected (#)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    className="h-8 font-mono flex-1"
-                    value={method.name}
-                    onChange={(e) =>
-                      updateMethod(index, { name: e.target.value })
-                    }
-                    placeholder="Name"
-                  />
-                  <span className="text-muted-foreground">:</span>
-                  <Input
-                    className="h-8 font-mono w-25"
-                    value={method.returnType || ""}
-                    onChange={(e) =>
-                      updateMethod(index, { returnType: e.target.value })
-                    }
-                    placeholder="Return Type"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => removeMethod(index)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-                <div className="flex gap-4 items-center px-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      Static
-                    </span>
-                    <Switch
-                      checked={method.static || false}
-                      onCheckedChange={(checked) =>
-                        updateMethod(index, { static: checked })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
-                      Abstract
-                    </span>
-                    <Switch
-                      checked={method.abstract || false}
-                      onCheckedChange={(checked) =>
-                        updateMethod(index, { abstract: checked })
-                      }
-                    />
-                  </div>
-                </div>
-
-                {/* Parameters */}
-                <div className="mt-2 pl-4 border-l-2 border-muted flex flex-col gap-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Parameters
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 text-xs"
-                      onClick={() => addParameter(index)}
-                    >
-                      <Plus className="size-3" /> Add Param
-                    </Button>
-                  </div>
-                  {method.parameters?.map((param, pIndex) => (
-                    <div className="flex flex-col gap-2">
-                      <div key={pIndex} className="flex gap-2 items-center">
-                        <Input
-                          className="h-7 text-xs font-mono flex-1"
-                          value={param.name}
-                          onChange={(e) =>
-                            updateParameter(index, pIndex, {
-                              name: e.target.value,
-                            })
-                          }
-                          placeholder="Name"
-                        />
-                        <span className="text-muted-foreground text-xs">:</span>
-                        <Input
-                          className="h-7 text-xs font-mono w-25"
-                          value={param.type || ""}
-                          onChange={(e) =>
-                            updateParameter(index, pIndex, {
-                              type: e.target.value,
-                            })
-                          }
-                          placeholder="Type"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => removeParameter(index, pIndex)}
-                        >
-                          <Trash2 className="size-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                method={method}
+                index={index}
+                onUpdateMethod={updateMethod}
+                onRemoveMethod={removeMethod}
+                onAddParameter={addParameter}
+                onUpdateParameter={updateParameter}
+                onRemoveParameter={removeParameter}
+              />
             ))}
           </div>
         )}
