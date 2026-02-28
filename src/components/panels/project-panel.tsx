@@ -79,7 +79,7 @@ const ProjectPanel = () => {
         },
       ],
     };
-  }, [handleDelete]);
+  }, [handleDelete, instance]);
 
   useEffect(() => {
     const rootItem: TreeViewItem = {
