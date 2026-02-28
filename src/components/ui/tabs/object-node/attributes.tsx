@@ -17,6 +17,7 @@ import { Switch } from "../../switch";
 import { Plus, Trash2 } from "lucide-react";
 import { ScrollArea } from "../../scroll-area";
 import SearchInput from "../../inputs/search-input";
+import { generateUniqueAttributeId } from "@/lib/utils";
 
 interface AttributesTabProps {
   data: ObjectNodeData;
@@ -35,6 +36,7 @@ const AttributesTab: FC<AttributesTabProps> = ({ data, setData }) => {
 
   const addAttribute = () => {
     const newAttribute: ObjectNodeAttribute = {
+      id: generateUniqueAttributeId(),
       name: "newAttribute",
       accessModifier: "private",
       type: "string",

@@ -10,6 +10,7 @@ import { Plus } from "lucide-react";
 import { ScrollArea } from "../../scroll-area";
 import ObjectNodeMethodItem from "../../items/object-node-method-item";
 import SearchInput from "../../inputs/search-input";
+import { generateUniqueMethodId, generateUniqueParameterId } from "@/lib/utils";
 
 interface MethodsTabProps {
   data: ObjectNodeData;
@@ -28,6 +29,7 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
 
   const addMethod = () => {
     const newMethod: ObjectNodeMethod = {
+      id: generateUniqueMethodId(),
       name: "newMethod",
       accessModifier: "public",
       returnType: "void",
@@ -50,7 +52,11 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
 
   const addParameter = (methodIndex: number) => {
     const method = methods[methodIndex];
-    const newParam: ObjectNodeProperty = { name: "param", type: "string" };
+    const newParam: ObjectNodeProperty = {
+      id: generateUniqueParameterId(),
+      name: "param",
+      type: "string",
+    };
     updateMethod(methodIndex, {
       parameters: [...(method.parameters || []), newParam],
     });
