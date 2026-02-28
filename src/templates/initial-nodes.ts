@@ -1,5 +1,10 @@
 import { type Node } from "@xyflow/react";
 import { type ObjectNodeData } from "@/components/nodes/object-node";
+import {
+  generateUniqueAttributeId,
+  generateUniqueMethodId,
+  generateUniqueParameterId,
+} from "@/lib/utils";
 
 export const initialNodes: Node<ObjectNodeData>[] = [
   {
@@ -9,9 +14,20 @@ export const initialNodes: Node<ObjectNodeData>[] = [
     data: {
       name: "Person",
       attributes: [
-        { name: "firstName", type: "string", accessModifier: "private" },
-        { name: "lastName", type: "string", accessModifier: "private" },
         {
+          id: generateUniqueAttributeId(),
+          name: "firstName",
+          type: "string",
+          accessModifier: "private",
+        },
+        {
+          id: generateUniqueAttributeId(),
+          name: "lastName",
+          type: "string",
+          accessModifier: "private",
+        },
+        {
+          id: generateUniqueAttributeId(),
           name: "age",
           type: "number",
           accessModifier: "private",
@@ -20,25 +36,38 @@ export const initialNodes: Node<ObjectNodeData>[] = [
       ],
       methods: [
         {
+          id: generateUniqueMethodId(),
           name: "setFullName",
           accessModifier: "public",
           returnType: "void",
           parameters: [
-            { name: "firstName", type: "string" },
-            { name: "lastName", type: "string" },
+            {
+              id: generateUniqueParameterId(),
+              name: "firstName",
+              type: "string",
+            },
+            {
+              id: generateUniqueParameterId(),
+              name: "lastName",
+              type: "string",
+            },
           ],
         },
         {
+          id: generateUniqueMethodId(),
           name: "getFullName",
           accessModifier: "public",
           returnType: "string",
           parameters: [],
         },
         {
+          id: generateUniqueMethodId(),
           name: "setAge",
           accessModifier: "public",
           returnType: "void",
-          parameters: [{ name: "age", type: "number" }],
+          parameters: [
+            { id: generateUniqueParameterId(), name: "age", type: "number" },
+          ],
         },
       ],
     },
@@ -50,10 +79,16 @@ export const initialNodes: Node<ObjectNodeData>[] = [
     data: {
       name: "Employee",
       attributes: [
-        { name: "employeeId", type: "string", accessModifier: "private" },
+        {
+          id: generateUniqueAttributeId(),
+          name: "employeeId",
+          type: "string",
+          accessModifier: "private",
+        },
       ],
       methods: [
         {
+          id: generateUniqueMethodId(),
           name: "getEmployeeDetails",
           accessModifier: "public",
           returnType: "string",
@@ -71,18 +106,21 @@ export const initialNodes: Node<ObjectNodeData>[] = [
       stereotype: "enumeration",
       attributes: [
         {
+          id: generateUniqueAttributeId(),
           name: "Active",
           accessModifier: "public",
           defaultValue: "1",
           static: true,
         },
         {
+          id: generateUniqueAttributeId(),
           name: "Inactive",
           accessModifier: "public",
           defaultValue: "0",
           static: true,
         },
         {
+          id: generateUniqueAttributeId(),
           name: "Pending",
           accessModifier: "public",
           defaultValue: "2",

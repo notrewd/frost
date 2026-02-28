@@ -21,3 +21,15 @@ export function convertProjectNameToFileName(name: string) {
     .replace(/^-+|-+$/g, "")
     .concat(".fr");
 }
+
+export function generateUniqueParameterId() {
+  return `param-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
+export function generateUniqueAttributeId() {
+  return `attr-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
+export function generateUniqueMethodId() {
+  return `method-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
