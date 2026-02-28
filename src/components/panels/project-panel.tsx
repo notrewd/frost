@@ -1,4 +1,10 @@
-import { Folder, FolderRoot, SquareChartGantt, Trash } from "lucide-react";
+import {
+  Focus,
+  Folder,
+  FolderRoot,
+  SquareChartGantt,
+  Trash,
+} from "lucide-react";
 import TreeView, {
   TreeViewItem,
   TreeViewMenuItemsByType,
@@ -22,9 +28,10 @@ const ProjectPanel = () => {
     nodes: state.nodes,
     setNodes: state.setNodes,
     setEdges: state.setEdges,
+    instance: state.instance,
   }));
 
-  const { setNodes, setEdges, nodes } = useFlowStore(selector);
+  const { setNodes, setEdges, nodes, instance } = useFlowStore(selector);
 
   const treeData = useMemo(() => {
     return nodes.map((node) => ({
@@ -49,6 +56,16 @@ const ProjectPanel = () => {
   const menuItems: TreeViewMenuItemsByType = useMemo(() => {
     return {
       node: [
+        {
+          id: "focus",
+          label: "Focus",
+          icon: <Focus className="size-4" />,
+          action: (items: TreeViewItem[]) => {
+            instance?.fitView({
+              nodes: items.map((item) => ({ id: item.id })),
+            });
+          },
+        },
         {
           id: "delete",
           label: "Delete",
