@@ -7,6 +7,7 @@ import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { useSettingsStore } from "@/stores/settings-store";
 
 export interface ObjectNodeProperty {
+  id: string;
   name: string;
   type?: string;
   static?: boolean;
@@ -19,6 +20,7 @@ export interface ObjectNodeAttribute extends ObjectNodeProperty {
 }
 
 export interface ObjectNodeMethod {
+  id: string;
   name: string;
   accessModifier: "public" | "private" | "protected";
   abstract?: boolean;

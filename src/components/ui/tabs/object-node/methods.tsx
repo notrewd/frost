@@ -11,6 +11,7 @@ import { ScrollArea } from "../../scroll-area";
 import ObjectNodeMethodItem from "../../items/object-node-method-item";
 import SearchInput from "../../inputs/search-input";
 import { generateUniqueMethodId, generateUniqueParameterId } from "@/lib/utils";
+import { Sortable, SortableContent } from "../../sortable";
 
 interface MethodsTabProps {
   data: ObjectNodeData;
@@ -102,20 +103,28 @@ const MethodsTab: FC<MethodsTabProps> = ({ data, setData }) => {
             No methods {searchQuery ? `matching "${searchQuery}"` : "defined"}.
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {methods.map((method, index) => (
-              <ObjectNodeMethodItem
-                key={index}
-                method={method}
-                index={index}
-                onUpdateMethod={updateMethod}
-                onRemoveMethod={removeMethod}
-                onAddParameter={addParameter}
-                onUpdateParameter={updateParameter}
-                onRemoveParameter={removeParameter}
-              />
-            ))}
-          </div>
+          <Sortable
+            value={methods}
+            onValueChange={(newMethods) =>
+              setData({ ...data, methods: newMethods })
+            }
+            getItemValue={(item) => item.id}
+          >
+            <SortableContent className="flex flex-col gap-4">
+              {methods.map((method, index) => (
+                <ObjectNodeMethodItem
+                  key={index}
+                  method={method}
+                  index={index}
+                  onUpdateMethod={updateMethod}
+                  onRemoveMethod={removeMethod}
+                  onAddParameter={addParameter}
+                  onUpdateParameter={updateParameter}
+                  onRemoveParameter={removeParameter}
+                />
+              ))}
+            </SortableContent>
+          </Sortable>
         )}
       </ScrollArea>
     </TabsContent>
