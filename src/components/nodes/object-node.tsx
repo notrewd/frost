@@ -4,6 +4,7 @@ import { Separator } from "../ui/separator";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
+import { useSettingsStore } from "@/stores/settings-store";
 
 export interface ObjectNodeProperty {
   name: string;
@@ -43,6 +44,7 @@ interface ObjectNodeProps {
 
 const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const coloredNodes = useSettingsStore((state) => state.colored_nodes);
 
   return (
     <>
@@ -61,7 +63,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         <Separator className="my-2" />
         {data.attributes?.map((attr, index) => (
           <p key={index} className="px-4">
-            <span className="text-green-400">
+            <span className={cn(coloredNodes && "text-green-400")}>
               {attr.accessModifier === "public"
                 ? "+"
                 : attr.accessModifier === "private"
@@ -76,14 +78,18 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               {attr.name}
               {attr.type && (
                 <>
-                  <span className="text-red-400">:</span>{" "}
-                  <span className="text-blue-400">{attr.type}</span>
+                  <span className={cn(coloredNodes && "text-red-400")}>:</span>{" "}
+                  <span className={cn(coloredNodes && "text-blue-400")}>
+                    {attr.type}
+                  </span>
                 </>
               )}
               {attr.defaultValue && (
                 <>
                   {" = "}
-                  <span className="text-purple-400">{attr.defaultValue}</span>
+                  <span className={cn(coloredNodes && "text-purple-400")}>
+                    {attr.defaultValue}
+                  </span>
                 </>
               )}
             </span>
@@ -94,7 +100,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         )}
         {data.methods?.map((method, index) => (
           <p key={index} className="px-4">
-            <span className="text-green-400">
+            <span className={cn(coloredNodes && "text-green-400")}>
               {method.accessModifier === "public"
                 ? "+"
                 : method.accessModifier === "private"
@@ -110,13 +116,17 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               {method.name}(
               {method.parameters.map((param, index) => (
                 <>
-                  <span className="text-orange-400">{param.name}</span>
-                  <span className="text-red-400">:</span>{" "}
-                  <span className="text-blue-400">{param.type}</span>
+                  <span className={cn(coloredNodes && "text-orange-400")}>
+                    {param.name}
+                  </span>
+                  <span className={cn(coloredNodes && "text-red-400")}>:</span>{" "}
+                  <span className={cn(coloredNodes && "text-blue-400")}>
+                    {param.type}
+                  </span>
                   {param.defaultValue && (
                     <>
                       {" = "}
-                      <span className="text-purple-400">
+                      <span className={cn(coloredNodes && "text-purple-400")}>
                         {param.defaultValue}
                       </span>
                     </>
@@ -124,8 +134,10 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   {index < method.parameters.length - 1 ? ", " : ""}
                 </>
               ))}
-              )<span className="text-red-400">:</span>{" "}
-              <span className="text-blue-400">{method.returnType}</span>
+              )<span className={cn(coloredNodes && "text-red-400")}>:</span>{" "}
+              <span className={cn(coloredNodes && "text-blue-400")}>
+                {method.returnType}
+              </span>
             </span>
           </p>
         ))}

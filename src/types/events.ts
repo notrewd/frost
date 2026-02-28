@@ -12,4 +12,5 @@ export type SettingsUpdatedEvent = {
   theme: "light" | "dark" | "system";
   pan_on_scroll: boolean;
   show_minimap: boolean;
+  colored_nodes: boolean;
 };

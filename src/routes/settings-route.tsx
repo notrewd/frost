@@ -1,5 +1,6 @@
 import EditorSettings from "@/components/settings/editor";
 import GeneralSettings from "@/components/settings/general";
+import NodesSettings from "@/components/settings/nodes";
 import { Button } from "@/components/ui/button";
 import ContentHeader from "@/components/ui/content-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,7 +18,14 @@ import {
 import { cn } from "@/lib/utils";
 import { invoke } from "@tauri-apps/api/core";
 import { type } from "@tauri-apps/plugin-os";
-import { Loader2, LucideIcon, Save, Settings2, TvMinimal } from "lucide-react";
+import {
+  Loader2,
+  LucideIcon,
+  Save,
+  Settings2,
+  TvMinimal,
+  Workflow,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface Category {
@@ -39,6 +47,12 @@ const categories: Category[] = [
     title: "Editor",
     description: "Customize the look and feel of the editor.",
     icon: TvMinimal,
+  },
+  {
+    id: "nodes",
+    title: "Nodes",
+    description: "Manage visual appearance of nodes.",
+    icon: Workflow,
   },
 ];
 
@@ -103,6 +117,9 @@ const SettingsRoute = () => {
             )}
             {selectedCategory.id === "editor" && (
               <EditorSettings onChange={() => setChanged(true)} />
+            )}
+            {selectedCategory.id === "nodes" && (
+              <NodesSettings onChange={() => setChanged(true)} />
             )}
           </div>
         </ScrollArea>
