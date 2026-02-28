@@ -128,7 +128,7 @@ const buildItemMap = (items: TreeViewItem[]): Map<string, TreeViewItem> => {
 // Update the getCheckState function to work bottom-up
 const getCheckState = (
   item: TreeViewItem,
-  itemMap: Map<string, TreeViewItem>
+  itemMap: Map<string, TreeViewItem>,
 ): "checked" | "unchecked" | "indeterminate" => {
   // Get the original item from the map
   const originalItem = itemMap.get(item.id);
@@ -208,7 +208,7 @@ function TreeItem({
 
       return visibleItems;
     },
-    [expandedIds]
+    [expandedIds],
   );
 
   useEffect(() => {
@@ -231,7 +231,7 @@ function TreeItem({
     const roundBottom = !isNextSelected;
 
     setSelectionStyle(
-      `${roundTop ? "rounded-t-md" : ""} ${roundBottom ? "rounded-b-md" : ""}`
+      `${roundTop ? "rounded-t-md" : ""} ${roundBottom ? "rounded-b-md" : ""}`,
     );
   }, [
     isSelected,
@@ -252,10 +252,10 @@ function TreeItem({
 
     if (e.shiftKey && lastSelectedId.current !== null) {
       const items = Array.from(
-        document.querySelectorAll("[data-tree-item]")
+        document.querySelectorAll("[data-tree-item]"),
       ) as HTMLElement[];
       const lastIndex = items.findIndex(
-        (el) => el.getAttribute("data-id") === lastSelectedId.current
+        (el) => el.getAttribute("data-id") === lastSelectedId.current,
       );
       const currentIndex = items.findIndex((el) => el === itemRef.current);
       const [start, end] = [
@@ -307,6 +307,7 @@ function TreeItem({
       const currentState = getCheckState(item, itemMap);
       // Toggle between checked and unchecked, treating indeterminate as unchecked
       const newChecked = currentState === "checked" ? false : true;
+
       onAccessChange(item, newChecked);
     }
   };
@@ -325,7 +326,7 @@ function TreeItem({
 
     const findParent = (
       currentItem: TreeViewItem,
-      allItems: TreeViewItem[]
+      allItems: TreeViewItem[],
     ) => {
       for (const potentialParent of allItems) {
         if (
@@ -395,7 +396,7 @@ function TreeItem({
             data-id={item.id}
             data-depth={depth}
             data-folder-closed={item.children && !isOpen}
-            className={`select-none ${
+            className={`select-none hover:bg-background/50 rounded-md ${
               isSelected
                 ? `bg-background/50 ${selectionStyle}`
                 : "text-foreground"
@@ -807,7 +808,7 @@ export default function TreeView({
 
       // Check if any children of this item are selected
       const hasSelectedChildren = item.children.some((child) =>
-        selectedIdsSet.has(child.id)
+        selectedIdsSet.has(child.id),
       );
 
       // Only include this item if none of its children are selected
@@ -859,7 +860,7 @@ export default function TreeView({
       if (!dragRef.current) return;
 
       const items = Array.from(
-        dragRef.current.querySelectorAll("[data-tree-item]")
+        dragRef.current.querySelectorAll("[data-tree-item]"),
       ) as HTMLElement[];
 
       const startY = dragStart;
@@ -870,7 +871,7 @@ export default function TreeView({
       ];
 
       const newSelection = new Set(
-        e.shiftKey || e.ctrlKey ? Array.from(selectedIds) : []
+        e.shiftKey || e.ctrlKey ? Array.from(selectedIds) : [],
       );
 
       items.forEach((item) => {
@@ -883,7 +884,7 @@ export default function TreeView({
           const isClosedFolder =
             item.getAttribute("data-folder-closed") === "true";
           const parentFolderClosed = item.closest(
-            '[data-folder-closed="true"]'
+            '[data-folder-closed="true"]',
           );
 
           if (id && (isClosedFolder || !parentFolderClosed)) {
@@ -895,7 +896,7 @@ export default function TreeView({
       setSelectedIds(newSelection);
       setCurrentMousePos(e.clientY);
     },
-    [isDragging, dragStart, selectedIds, dragStartPosition]
+    [isDragging, dragStart, selectedIds, dragStartPosition],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -1025,7 +1026,7 @@ export default function TreeView({
           ref={dragRef}
           className={cn(
             "rounded-lg bg-card relative select-none h-full pb-12",
-            className
+            className,
           )}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -1037,11 +1038,11 @@ export default function TreeView({
                 style={{
                   top: Math.min(
                     dragStart || 0,
-                    dragStart === null ? 0 : currentMousePos
+                    dragStart === null ? 0 : currentMousePos,
                   ),
                   height: Math.abs(
                     (dragStart || 0) -
-                      (dragStart === null ? 0 : currentMousePos)
+                      (dragStart === null ? 0 : currentMousePos),
                   ),
                 }}
               />
