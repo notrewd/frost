@@ -13,4 +13,5 @@ export type SettingsUpdatedEvent = {
   pan_on_scroll: boolean;
   show_minimap: boolean;
   colored_nodes: boolean;
+  show_controls: boolean;
 };

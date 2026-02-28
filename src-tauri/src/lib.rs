@@ -22,6 +22,7 @@ struct SettingsState {
     pan_on_scroll: bool,
     show_minimap: bool,
     colored_nodes: bool,
+    show_controls: bool,
 }
 
 #[derive(Clone)]
@@ -383,6 +384,7 @@ async fn set_settings_state(
     pan_on_scroll: Option<bool>,
     show_minimap: Option<bool>,
     colored_nodes: Option<bool>,
+    show_controls: Option<bool>,
 ) -> tauri::Result<()> {
     let mut state = state.lock().unwrap();
 
@@ -390,6 +392,7 @@ async fn set_settings_state(
     state.settings.pan_on_scroll = pan_on_scroll.unwrap_or(state.settings.pan_on_scroll);
     state.settings.show_minimap = show_minimap.unwrap_or(state.settings.show_minimap);
     state.settings.colored_nodes = colored_nodes.unwrap_or(state.settings.colored_nodes);
+    state.settings.show_controls = show_controls.unwrap_or(state.settings.show_controls);
 
     app.emit(
         "settings-updated",
@@ -398,6 +401,7 @@ async fn set_settings_state(
             "panOnScroll": state.settings.pan_on_scroll,
             "showMinimap": state.settings.show_minimap,
             "coloredNodes": state.settings.colored_nodes,
+            "showControls": state.settings.show_controls,
         }),
     )?;
 
@@ -517,6 +521,7 @@ pub fn run() {
                 pan_on_scroll: false,
                 show_minimap: true,
                 colored_nodes: true,
+                show_controls: true,
             });
 
             app.manage(Mutex::new(AppState {

@@ -61,11 +61,12 @@ const FlowEditor = () => {
     })),
   );
 
-  const { theme, panOnScroll, showMinimap } = useSettingsStore(
+  const { theme, panOnScroll, showMinimap, showControls } = useSettingsStore(
     useShallow((state) => ({
       theme: state.theme,
       panOnScroll: state.pan_on_scroll,
       showMinimap: state.show_minimap,
+      showControls: state.show_controls,
     })),
   );
 
@@ -205,27 +206,31 @@ const FlowEditor = () => {
       nodesConnectable={!isLocked}
       elementsSelectable={!isLocked}
     >
-      <EditorControls isLocked={isLocked} setIsLocked={setIsLocked} />
-      <Panel position="top-left" className="flex gap-2">
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => undo()}
-          disabled={!canUndo}
-          title="Undo (Ctrl+Z)"
-        >
-          <Undo className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => redo()}
-          disabled={!canRedo}
-          title="Redo (Ctrl+Y)"
-        >
-          <Redo className="w-4 h-4" />
-        </Button>
-      </Panel>
+      {showControls && (
+        <>
+          <EditorControls isLocked={isLocked} setIsLocked={setIsLocked} />
+          <Panel position="top-left" className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => undo()}
+              disabled={!canUndo}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => redo()}
+              disabled={!canRedo}
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo className="w-4 h-4" />
+            </Button>
+          </Panel>
+        </>
+      )}
       {showMinimap && <MiniMap hidden={false} />}
       <Background />
     </ReactFlow>

@@ -9,6 +9,7 @@ export const useSettingsStore = create<SettingsState>(() => ({
   pan_on_scroll: false,
   show_minimap: true,
   colored_nodes: true,
+  show_controls: true,
 
   setTheme: (theme) => {
     invoke("set_settings_state", { theme });
@@ -19,6 +20,8 @@ export const useSettingsStore = create<SettingsState>(() => ({
     invoke("set_settings_state", { showMinimap: enabled }),
   setColoredNodes: (enabled: boolean) =>
     invoke("set_settings_state", { coloredNodes: enabled }),
+  setShowControls: (enabled: boolean) =>
+    invoke("set_settings_state", { showControls: enabled }),
 }));
 
 const fetchSettings = async () => {
@@ -29,6 +32,7 @@ const fetchSettings = async () => {
     pan_on_scroll: settings.pan_on_scroll,
     show_minimap: settings.show_minimap,
     colored_nodes: settings.colored_nodes,
+    show_controls: settings.show_controls,
   });
 
   setTheme(settings.theme);
@@ -43,6 +47,7 @@ const subscribeToSettingsUpdates = () => {
       pan_on_scroll: settings.panOnScroll,
       show_minimap: settings.showMinimap,
       colored_nodes: settings.coloredNodes,
+      show_controls: settings.showControls,
     });
 
     setTheme(settings.theme);

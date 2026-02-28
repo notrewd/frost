@@ -9,18 +9,39 @@ interface EditorSettingsProps {
 }
 
 const EditorSettings: FC<EditorSettingsProps> = ({ onChange }) => {
-  const { showMinimap, setShowMinimap, panOnScroll, setPanOnScroll } =
-    useSettingsStore(
-      useShallow((state) => ({
-        showMinimap: state.show_minimap,
-        panOnScroll: state.pan_on_scroll,
-        setShowMinimap: state.setShowMinimap,
-        setPanOnScroll: state.setPanOnScroll,
-      })),
-    );
+  const {
+    showMinimap,
+    setShowMinimap,
+    panOnScroll,
+    setPanOnScroll,
+    showControls,
+    setShowControls,
+  } = useSettingsStore(
+    useShallow((state) => ({
+      showMinimap: state.show_minimap,
+      panOnScroll: state.pan_on_scroll,
+      showControls: state.show_controls,
+      setShowMinimap: state.setShowMinimap,
+      setPanOnScroll: state.setPanOnScroll,
+      setShowControls: state.setShowControls,
+    })),
+  );
 
   return (
     <>
+      <SettingsField
+        label="Show Controls"
+        description="Toggle the visibility of the editor controls (zoom, fit view, etc.)"
+      >
+        <Switch
+          checked={showControls}
+          onCheckedChange={(checked) => {
+            setShowControls(checked);
+            onChange?.();
+          }}
+        />
+      </SettingsField>
+
       <SettingsField
         label="Show Minimap"
         description="Toggle the visibility of the minimap in the editor"
@@ -33,6 +54,7 @@ const EditorSettings: FC<EditorSettingsProps> = ({ onChange }) => {
           }}
         />
       </SettingsField>
+
       <SettingsField
         label="Pan on Scroll"
         description="Enable or disable panning the editor when scrolling"

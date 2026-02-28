@@ -44,8 +44,10 @@ export interface SettingsState {
   pan_on_scroll: boolean;
   show_minimap: boolean;
   colored_nodes: boolean;
+  show_controls: boolean;
   setTheme: (theme: "light" | "dark" | "system") => void;
   setPanOnScroll: (enabled: boolean) => void;
   setShowMinimap: (enabled: boolean) => void;
   setColoredNodes: (enabled: boolean) => void;
+  setShowControls: (enabled: boolean) => void;
 }
