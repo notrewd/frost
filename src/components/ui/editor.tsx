@@ -1,6 +1,12 @@
 import { FlowState } from "@/stores";
 import useFlowStore from "@/stores/flow-store";
-import { Background, MiniMap, Panel, ReactFlow } from "@xyflow/react";
+import {
+  Background,
+  MarkerType,
+  MiniMap,
+  Panel,
+  ReactFlow,
+} from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
 import { ProjectOpenedEvent } from "@/types/events";
@@ -13,9 +19,30 @@ import { Undo, Redo } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
+import FloatingEdge from "../edges/floating-edge";
+import CustomConnectionLine from "../connection-lines/custom-connection-line";
 
 const nodeTypes = {
   object: ObjectNode,
+};
+
+const edgeTypes = {
+  floating: FloatingEdge,
+};
+
+const defaultEdgeOptions = {
+  type: "floating",
+  style: { stroke: "var(--foreground)", strokeWidth: 2 },
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    color: "var(--foreground)",
+  },
+};
+
+const connectionLineStyle = {
+  stroke: "var(--foreground)",
+  strokeWidth: 2,
+  strokeDasharray: "5 5",
 };
 
 const FlowEditor = () => {
@@ -69,7 +96,6 @@ const FlowEditor = () => {
       showControls: state.show_controls,
     })),
   );
-
   useEffect(() => {
     console.log("Settings changed:", { theme, panOnScroll, showMinimap });
   }, [theme, panOnScroll, showMinimap]);
@@ -190,6 +216,8 @@ const FlowEditor = () => {
       colorMode={theme}
       panOnScroll={panOnScroll}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
+      defaultEdgeOptions={defaultEdgeOptions}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
@@ -205,6 +233,8 @@ const FlowEditor = () => {
       nodesDraggable={!isLocked}
       nodesConnectable={!isLocked}
       elementsSelectable={!isLocked}
+      connectionLineComponent={CustomConnectionLine}
+      connectionLineStyle={connectionLineStyle}
     >
       {showControls && (
         <>
