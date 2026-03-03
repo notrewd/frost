@@ -21,7 +21,7 @@ import { Undo, Redo, MoveUpRight } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
-import FloatingEdge from "../edges/floating-edge";
+import GeneralizationEdge from "../edges/generalization-edge";
 import CustomConnectionLine from "../connection-lines/custom-connection-line";
 import useMousePosition from "@/hooks/use-mouse-position";
 import {
@@ -29,17 +29,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "./dropdown-menu";
+import AssociationEdge from "../edges/association-edge";
 
 const nodeTypes = {
   object: ObjectNode,
 };
 
 const edgeTypes = {
-  floating: FloatingEdge,
+  generalization: GeneralizationEdge,
+  association: AssociationEdge,
 };
 
 const defaultEdgeOptions = {
-  type: "floating",
+  type: "generalization",
   style: { stroke: "var(--foreground)", strokeWidth: 2 },
   markerEnd: {
     type: MarkerType.ArrowClosed,
@@ -336,16 +338,16 @@ const FlowEditor = () => {
             left: edgeTypesMenuPosition?.x || 0,
           }}
         >
-          <DropdownMenuItem onClick={() => addEdge("floating")}>
+          <DropdownMenuItem onClick={() => addEdge("generalization")}>
             <MoveUpRight className="size-4" /> Generalization
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => addEdge("floating")}>
+          <DropdownMenuItem onClick={() => addEdge("association")}>
             <MoveUpRight className="size-4" /> Association
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => addEdge("floating")}>
+          <DropdownMenuItem onClick={() => addEdge("generalization")}>
             <MoveUpRight className="size-4" /> Composition
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => addEdge("floating")}>
+          <DropdownMenuItem onClick={() => addEdge("generalization")}>
             <MoveUpRight className="size-4" /> Implementation
           </DropdownMenuItem>
         </DropdownMenuContent>

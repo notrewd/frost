@@ -7,7 +7,7 @@ import {
 
 import { getEdgeParams } from "../../lib/utils";
 
-function FloatingEdge({ id, source, target, markerEnd, style }: EdgeProps) {
+function AssociationEdge({ id, source, target, markerEnd, style }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -40,4 +40,4 @@ function FloatingEdge({ id, source, target, markerEnd, style }: EdgeProps) {
   );
 }
 
-export default FloatingEdge;
+export default AssociationEdge;
