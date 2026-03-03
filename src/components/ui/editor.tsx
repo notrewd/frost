@@ -42,11 +42,6 @@ const edgeTypes = {
 
 const defaultEdgeOptions = {
   type: "generalization",
-  style: { stroke: "var(--foreground)", strokeWidth: 2 },
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: "var(--foreground)",
-  },
 };
 
 const connectionLineStyle = {
@@ -241,7 +236,7 @@ const FlowEditor = () => {
   );
 
   const addEdge = useCallback(
-    (edgeType: string) => {
+    (edgeType: string, marker: MarkerType) => {
       if (!currentConnection) return;
 
       const edge: Edge = {
@@ -253,8 +248,8 @@ const FlowEditor = () => {
         type: edgeType,
         style: { stroke: "var(--foreground)", strokeWidth: 2 },
         markerEnd: {
-          type: MarkerType.ArrowClosed,
           color: "var(--foreground)",
+          type: marker,
         },
       };
 
@@ -338,16 +333,24 @@ const FlowEditor = () => {
             left: edgeTypesMenuPosition?.x || 0,
           }}
         >
-          <DropdownMenuItem onClick={() => addEdge("generalization")}>
+          <DropdownMenuItem
+            onClick={() => addEdge("generalization", MarkerType.ArrowClosed)}
+          >
             <MoveUpRight className="size-4" /> Generalization
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => addEdge("association")}>
+          <DropdownMenuItem
+            onClick={() => addEdge("association", MarkerType.Arrow)}
+          >
             <MoveUpRight className="size-4" /> Association
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => addEdge("generalization")}>
+          <DropdownMenuItem
+            onClick={() => addEdge("composition", MarkerType.ArrowClosed)}
+          >
             <MoveUpRight className="size-4" /> Composition
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => addEdge("generalization")}>
+          <DropdownMenuItem
+            onClick={() => addEdge("implementation", MarkerType.ArrowClosed)}
+          >
             <MoveUpRight className="size-4" /> Implementation
           </DropdownMenuItem>
         </DropdownMenuContent>

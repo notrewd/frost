@@ -7,7 +7,7 @@ import {
 
 import { getEdgeParams } from "../../lib/utils";
 
-function AssociationEdge({ id, source, target, markerEnd, style }: EdgeProps) {
+function AssociationEdge({ id, source, target, style, markerEnd }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 

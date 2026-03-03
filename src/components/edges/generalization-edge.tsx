@@ -7,7 +7,13 @@ import {
 
 import { getEdgeParams } from "../../lib/utils";
 
-function GeneralizationEdge({ id, source, target }: EdgeProps) {
+function GeneralizationEdge({
+  id,
+  source,
+  target,
+  style,
+  markerEnd,
+}: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -34,11 +40,8 @@ function GeneralizationEdge({ id, source, target }: EdgeProps) {
       id={id}
       className="react-flow__edge-path"
       path={path}
-      markerEnd={""}
-      style={{
-        stroke: "var(--foreground)",
-        strokeWidth: 2,
-      }}
+      markerEnd={markerEnd}
+      style={style}
     />
   );
 }
