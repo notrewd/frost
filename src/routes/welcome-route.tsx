@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button.tsx";
 import { CirclePlus, FolderOpen } from "lucide-react";
 import Titlebar from "@/components/ui/titlebar.tsx";
-import FrostIcon from "@/assets/graphics/frost.svg";
+import FrostIcon from "@/assets/graphics/app/frost.svg";
 import {
   ResizableHandle,
   ResizablePanel,
