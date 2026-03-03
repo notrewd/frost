@@ -2,6 +2,8 @@ import { FlowState } from "@/stores";
 import useFlowStore from "@/stores/flow-store";
 import {
   Background,
+  Connection,
+  Edge,
   MarkerType,
   MiniMap,
   Panel,
@@ -15,12 +17,18 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo } from "lucide-react";
+import { Undo, Redo, MoveUpRight } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
 import FloatingEdge from "../edges/floating-edge";
 import CustomConnectionLine from "../connection-lines/custom-connection-line";
+import useMousePosition from "@/hooks/use-mouse-position";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "./dropdown-menu";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -46,6 +54,17 @@ const connectionLineStyle = {
 };
 
 const FlowEditor = () => {
+  const mousePosition = useMousePosition();
+
+  const [edgeTypesMenuPosition, setEdgeTypesMenuPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const [currentConnection, setCurrentConnection] = useState<Connection | null>(
+    null,
+  );
+
   const {
     nodes,
     edges,
@@ -208,62 +227,130 @@ const FlowEditor = () => {
     };
   }, []);
 
+  const handleOnConnect = useCallback(
+    (connection: Connection) => {
+      setCurrentConnection(connection);
+      setEdgeTypesMenuPosition({
+        x: mousePosition.x || 0,
+        y: mousePosition.y || 0,
+      });
+    },
+    [onConnect, mousePosition],
+  );
+
+  const addEdge = useCallback(
+    (edgeType: string) => {
+      if (!currentConnection) return;
+
+      const edge: Edge = {
+        id: `${currentConnection.source}-${currentConnection.sourceHandle}-${currentConnection.target}-${currentConnection.targetHandle}`,
+        source: currentConnection.source,
+        sourceHandle: currentConnection.sourceHandle,
+        target: currentConnection.target,
+        targetHandle: currentConnection.targetHandle,
+        type: edgeType,
+        style: { stroke: "var(--foreground)", strokeWidth: 2 },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: "var(--foreground)",
+        },
+      };
+
+      onConnect(edge);
+
+      setEdgeTypesMenuPosition(null);
+      setCurrentConnection(null);
+    },
+    [onConnect, currentConnection],
+  );
+
   return (
-    <ReactFlow
-      className="frost-editor-flow"
-      nodes={nodes}
-      edges={edges}
-      colorMode={theme}
-      panOnScroll={panOnScroll}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      defaultEdgeOptions={defaultEdgeOptions}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      onInit={(instance) => setInstance(instance)}
-      onNodeDragStart={onNodeDragStart}
-      onNodeDragStop={onNodeDragStop}
-      proOptions={{
-        hideAttribution: true,
-      }}
-      fitView
-      selectionOnDrag={!isLocked}
-      panOnDrag={[1, 2]}
-      nodesDraggable={!isLocked}
-      nodesConnectable={!isLocked}
-      elementsSelectable={!isLocked}
-      connectionLineComponent={CustomConnectionLine}
-      connectionLineStyle={connectionLineStyle}
-    >
-      {showControls && (
-        <>
-          <EditorControls isLocked={isLocked} setIsLocked={setIsLocked} />
-          <Panel position="top-left" className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => undo()}
-              disabled={!canUndo}
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => redo()}
-              disabled={!canRedo}
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo className="w-4 h-4" />
-            </Button>
-          </Panel>
-        </>
-      )}
-      {showMinimap && <MiniMap hidden={false} />}
-      <Background />
-    </ReactFlow>
+    <>
+      <ReactFlow
+        className="frost-editor-flow"
+        nodes={nodes}
+        edges={edges}
+        colorMode={theme}
+        panOnScroll={panOnScroll}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={handleOnConnect}
+        onInit={(instance) => setInstance(instance)}
+        onNodeDragStart={onNodeDragStart}
+        onNodeDragStop={onNodeDragStop}
+        proOptions={{
+          hideAttribution: true,
+        }}
+        fitView
+        selectionOnDrag={!isLocked}
+        panOnDrag={[1, 2]}
+        nodesDraggable={!isLocked}
+        nodesConnectable={!isLocked}
+        elementsSelectable={!isLocked}
+        connectionLineComponent={CustomConnectionLine}
+        connectionLineStyle={connectionLineStyle}
+      >
+        {showControls && (
+          <>
+            <EditorControls isLocked={isLocked} setIsLocked={setIsLocked} />
+            <Panel position="top-left" className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => undo()}
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => redo()}
+                disabled={!canRedo}
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo className="w-4 h-4" />
+              </Button>
+            </Panel>
+          </>
+        )}
+        {showMinimap && <MiniMap hidden={false} />}
+        <Background />
+      </ReactFlow>
+
+      <DropdownMenu
+        open={!!edgeTypesMenuPosition}
+        onOpenChange={() => {
+          setEdgeTypesMenuPosition(null);
+          setCurrentConnection(null);
+        }}
+      >
+        <DropdownMenuContent
+          className="absolute"
+          style={{
+            top: edgeTypesMenuPosition?.y || 0,
+            left: edgeTypesMenuPosition?.x || 0,
+          }}
+        >
+          <DropdownMenuItem onClick={() => addEdge("floating")}>
+            <MoveUpRight className="size-4" /> Generalization
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => addEdge("floating")}>
+            <MoveUpRight className="size-4" /> Association
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => addEdge("floating")}>
+            <MoveUpRight className="size-4" /> Composition
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => addEdge("floating")}>
+            <MoveUpRight className="size-4" /> Implementation
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 };
 

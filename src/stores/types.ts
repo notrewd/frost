@@ -2,7 +2,6 @@ import { ObjectNodeData } from "@/components/nodes/object-node";
 import {
   Edge,
   Node,
-  OnConnect,
   OnEdgesChange,
   OnNodesChange,
   ReactFlowInstance,
@@ -14,7 +13,7 @@ export interface FlowState {
   instance: ReactFlowInstance<Node<ObjectNodeData>, Edge> | null;
   onNodesChange: OnNodesChange<Node<ObjectNodeData>>;
   onEdgesChange: OnEdgesChange;
-  onConnect: OnConnect;
+  onConnect: (edge: Edge) => void;
   setNodes: (
     fn: (prev: Node<ObjectNodeData>[]) => Node<ObjectNodeData>[],
   ) => void;

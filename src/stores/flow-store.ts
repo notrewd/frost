@@ -21,9 +21,9 @@ const useFlowStore = create<FlowState>()(
           edges: applyEdgeChanges(changes, get().edges),
         });
       },
-      onConnect: (connection) => {
+      onConnect: (edge) => {
         set({
-          edges: addEdge(connection, get().edges),
+          edges: addEdge(edge, get().edges),
         });
       },
       setNodes: (nodes) => {
