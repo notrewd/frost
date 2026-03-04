@@ -38,8 +38,28 @@ const ProjectPanel = () => {
       id: node.id,
       name: node.data.name,
       type: "node" as const,
+      selected: node.selected,
     }));
   }, [nodes]);
+
+  const treeSelectedIds = useMemo(() => {
+    return new Set(
+      nodes.filter((node) => node.selected).map((node) => node.id),
+    );
+  }, [nodes]);
+
+  const handleSelectionChange = useCallback(
+    (selectedItems: TreeViewItem[]) => {
+      const selectedIds = new Set(selectedItems.map((item) => item.id));
+      setNodes((nodes) =>
+        nodes.map((node) => ({
+          ...node,
+          selected: selectedIds.has(node.id),
+        })),
+      );
+    },
+    [setNodes],
+  );
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -100,6 +120,8 @@ const ProjectPanel = () => {
       menuItemsByType={menuItems}
       searchPlaceholder="Search project..."
       className="bg-transparent"
+      selectedIds={treeSelectedIds}
+      onSelectionChange={handleSelectionChange}
     />
   );
 };

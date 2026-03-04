@@ -92,6 +92,7 @@ export interface TreeViewProps {
    */
   menuItemsByType?: TreeViewMenuItemsByType;
   menuItems?: TreeViewMenuItem[];
+  selectedIds?: Set<string>;
 }
 
 interface TreeItemProps {
@@ -652,6 +653,7 @@ export default function TreeView({
   onCheckChange,
   menuItemsByType,
   menuItems,
+  selectedIds: propSelectedIds,
 }: TreeViewProps) {
   const [currentMousePos, setCurrentMousePos] = useState<number>(0);
   const [dragStart, setDragStart] = useState<number | null>(null);
@@ -661,7 +663,10 @@ export default function TreeView({
   } | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const selectedIds = propSelectedIds ?? internalSelectedIds;
   const [searchQuery, setSearchQuery] = useState("");
 
   const dragRef = useRef<HTMLDivElement>(null);
@@ -730,6 +735,28 @@ export default function TreeView({
     }
   }, [searchExpandedIds, searchQuery]);
 
+  const handleSelection = useCallback(
+    (newSelectedIds: Set<string>) => {
+      if (!propSelectedIds) {
+        setInternalSelectedIds(newSelectedIds);
+      }
+
+      if (onSelectionChange) {
+        // Need to construct selected items to pass back
+        const items: TreeViewItem[] = [];
+        const processItem = (item: TreeViewItem) => {
+          if (newSelectedIds.has(item.id)) {
+            items.push(item);
+          }
+          item.children?.forEach(processItem);
+        };
+        data.forEach(processItem);
+        onSelectionChange(items);
+      }
+    },
+    [propSelectedIds, onSelectionChange, data],
+  );
+
   useEffect(() => {
     const handleClickAway = (e: MouseEvent) => {
       const target = e.target as Element;
@@ -742,14 +769,14 @@ export default function TreeView({
         target.closest("[data-radix-popper-content-wrapper]");
 
       if (!clickedInside) {
-        setSelectedIds(new Set());
+        handleSelection(new Set());
         lastSelectedId.current = null;
       }
     };
 
     document.addEventListener("mousedown", handleClickAway);
     return () => document.removeEventListener("mousedown", handleClickAway);
-  }, []);
+  }, [handleSelection]);
 
   // Function to collect all folder IDs
   const getAllFolderIds = (items: TreeViewItem[]): string[] => {
@@ -849,7 +876,7 @@ export default function TreeView({
 
           // Clear selection if not holding shift/ctrl
           if (!e.shiftKey && !e.ctrlKey) {
-            setSelectedIds(new Set());
+            handleSelection(new Set());
             lastSelectedId.current = null;
           }
         }
@@ -893,10 +920,10 @@ export default function TreeView({
         }
       });
 
-      setSelectedIds(newSelection);
+      handleSelection(newSelection);
       setCurrentMousePos(e.clientY);
     },
-    [isDragging, dragStart, selectedIds, dragStartPosition],
+    [isDragging, dragStart, selectedIds, dragStartPosition, handleSelection],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -918,11 +945,12 @@ export default function TreeView({
   }, [isDragging, handleMouseUp]);
 
   // Call onSelectionChange when selection changes
-  useEffect(() => {
-    if (onSelectionChange) {
-      onSelectionChange(getSelectedItems());
-    }
-  }, [selectedIds, onSelectionChange, getSelectedItems]);
+  // Remove this effect, as it's now handled by handleSelection
+  // useEffect(() => {
+  //   if (onSelectionChange) {
+  //     onSelectionChange(getSelectedItems());
+  //   }
+  // }, [selectedIds, onSelectionChange, getSelectedItems]);
 
   return (
     <div className="flex h-full gap-4">
@@ -940,7 +968,7 @@ export default function TreeView({
                 className="font-medium flex items-center"
                 title="Clear selection"
                 onClick={() => {
-                  setSelectedIds(new Set());
+                  handleSelection(new Set());
                   lastSelectedId.current = null;
                 }}
               >
@@ -1053,7 +1081,7 @@ export default function TreeView({
                 item={item}
                 selectedIds={selectedIds}
                 lastSelectedId={lastSelectedId}
-                onSelect={setSelectedIds}
+                onSelect={handleSelection}
                 expandedIds={expandedIds}
                 onToggleExpand={handleToggleExpand}
                 getIcon={getIcon}
