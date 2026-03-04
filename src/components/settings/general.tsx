@@ -36,7 +36,7 @@ const GeneralSettings: FC<GeneralSettingsProps> = ({ onChange }) => {
             onChange?.();
           }}
         >
-          <SelectTrigger className="w-50!">
+          <SelectTrigger className="w-48!">
             <SelectValue placeholder="Select theme" />
           </SelectTrigger>
           <SelectContent>
