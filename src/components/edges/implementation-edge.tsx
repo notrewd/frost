@@ -1,6 +1,6 @@
-import { getBezierPath, useInternalNode, type EdgeProps } from "@xyflow/react";
+import { useInternalNode, type EdgeProps } from "@xyflow/react";
 
-import { getEdgeParams } from "../../lib/utils";
+import { getEdgeParams, getSmartBezierPath } from "../../lib/utils";
 import ArrowClosed from "../ui/icons/markers/arrow-closed";
 import DashedBaseEdge from "./dashed-base-edge";
 
@@ -17,7 +17,7 @@ function ImplementationEdge({ id, source, target, style }: EdgeProps) {
     targetNode,
   );
 
-  const [path] = getBezierPath({
+  const [path] = getSmartBezierPath({
     sourceX: sx,
     sourceY: sy,
     sourcePosition: sourcePos,

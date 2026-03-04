@@ -1,11 +1,6 @@
-import {
-  BaseEdge,
-  getBezierPath,
-  useInternalNode,
-  type EdgeProps,
-} from "@xyflow/react";
+import { BaseEdge, useInternalNode, type EdgeProps } from "@xyflow/react";
 
-import { getEdgeParams } from "../../lib/utils";
+import { getEdgeParams, getSmartBezierPath } from "../../lib/utils";
 import DiamondFilled from "../ui/icons/markers/diamond-filled";
 
 function CompositionEdge({ id, source, target, style }: EdgeProps) {
@@ -21,7 +16,7 @@ function CompositionEdge({ id, source, target, style }: EdgeProps) {
     targetNode,
   );
 
-  const [path] = getBezierPath({
+  const [path] = getSmartBezierPath({
     sourceX: sx,
     sourceY: sy,
     sourcePosition: sourcePos,
