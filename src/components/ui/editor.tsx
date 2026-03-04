@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo, MoveUpRight } from "lucide-react";
+import { Undo, Redo } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -30,6 +30,11 @@ import {
   DropdownMenuItem,
 } from "./dropdown-menu";
 import AssociationEdge from "../edges/association-edge";
+import AssociationArrow from "@/components/ui/icons/arrows/association-arrow";
+import CompositionArrow from "./icons/arrows/composition-arrow";
+import ImplementationArrow from "./icons/arrows/implementation-arrow";
+import GeneralizationArrow from "./icons/arrows/generalization-arrow";
+import ImplementationEdge from "../edges/implementation-edge";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -38,6 +43,7 @@ const nodeTypes = {
 const edgeTypes = {
   generalization: GeneralizationEdge,
   association: AssociationEdge,
+  implementation: ImplementationEdge,
 };
 
 const defaultEdgeOptions = {
@@ -336,22 +342,26 @@ const FlowEditor = () => {
           <DropdownMenuItem
             onClick={() => addEdge("generalization", MarkerType.ArrowClosed)}
           >
-            <MoveUpRight className="size-4" /> Generalization
+            <GeneralizationArrow className="size-4" />
+            Generalization
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => addEdge("association", MarkerType.Arrow)}
           >
-            <MoveUpRight className="size-4" /> Association
+            <AssociationArrow className="size-4" />
+            Association
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => addEdge("composition", MarkerType.ArrowClosed)}
           >
-            <MoveUpRight className="size-4" /> Composition
+            <CompositionArrow className="size-4" />
+            Composition
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => addEdge("implementation", MarkerType.ArrowClosed)}
           >
-            <MoveUpRight className="size-4" /> Implementation
+            <ImplementationArrow className="size-4" />
+            Implementation
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
