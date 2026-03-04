@@ -3,7 +3,22 @@ import FrostIcon from "@/assets/graphics/app/frost.svg";
 import { FC, useCallback, useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "@/components/ui/button.tsx";
-import { Minus, Square, X } from "lucide-react";
+import {
+  Minus,
+  Square,
+  X,
+  FilePlus,
+  FolderOpen,
+  Save,
+  SaveAll,
+  Settings,
+  Undo,
+  Redo,
+  Scissors,
+  Copy,
+  ClipboardPaste,
+  BoxSelect,
+} from "lucide-react";
 import {
   Menubar,
   MenubarContent,
@@ -282,22 +297,32 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                   <MenubarTrigger>File</MenubarTrigger>
                   <MenubarContent>
                     <MenubarItem onClick={handleNewProject}>
-                      New Project <MenubarShortcut>Ctrl+N</MenubarShortcut>
+                      <FilePlus className="size-4" />
+                      New Project
+                      <MenubarShortcut>Ctrl+N</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={handleOpenProject}>
-                      Open Project... <MenubarShortcut>Ctrl+O</MenubarShortcut>
+                      <FolderOpen className="size-4" />
+                      Open Project...
+                      <MenubarShortcut>Ctrl+O</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={handleSave}>
-                      Save <MenubarShortcut>Ctrl+S</MenubarShortcut>
+                      <Save className="size-4" />
+                      Save
+                      <MenubarShortcut>Ctrl+S</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem onClick={handleSaveAs}>
-                      Save As... <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
+                      <SaveAll className="size-4" />
+                      Save As...
+                      <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={handleSettings}>
-                      Settings <MenubarShortcut>Ctrl+,</MenubarShortcut>
+                      <Settings className="size-4" />
+                      Settings
+                      <MenubarShortcut>Ctrl+,</MenubarShortcut>
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
@@ -305,24 +330,36 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                   <MenubarTrigger>Edit</MenubarTrigger>
                   <MenubarContent>
                     <MenubarItem onClick={handleUndo} disabled={!canUndo}>
-                      Undo <MenubarShortcut>Ctrl+Z</MenubarShortcut>
+                      <Undo className="size-4" />
+                      Undo
+                      <MenubarShortcut>Ctrl+Z</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem onClick={handleRedo} disabled={!canRedo}>
-                      Redo <MenubarShortcut>Ctrl+Shift+Z</MenubarShortcut>
+                      <Redo className="size-4" />
+                      Redo
+                      <MenubarShortcut>Ctrl+Shift+Z</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={cut} disabled={!state.canCutCopy}>
-                      Cut <MenubarShortcut>Ctrl+X</MenubarShortcut>
+                      <Scissors className="size-4" />
+                      Cut
+                      <MenubarShortcut>Ctrl+X</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem onClick={copy} disabled={!state.canCutCopy}>
-                      Copy <MenubarShortcut>Ctrl+C</MenubarShortcut>
+                      <Copy className="size-4" />
+                      Copy
+                      <MenubarShortcut>Ctrl+C</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem onClick={paste} disabled={!state.canPaste}>
-                      Paste <MenubarShortcut>Ctrl+V</MenubarShortcut>
+                      <ClipboardPaste className="size-4" />
+                      Paste
+                      <MenubarShortcut>Ctrl+V</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={selectAll}>
-                      Select All <MenubarShortcut>Ctrl+A</MenubarShortcut>
+                      <BoxSelect className="size-4" />
+                      Select All
+                      <MenubarShortcut>Ctrl+A</MenubarShortcut>
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
