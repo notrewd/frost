@@ -6,9 +6,9 @@ import {
 } from "@xyflow/react";
 
 import { getEdgeParams } from "../../lib/utils";
-import ArrowOpen from "../ui/icons/markers/arrow-open";
+import DiamondFilled from "../ui/icons/markers/diamond-filled";
 
-function AssociationEdge({ id, source, target, style }: EdgeProps) {
+function CompositionEdge({ id, source, target, style }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -32,16 +32,16 @@ function AssociationEdge({ id, source, target, style }: EdgeProps) {
 
   return (
     <>
-      <ArrowOpen />
+      <DiamondFilled />
       <BaseEdge
         id={id}
         className="react-flow__edge-path"
         path={path}
-        markerEnd={"url(#arrow-open)"}
+        markerEnd={"url(#diamond-filled)"}
         style={style}
       />
     </>
   );
 }
 
-export default AssociationEdge;
+export default CompositionEdge;

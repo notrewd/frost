@@ -35,6 +35,7 @@ import CompositionArrow from "./icons/arrows/composition-arrow";
 import ImplementationArrow from "./icons/arrows/implementation-arrow";
 import GeneralizationArrow from "./icons/arrows/generalization-arrow";
 import ImplementationEdge from "../edges/implementation-edge";
+import CompositionEdge from "../edges/composition-edge";
 
 const nodeTypes = {
   object: ObjectNode,
@@ -44,6 +45,7 @@ const edgeTypes = {
   generalization: GeneralizationEdge,
   association: AssociationEdge,
   implementation: ImplementationEdge,
+  composition: CompositionEdge,
 };
 
 const defaultEdgeOptions = {

@@ -1,19 +1,10 @@
-import {
-  BaseEdge,
-  getBezierPath,
-  useInternalNode,
-  type EdgeProps,
-} from "@xyflow/react";
+import { getBezierPath, useInternalNode, type EdgeProps } from "@xyflow/react";
 
 import { getEdgeParams } from "../../lib/utils";
+import ArrowClosed from "../ui/icons/markers/arrow-closed";
+import DashedBaseEdge from "./dashed-base-edge";
 
-function ImplementationEdge({
-  id,
-  source,
-  target,
-  style,
-  markerEnd,
-}: EdgeProps) {
+function ImplementationEdge({ id, source, target, style }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -36,16 +27,19 @@ function ImplementationEdge({
   });
 
   return (
-    <BaseEdge
-      id={id}
-      className="react-flow__edge-path"
-      path={path}
-      markerEnd={markerEnd}
-      style={{
-        strokeDasharray: "5 5",
-        ...style,
-      }}
-    />
+    <>
+      <ArrowClosed />
+      <DashedBaseEdge
+        id={id}
+        className="react-flow__edge-path"
+        path={path}
+        markerEnd={"url(#arrow-closed)"}
+        style={{
+          strokeDasharray: "5 5",
+          ...style,
+        }}
+      />
+    </>
   );
 }
 

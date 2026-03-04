@@ -6,14 +6,9 @@ import {
 } from "@xyflow/react";
 
 import { getEdgeParams } from "../../lib/utils";
+import ArrowClosed from "../ui/icons/markers/arrow-closed";
 
-function GeneralizationEdge({
-  id,
-  source,
-  target,
-  style,
-  markerEnd,
-}: EdgeProps) {
+function GeneralizationEdge({ id, source, target, style }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -36,13 +31,16 @@ function GeneralizationEdge({
   });
 
   return (
-    <BaseEdge
-      id={id}
-      className="react-flow__edge-path"
-      path={path}
-      markerEnd={markerEnd}
-      style={style}
-    />
+    <>
+      <ArrowClosed />
+      <BaseEdge
+        id={id}
+        className="react-flow__edge-path"
+        path={path}
+        markerEnd={"url(#arrow-closed)"}
+        style={style}
+      />
+    </>
   );
 }
 
