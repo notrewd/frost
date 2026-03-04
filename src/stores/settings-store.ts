@@ -10,6 +10,7 @@ export const useSettingsStore = create<SettingsState>(() => ({
   show_minimap: true,
   colored_nodes: true,
   show_controls: true,
+  edge_style: "bezier",
 
   setTheme: (theme) => {
     invoke("set_settings_state", { theme });
@@ -22,6 +23,8 @@ export const useSettingsStore = create<SettingsState>(() => ({
     invoke("set_settings_state", { coloredNodes: enabled }),
   setShowControls: (enabled: boolean) =>
     invoke("set_settings_state", { showControls: enabled }),
+  setEdgeStyle: (style: "straight" | "smoothstep" | "bezier") =>
+    invoke("set_settings_state", { edgeStyle: style }),
 }));
 
 const fetchSettings = async () => {
@@ -33,6 +36,7 @@ const fetchSettings = async () => {
     show_minimap: settings.show_minimap,
     colored_nodes: settings.colored_nodes,
     show_controls: settings.show_controls,
+    edge_style: settings.edge_style,
   });
 
   setTheme(settings.theme);
@@ -47,6 +51,7 @@ const subscribeToSettingsUpdates = () => {
       pan_on_scroll: settings.panOnScroll,
       show_minimap: settings.showMinimap,
       colored_nodes: settings.coloredNodes,
+      edge_style: settings.edgeStyle,
       show_controls: settings.showControls,
     });
 

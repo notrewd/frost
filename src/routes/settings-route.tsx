@@ -1,6 +1,7 @@
 import EditorSettings from "@/components/settings/editor";
 import GeneralSettings from "@/components/settings/general";
 import NodesSettings from "@/components/settings/nodes";
+import EdgesSettings from "@/components/settings/edges";
 import { Button } from "@/components/ui/button";
 import ContentHeader from "@/components/ui/content-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +26,7 @@ import {
   Settings2,
   TvMinimal,
   Workflow,
+  Spline,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -53,6 +55,12 @@ const categories: Category[] = [
     title: "Nodes",
     description: "Manage visual appearance of nodes.",
     icon: Workflow,
+  },
+  {
+    id: "edges",
+    title: "Edges",
+    description: "Manage visual appearance of edges.",
+    icon: Spline,
   },
 ];
 
@@ -114,6 +122,9 @@ const SettingsRoute = () => {
           <div className="flex flex-1 flex-col p-2 gap-4">
             {selectedCategory.id === "general" && (
               <GeneralSettings onChange={() => setChanged(true)} />
+            )}
+            {selectedCategory.id === "edges" && (
+              <EdgesSettings onChange={() => setChanged(true)} />
             )}
             {selectedCategory.id === "editor" && (
               <EditorSettings onChange={() => setChanged(true)} />

@@ -44,9 +44,11 @@ export interface SettingsState {
   show_minimap: boolean;
   colored_nodes: boolean;
   show_controls: boolean;
+  edge_style: "straight" | "smoothstep" | "bezier";
   setTheme: (theme: "light" | "dark" | "system") => void;
   setPanOnScroll: (enabled: boolean) => void;
   setShowMinimap: (enabled: boolean) => void;
   setColoredNodes: (enabled: boolean) => void;
   setShowControls: (enabled: boolean) => void;
+  setEdgeStyle: (edgeStyle: "straight" | "smoothstep" | "bezier") => void;
 }
