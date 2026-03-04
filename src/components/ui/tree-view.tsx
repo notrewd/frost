@@ -243,138 +243,169 @@ function TreeItem({
     allItems,
   ]);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
 
-    let newSelection = new Set(selectedIds);
+      let newSelection = new Set(selectedIds);
 
-    if (!itemRef.current) return;
+      if (!itemRef.current) return;
 
-    if (e.shiftKey && lastSelectedId.current !== null) {
-      const items = Array.from(
-        document.querySelectorAll("[data-tree-item]"),
-      ) as HTMLElement[];
-      const lastIndex = items.findIndex(
-        (el) => el.getAttribute("data-id") === lastSelectedId.current,
-      );
-      const currentIndex = items.findIndex((el) => el === itemRef.current);
-      const [start, end] = [
-        Math.min(lastIndex, currentIndex),
-        Math.max(lastIndex, currentIndex),
-      ];
+      if (e.shiftKey && lastSelectedId.current !== null) {
+        const items = Array.from(
+          document.querySelectorAll("[data-tree-item]"),
+        ) as HTMLElement[];
+        const lastIndex = items.findIndex(
+          (el) => el.getAttribute("data-id") === lastSelectedId.current,
+        );
+        const currentIndex = items.findIndex((el) => el === itemRef.current);
+        const [start, end] = [
+          Math.min(lastIndex, currentIndex),
+          Math.max(lastIndex, currentIndex),
+        ];
 
-      items.slice(start, end + 1).forEach((el) => {
-        const id = el.getAttribute("data-id");
-        const parentFolderClosed = el.closest('[data-folder-closed="true"]');
-        const isClosedFolder = el.getAttribute("data-folder-closed") === "true";
+        items.slice(start, end + 1).forEach((el) => {
+          const id = el.getAttribute("data-id");
+          const parentFolderClosed = el.closest('[data-folder-closed="true"]');
+          const isClosedFolder =
+            el.getAttribute("data-folder-closed") === "true";
 
-        if (id && (isClosedFolder || !parentFolderClosed)) {
-          newSelection.add(id);
+          if (id && (isClosedFolder || !parentFolderClosed)) {
+            newSelection.add(id);
+          }
+        });
+      } else if (e.ctrlKey || e.metaKey) {
+        if (newSelection.has(item.id)) {
+          newSelection.delete(item.id);
+        } else {
+          newSelection.add(item.id);
         }
-      });
-    } else if (e.ctrlKey || e.metaKey) {
-      if (newSelection.has(item.id)) {
-        newSelection.delete(item.id);
       } else {
-        newSelection.add(item.id);
+        newSelection = new Set([item.id]);
+        // Open folder on single click if it's a folder
+        if (item.children && isSelected) {
+          onToggleExpand(item.id, !isOpen);
+        }
       }
-    } else {
-      newSelection = new Set([item.id]);
-      // Open folder on single click if it's a folder
-      if (item.children && isSelected) {
-        onToggleExpand(item.id, !isOpen);
-      }
-    }
 
-    lastSelectedId.current = item.id;
-    onSelect(newSelection);
-  };
+      lastSelectedId.current = item.id;
+      onSelect(newSelection);
+    },
+    [
+      selectedIds,
+      item.id,
+      item.children,
+      isSelected,
+      isOpen,
+      onSelect,
+      onToggleExpand,
+      lastSelectedId,
+    ],
+  );
 
   // Helper function to get all descendants of an item (including the item itself)
-  const getAllDescendants = (item: TreeViewItem): TreeViewItem[] => {
-    const descendants = [item];
-    if (item.children) {
-      item.children.forEach((child) => {
-        descendants.push(...getAllDescendants(child));
-      });
-    }
-    return descendants;
-  };
+  const getAllDescendants = useCallback(
+    (item: TreeViewItem): TreeViewItem[] => {
+      const descendants = [item];
+      if (item.children) {
+        item.children.forEach((child) => {
+          descendants.push(...getAllDescendants(child));
+        });
+      }
+      return descendants;
+    },
+    [],
+  );
 
-  const handleAccessClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onAccessChange) {
-      const currentState = getCheckState(item, itemMap);
-      // Toggle between checked and unchecked, treating indeterminate as unchecked
-      const newChecked = currentState === "checked" ? false : true;
+  const handleAccessClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onAccessChange) {
+        const currentState = getCheckState(item, itemMap);
+        // Toggle between checked and unchecked, treating indeterminate as unchecked
+        const newChecked = currentState === "checked" ? false : true;
 
-      onAccessChange(item, newChecked);
-    }
-  };
+        onAccessChange(item, newChecked);
+      }
+    },
+    [item, itemMap, onAccessChange],
+  );
 
-  const renderIcon = () => {
+  const renderIcon = useCallback(() => {
     if (getIcon) {
       return getIcon(item, depth);
     }
 
     // Use the provided iconMap or fall back to default
     return iconMap[item.type] || iconMap.folder || defaultIconMap.folder;
-  };
+  }, [getIcon, item, depth, iconMap]);
 
-  const getItemPath = (item: TreeViewItem, items: TreeViewItem[]): string => {
-    const path: string[] = [item.name];
+  const getItemPath = useCallback(
+    (item: TreeViewItem, items: TreeViewItem[]): string => {
+      const path: string[] = [item.name];
 
-    const findParent = (
-      currentItem: TreeViewItem,
-      allItems: TreeViewItem[],
-    ) => {
-      for (const potentialParent of allItems) {
-        if (
-          potentialParent.children?.some((child) => child.id === currentItem.id)
-        ) {
-          path.unshift(potentialParent.name);
-          findParent(potentialParent, allItems);
-          break;
+      const findParent = (
+        currentItem: TreeViewItem,
+        allItems: TreeViewItem[],
+      ) => {
+        for (const potentialParent of allItems) {
+          if (
+            potentialParent.children?.some(
+              (child) => child.id === currentItem.id,
+            )
+          ) {
+            path.unshift(potentialParent.name);
+            findParent(potentialParent, allItems);
+            break;
+          }
+          if (potentialParent.children) {
+            findParent(currentItem, potentialParent.children);
+          }
         }
-        if (potentialParent.children) {
-          findParent(currentItem, potentialParent.children);
-        }
-      }
-    };
+      };
 
-    findParent(item, items);
-    return path.join(" → ");
-  };
+      findParent(item, items);
+      return path.join(" → ");
+    },
+    [],
+  );
 
   // Add function to count selected items in a folder
-  const getSelectedChildrenCount = (item: TreeViewItem): number => {
-    let count = 0;
+  const getSelectedChildrenCount = useCallback(
+    (item: TreeViewItem): number => {
+      let count = 0;
 
-    if (!item.children) return 0;
+      if (!item.children) return 0;
 
-    item.children.forEach((child) => {
-      if (selectedIds.has(child.id)) {
-        count++;
-      }
-      if (child.children) {
-        count += getSelectedChildrenCount(child);
-      }
-    });
+      item.children.forEach((child) => {
+        if (selectedIds.has(child.id)) {
+          count++;
+        }
+        if (child.children) {
+          count += getSelectedChildrenCount(child);
+        }
+      });
 
-    return count;
-  };
+      return count;
+    },
+    [selectedIds],
+  );
 
   // Get selected count only if item has children and is collapsed
-  const selectedCount =
-    (item.children && !isOpen && getSelectedChildrenCount(item)) || null;
+  const selectedCount = useMemo(
+    () => (item.children && !isOpen && getSelectedChildrenCount(item)) || null,
+    [item, isOpen, getSelectedChildrenCount],
+  );
 
-  const resolvedMenuItems =
-    menuItemsByType?.[item.type] ?? menuItemsByType?.["*"] ?? menuItems;
+  const resolvedMenuItems = useMemo(
+    () => menuItemsByType?.[item.type] ?? menuItemsByType?.["*"] ?? menuItems,
+    [menuItemsByType, item.type, menuItems],
+  );
 
   const hasMenuItems = (resolvedMenuItems?.length ?? 0) > 0;
 
-  const renderMenuIcon = (icon?: ReactNode) => {
+  const renderMenuIcon = useCallback((icon?: ReactNode) => {
     if (!icon) return null;
 
     // Force icon color to inherit from the menu item's text color (e.g. destructive).
@@ -385,7 +416,7 @@ function TreeItem({
     }
 
     return <span className="size-4 shrink-0 text-current">{icon}</span>;
-  };
+  }, []);
 
   return (
     <ContextMenu>
@@ -779,7 +810,7 @@ export default function TreeView({
   }, [handleSelection]);
 
   // Function to collect all folder IDs
-  const getAllFolderIds = (items: TreeViewItem[]): string[] => {
+  const getAllFolderIds = useCallback((items: TreeViewItem[]): string[] => {
     let ids: string[] = [];
     items.forEach((item) => {
       if (item.children) {
@@ -788,25 +819,27 @@ export default function TreeView({
       }
     });
     return ids;
-  };
+  }, []);
 
-  const handleExpandAll = () => {
+  const handleExpandAll = useCallback(() => {
     setExpandedIds(new Set(getAllFolderIds(data)));
-  };
+  }, [data, getAllFolderIds]);
 
-  const handleCollapseAll = () => {
+  const handleCollapseAll = useCallback(() => {
     setExpandedIds(new Set());
-  };
+  }, []);
 
-  const handleToggleExpand = (id: string, isOpen: boolean) => {
-    const newExpandedIds = new Set(expandedIds);
-    if (isOpen) {
-      newExpandedIds.add(id);
-    } else {
-      newExpandedIds.delete(id);
-    }
-    setExpandedIds(newExpandedIds);
-  };
+  const handleToggleExpand = useCallback((id: string, isOpen: boolean) => {
+    setExpandedIds((prev) => {
+      const newExpandedIds = new Set(prev);
+      if (isOpen) {
+        newExpandedIds.add(id);
+      } else {
+        newExpandedIds.delete(id);
+      }
+      return newExpandedIds;
+    });
+  }, []);
 
   // Get selected items
   const getSelectedItems = useCallback((): TreeViewItem[] => {
