@@ -788,26 +788,6 @@ export default function TreeView({
     [propSelectedIds, onSelectionChange, data],
   );
 
-  useEffect(() => {
-    const handleClickAway = (e: MouseEvent) => {
-      const target = e.target as Element;
-
-      const clickedInside =
-        (treeRef.current && treeRef.current.contains(target)) ||
-        (dragRef.current && dragRef.current.contains(target)) ||
-        // Ignore clicks on context menus
-        target.closest('[role="menu"]') ||
-        target.closest("[data-radix-popper-content-wrapper]");
-
-      if (!clickedInside) {
-        handleSelection(new Set());
-        lastSelectedId.current = null;
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickAway);
-    return () => document.removeEventListener("mousedown", handleClickAway);
-  }, [handleSelection]);
 
   // Function to collect all folder IDs
   const getAllFolderIds = useCallback((items: TreeViewItem[]): string[] => {

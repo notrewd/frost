@@ -10,8 +10,9 @@ import ArrowClosed from "../ui/icons/markers/arrow-closed";
 import DashedBaseEdge from "./dashed-base-edge";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
+import { EdgeLabel } from "./edge-label-renderer";
 
-function ImplementationEdge({ id, source, target, style }: EdgeProps) {
+function ImplementationEdge({ id, source, target, style, data }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -30,16 +31,16 @@ function ImplementationEdge({ id, source, target, style }: EdgeProps) {
     })),
   );
 
-  let path;
+  let path, labelX, labelY;
   if (edgeStyle === "straight") {
-    [path] = getStraightPath({
+    [path, labelX, labelY] = getStraightPath({
       sourceX: sx,
       sourceY: sy,
       targetX: tx,
       targetY: ty,
     });
   } else if (edgeStyle === "smoothstep") {
-    [path] = getSmoothStepPath({
+    [path, labelX, labelY] = getSmoothStepPath({
       sourceX: sx,
       sourceY: sy,
       sourcePosition: sourcePos,
@@ -48,7 +49,7 @@ function ImplementationEdge({ id, source, target, style }: EdgeProps) {
       targetY: ty,
     });
   } else {
-    [path] = getSmartBezierPath({
+    [path, labelX, labelY] = getSmartBezierPath({
       sourceX: sx,
       sourceY: sy,
       sourcePosition: sourcePos,
@@ -70,6 +71,15 @@ function ImplementationEdge({ id, source, target, style }: EdgeProps) {
           strokeDasharray: "5 5",
           ...style,
         }}
+      />
+      <EdgeLabel
+        labelX={labelX}
+        labelY={labelY}
+        sx={sx}
+        sy={sy}
+        tx={tx}
+        ty={ty}
+        data={data}
       />
     </>
   );

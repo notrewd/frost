@@ -10,8 +10,9 @@ import { getEdgeParams, getSmartBezierPath } from "../../lib/utils";
 import ArrowOpen from "../ui/icons/markers/arrow-open";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
+import { EdgeLabel } from "./edge-label-renderer";
 
-function AssociationEdge({ id, source, target, style }: EdgeProps) {
+function AssociationEdge({ id, source, target, style, data }: EdgeProps) {
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -30,16 +31,16 @@ function AssociationEdge({ id, source, target, style }: EdgeProps) {
     })),
   );
 
-  let path;
+  let path, labelX, labelY;
   if (edgeStyle === "straight") {
-    [path] = getStraightPath({
+    [path, labelX, labelY] = getStraightPath({
       sourceX: sx,
       sourceY: sy,
       targetX: tx,
       targetY: ty,
     });
   } else if (edgeStyle === "smoothstep") {
-    [path] = getSmoothStepPath({
+    [path, labelX, labelY] = getSmoothStepPath({
       sourceX: sx,
       sourceY: sy,
       sourcePosition: sourcePos,
@@ -48,7 +49,7 @@ function AssociationEdge({ id, source, target, style }: EdgeProps) {
       targetY: ty,
     });
   } else {
-    [path] = getSmartBezierPath({
+    [path, labelX, labelY] = getSmartBezierPath({
       sourceX: sx,
       sourceY: sy,
       sourcePosition: sourcePos,
@@ -67,6 +68,15 @@ function AssociationEdge({ id, source, target, style }: EdgeProps) {
         path={path}
         markerEnd={"url(#arrow-open)"}
         style={style}
+      />
+      <EdgeLabel
+        labelX={labelX}
+        labelY={labelY}
+        sx={sx}
+        sy={sy}
+        tx={tx}
+        ty={ty}
+        data={data}
       />
     </>
   );
