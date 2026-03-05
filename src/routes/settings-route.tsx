@@ -28,7 +28,11 @@ import {
   Workflow,
   Spline,
 } from "lucide-react";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
+import DiscardDialog from "@/components/ui/dialogs/discard-dialog";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+
+const appWindow = getCurrentWindow();
 
 interface Category {
   id: string;
@@ -97,6 +101,96 @@ const SettingsRoute = () => {
   const [busy, setBusy] = useState(false);
   const [changed, setChanged] = useState(false);
 
+  const [allowClose, setAllowClose] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const [initialSettings, setInitialSettings] = useState<any>(null);
+
+  const allowCloseRef = useRef(allowClose);
+  const changedRef = useRef(changed);
+  const closeUnlistenRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    allowCloseRef.current = allowClose;
+  }, [allowClose]);
+
+  useEffect(() => {
+    changedRef.current = changed;
+  }, [changed]);
+
+  useEffect(() => {
+    const fetchInitial = async () => {
+      const settings = await invoke("get_settings_state");
+      setInitialSettings(settings);
+    };
+    fetchInitial();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const setupOnClose = async () => {
+      const dispose = await appWindow.onCloseRequested((event) => {
+        if (allowCloseRef.current) {
+          return;
+        }
+
+        if (changedRef.current) {
+          event.preventDefault();
+          setShowDiscardDialog(true);
+          return;
+        }
+
+        event.preventDefault();
+        allowCloseRef.current = true;
+        setAllowClose(true);
+        appWindow.destroy();
+      });
+
+      if (cancelled) {
+        dispose();
+        return;
+      }
+      closeUnlistenRef.current = dispose;
+    };
+
+    setupOnClose();
+
+    return () => {
+      cancelled = true;
+      closeUnlistenRef.current?.();
+      closeUnlistenRef.current = null;
+    };
+  }, []);
+
+  const handleDiscardConfirm = useCallback(async () => {
+    try {
+      setShowDiscardDialog(false);
+
+      if (initialSettings) {
+        await invoke("set_settings_state", {
+          theme: initialSettings.theme,
+          panOnScroll: initialSettings.pan_on_scroll,
+          showMinimap: initialSettings.show_minimap,
+          coloredNodes: initialSettings.colored_nodes,
+          showControls: initialSettings.show_controls,
+          edgeStyle: initialSettings.edge_style,
+        });
+      }
+
+      allowCloseRef.current = true;
+      changedRef.current = false;
+      closeUnlistenRef.current?.();
+      closeUnlistenRef.current = null;
+      setAllowClose(true);
+      setChanged(false);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await appWindow.destroy();
+    } catch (error) {
+      console.error("Error in handleDiscardConfirm:", error);
+    }
+  }, [initialSettings]);
+
   const filteredCategories = categories.filter(
     (category) =>
       category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -121,6 +215,9 @@ const SettingsRoute = () => {
     setBusy(true);
     try {
       await invoke("save_settings_state");
+      setChanged(false);
+      const settings = await invoke("get_settings_state");
+      setInitialSettings(settings);
     } catch (error) {
       console.error("Failed to save settings:", error);
     } finally {
@@ -217,6 +314,13 @@ const SettingsRoute = () => {
           </Button>
         </div>
       </main>
+      <DiscardDialog
+        open={showDiscardDialog}
+        onChange={setShowDiscardDialog}
+        onConfirm={handleDiscardConfirm}
+        title="Unsaved settings"
+        description="You have unsaved settings. Do you want to discard them and close?"
+      />
     </SidebarProvider>
   );
 };

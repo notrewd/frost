@@ -14,6 +14,8 @@ interface DiscardDialogProps {
   onChange: (open: boolean) => void;
   onCancel?: () => void;
   onConfirm?: () => void;
+  title?: string;
+  description?: string;
 }
 
 const DiscardDialog: FC<DiscardDialogProps> = ({
@@ -21,6 +23,8 @@ const DiscardDialog: FC<DiscardDialogProps> = ({
   onChange,
   onCancel,
   onConfirm,
+  title = "Unsaved changes",
+  description = "This project has unsaved changes. Do you want to discard them?",
 }) => {
   const handleOnCancel = useCallback(() => {
     if (onCancel) {
@@ -42,10 +46,8 @@ const DiscardDialog: FC<DiscardDialogProps> = ({
     <Dialog open={open} onOpenChange={onChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Unsaved changes</DialogTitle>
-          <DialogDescription>
-            This project has unsaved changes. Do you want to discard them?
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={handleOnCancel}>
