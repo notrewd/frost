@@ -6,9 +6,13 @@ import { FC } from "react";
 
 interface EditorSettingsProps {
   onChange?: () => void;
+  searchQuery?: string;
 }
 
-const EditorSettings: FC<EditorSettingsProps> = ({ onChange }) => {
+const EditorSettings: FC<EditorSettingsProps> = ({
+  onChange,
+  searchQuery = "",
+}) => {
   const {
     showMinimap,
     setShowMinimap,
@@ -27,46 +31,60 @@ const EditorSettings: FC<EditorSettingsProps> = ({ onChange }) => {
     })),
   );
 
+  const isMatch = (text: string) =>
+    text.toLowerCase().includes(searchQuery.toLowerCase());
+
   return (
     <>
-      <SettingsField
-        label="Show Controls"
-        description="Toggle the visibility of the editor controls (zoom, fit view, etc.)"
-      >
-        <Switch
-          checked={showControls}
-          onCheckedChange={(checked) => {
-            setShowControls(checked);
-            onChange?.();
-          }}
-        />
-      </SettingsField>
+      {(isMatch("Show Controls") ||
+        isMatch(
+          "Toggle the visibility of the editor controls (zoom, fit view, etc.)",
+        )) && (
+        <SettingsField
+          label="Show Controls"
+          description="Toggle the visibility of the editor controls (zoom, fit view, etc.)"
+        >
+          <Switch
+            checked={showControls}
+            onCheckedChange={(checked) => {
+              setShowControls(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
 
-      <SettingsField
-        label="Show Minimap"
-        description="Toggle the visibility of the minimap in the editor"
-      >
-        <Switch
-          checked={showMinimap}
-          onCheckedChange={(checked) => {
-            setShowMinimap(checked);
-            onChange?.();
-          }}
-        />
-      </SettingsField>
+      {(isMatch("Show Minimap") ||
+        isMatch("Toggle the visibility of the minimap in the editor")) && (
+        <SettingsField
+          label="Show Minimap"
+          description="Toggle the visibility of the minimap in the editor"
+        >
+          <Switch
+            checked={showMinimap}
+            onCheckedChange={(checked) => {
+              setShowMinimap(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
 
-      <SettingsField
-        label="Pan on Scroll"
-        description="Enable or disable panning the editor when scrolling"
-      >
-        <Switch
-          checked={panOnScroll}
-          onCheckedChange={(checked) => {
-            setPanOnScroll(checked);
-            onChange?.();
-          }}
-        />
-      </SettingsField>
+      {(isMatch("Pan on Scroll") ||
+        isMatch("Enable or disable panning the editor when scrolling")) && (
+        <SettingsField
+          label="Pan on Scroll"
+          description="Enable or disable panning the editor when scrolling"
+        >
+          <Switch
+            checked={panOnScroll}
+            onCheckedChange={(checked) => {
+              setPanOnScroll(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
     </>
   );
 };

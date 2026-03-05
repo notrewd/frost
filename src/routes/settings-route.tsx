@@ -4,13 +4,13 @@ import NodesSettings from "@/components/settings/nodes";
 import EdgesSettings from "@/components/settings/edges";
 import { Button } from "@/components/ui/button";
 import ContentHeader from "@/components/ui/content-header";
+import SearchInput from "@/components/ui/inputs/search-input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -28,13 +28,14 @@ import {
   Workflow,
   Spline,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 
 interface Category {
   id: string;
   title: string;
   description: string;
   icon: LucideIcon;
+  keywords?: string[];
 }
 
 const categories: Category[] = [
@@ -43,24 +44,47 @@ const categories: Category[] = [
     title: "General",
     description: "General application settings.",
     icon: Settings2,
+    keywords: [
+      "Theme",
+      "Select the theme for the application",
+      "light",
+      "dark",
+      "system",
+    ],
   },
   {
     id: "editor",
     title: "Editor",
     description: "Customize the look and feel of the editor.",
     icon: TvMinimal,
+    keywords: [
+      "Show Controls",
+      "Toggle the visibility of the editor controls (zoom, fit view, etc.)",
+      "Show Minimap",
+      "Toggle the visibility of the minimap in the editor",
+      "Pan on Scroll",
+      "Enable or disable panning the editor when scrolling",
+    ],
   },
   {
     id: "nodes",
     title: "Nodes",
     description: "Manage visual appearance of nodes.",
     icon: Workflow,
+    keywords: ["Colored Nodes", "Enable or disable colored nodes"],
   },
   {
     id: "edges",
     title: "Edges",
     description: "Manage visual appearance of edges.",
     icon: Spline,
+    keywords: [
+      "Edge Style",
+      "Choose the visual style of the edges connecting nodes",
+      "Straight",
+      "Smooth Step",
+      "Bezier",
+    ],
   },
 ];
 
@@ -68,9 +92,30 @@ const SettingsRoute = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>(
     categories[0],
   );
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [busy, setBusy] = useState(false);
   const [changed, setChanged] = useState(false);
+
+  const filteredCategories = categories.filter(
+    (category) =>
+      category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (category.keywords &&
+        category.keywords.some((kw) =>
+          kw.toLowerCase().includes(searchQuery.toLowerCase()),
+        )),
+  );
+
+  useEffect(() => {
+    if (
+      searchQuery &&
+      filteredCategories.length > 0 &&
+      !filteredCategories.find((c) => c.id === selectedCategory.id)
+    ) {
+      setSelectedCategory(filteredCategories[0]);
+    }
+  }, [searchQuery, filteredCategories, selectedCategory.id]);
 
   const handleSave = useCallback(async () => {
     setBusy(true);
@@ -91,10 +136,16 @@ const SettingsRoute = () => {
       >
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Settings</SidebarGroupLabel>
+            <div className="px-2 mb-2 -mx-2">
+              <SearchInput
+                placeholder="Search settings..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
             <div className="flex flex-col gap-1">
-              {categories.map((category) => (
-                <SidebarMenu>
+              {filteredCategories.map((category) => (
+                <SidebarMenu key={category.id}>
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setSelectedCategory(category)}
@@ -121,16 +172,28 @@ const SettingsRoute = () => {
         <ScrollArea className="flex flex-col flex-1 overflow-hidden">
           <div className="flex flex-1 flex-col p-2 gap-4">
             {selectedCategory.id === "general" && (
-              <GeneralSettings onChange={() => setChanged(true)} />
+              <GeneralSettings
+                onChange={() => setChanged(true)}
+                searchQuery={searchQuery}
+              />
             )}
             {selectedCategory.id === "edges" && (
-              <EdgesSettings onChange={() => setChanged(true)} />
+              <EdgesSettings
+                onChange={() => setChanged(true)}
+                searchQuery={searchQuery}
+              />
             )}
             {selectedCategory.id === "editor" && (
-              <EditorSettings onChange={() => setChanged(true)} />
+              <EditorSettings
+                onChange={() => setChanged(true)}
+                searchQuery={searchQuery}
+              />
             )}
             {selectedCategory.id === "nodes" && (
-              <NodesSettings onChange={() => setChanged(true)} />
+              <NodesSettings
+                onChange={() => setChanged(true)}
+                searchQuery={searchQuery}
+              />
             )}
           </div>
         </ScrollArea>

@@ -6,9 +6,13 @@ import { FC } from "react";
 
 interface NodesSettingsProps {
   onChange?: () => void;
+  searchQuery?: string;
 }
 
-const NodesSettings: FC<NodesSettingsProps> = ({ onChange }) => {
+const NodesSettings: FC<NodesSettingsProps> = ({
+  onChange,
+  searchQuery = "",
+}) => {
   const { coloredNodes, setColoredNodes } = useSettingsStore(
     useShallow((state) => ({
       coloredNodes: state.colored_nodes,
@@ -16,20 +20,26 @@ const NodesSettings: FC<NodesSettingsProps> = ({ onChange }) => {
     })),
   );
 
+  const isMatch = (text: string) =>
+    text.toLowerCase().includes(searchQuery.toLowerCase());
+
   return (
     <>
-      <SettingsField
-        label="Colored Nodes"
-        description="Enable or disable colored nodes"
-      >
-        <Switch
-          checked={coloredNodes}
-          onCheckedChange={(checked) => {
-            setColoredNodes(checked);
-            onChange?.();
-          }}
-        />
-      </SettingsField>
+      {(isMatch("Colored Nodes") ||
+        isMatch("Enable or disable colored nodes")) && (
+        <SettingsField
+          label="Colored Nodes"
+          description="Enable or disable colored nodes"
+        >
+          <Switch
+            checked={coloredNodes}
+            onCheckedChange={(checked) => {
+              setColoredNodes(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
     </>
   );
 };
