@@ -216,162 +216,160 @@ const PropertiesPanel: FC = () => {
   return (
     <>
       <ScrollArea className="flex flex-col flex-1 overflow-hidden">
-        <div className="flex flex-col pb-6">
-          {selectedNodes.length > 0 && (
+        {selectedNodes.length > 0 && (
+          <PropertiesSection
+            title={`Node Properties (${selectedNodes.length})`}
+            icon={Box}
+          >
+            <div className="px-3 py-2 mb-1 grid grid-cols-[1fr_auto] items-center gap-2">
+              <div className="font-mono text-sm truncate min-w-0">
+                {selectedNodes.length === 1
+                  ? (selectedNodes[0].data.name as string)
+                  : "Multiple selected"}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={selectedNodes.length > 1}
+                onClick={() =>
+                  selectedNodes.length === 1 &&
+                  handleNodeEditClick(selectedNodes[0].id)
+                }
+              >
+                <Edit2 className="size-3" />
+                Edit Data
+              </Button>
+            </div>
+            <PropRow label="Position X">
+              <NumberInput
+                value={bulkNodeX}
+                placeholder={bulkNodeX === "" ? "Mixed" : ""}
+                onChange={(val) => handleBulkNodePositionChange("x", val)}
+                variant="small"
+                step={10}
+              />
+            </PropRow>
+            <PropRow label="Position Y">
+              <NumberInput
+                value={bulkNodeY}
+                placeholder={bulkNodeY === "" ? "Mixed" : ""}
+                onChange={(val) => handleBulkNodePositionChange("y", val)}
+                variant="small"
+                step={10}
+              />
+            </PropRow>
+          </PropertiesSection>
+        )}
+        {selectedEdges.length > 0 && (
+          <>
+            <Separator className="my-2 first:hidden" />
             <PropertiesSection
-              title={`Node Properties (${selectedNodes.length})`}
-              icon={Box}
+              title={`Edge Properties (${selectedEdges.length})`}
+              icon={ArrowRight}
             >
-              <div className="px-3 py-2 mb-1 flex items-center justify-between">
-                <span className="font-mono text-sm truncate max-w-30">
-                  {selectedNodes.length === 1
-                    ? (selectedNodes[0].data.name as string)
-                    : "Multiple selected"}
-                </span>
+              <div className="px-3 py-2 mb-1 grid grid-cols-[1fr_auto] items-center gap-4">
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                    Connection
+                  </p>
+                  <p className="font-mono text-xs mt-0.5 opacity-80 truncate min-w-0">
+                    {selectedEdges.length === 1
+                      ? `${selectedEdges[0].source} -> ${selectedEdges[0].target}`
+                      : "Multiple selected"}
+                  </p>
+                </div>
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  disabled={selectedNodes.length > 1}
-                  onClick={() =>
-                    selectedNodes.length === 1 &&
-                    handleNodeEditClick(selectedNodes[0].id)
-                  }
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handleReverseEdges}
+                  title="Reverse Connection"
                 >
-                  <Edit2 className="size-3" />
-                  Edit Data
+                  <ArrowRightLeft className="size-3.5" />
                 </Button>
               </div>
-              <PropRow label="Position X">
-                <NumberInput
-                  value={bulkNodeX}
-                  placeholder={bulkNodeX === "" ? "Mixed" : ""}
-                  onChange={(val) => handleBulkNodePositionChange("x", val)}
-                  variant="small"
-                  step={10}
-                />
+              <PropRow label="Type">
+                <Select
+                  value={bulkEdgeType}
+                  onValueChange={handleBulkEdgeTypeChange}
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue placeholder="Mixed types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="generalization">
+                      Generalization
+                    </SelectItem>
+                    <SelectItem value="association">Association</SelectItem>
+                    <SelectItem value="composition">Composition</SelectItem>
+                    <SelectItem value="implementation">
+                      Implementation
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </PropRow>
-              <PropRow label="Position Y">
-                <NumberInput
-                  value={bulkNodeY}
-                  placeholder={bulkNodeY === "" ? "Mixed" : ""}
-                  onChange={(val) => handleBulkNodePositionChange("y", val)}
+              <PropRow label="Label">
+                <Input
+                  value={bulkEdgeLabel}
+                  placeholder={
+                    selectedEdges.length > 1 && bulkEdgeLabel === ""
+                      ? "Mixed labels"
+                      : "Optional label"
+                  }
+                  onChange={(e) => handleBulkEdgeLabelChange(e.target.value)}
                   variant="small"
-                  step={10}
                 />
               </PropRow>
             </PropertiesSection>
-          )}
-          {selectedEdges.length > 0 && (
-            <>
-              <Separator className="my-2 first:hidden" />
-              <PropertiesSection
-                title={`Edge Properties (${selectedEdges.length})`}
-                icon={ArrowRight}
-              >
-                <div className="px-3 py-2 mb-1 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                      Connection
-                    </p>
-                    <p className="font-mono text-xs mt-0.5 opacity-80 truncate max-w-37.5">
-                      {selectedEdges.length === 1
-                        ? `${selectedEdges[0].source} -> ${selectedEdges[0].target}`
-                        : "Multiple selected"}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={handleReverseEdges}
-                    title="Reverse Connection"
-                  >
-                    <ArrowRightLeft className="size-3.5" />
-                  </Button>
-                </div>
-                <PropRow label="Type">
-                  <Select
-                    value={bulkEdgeType}
-                    onValueChange={handleBulkEdgeTypeChange}
-                  >
-                    <SelectTrigger className="h-7 text-xs">
-                      <SelectValue placeholder="Mixed types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="generalization">
-                        Generalization
-                      </SelectItem>
-                      <SelectItem value="association">Association</SelectItem>
-                      <SelectItem value="composition">Composition</SelectItem>
-                      <SelectItem value="implementation">
-                        Implementation
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </PropRow>
-                <PropRow label="Label">
-                  <Input
-                    value={bulkEdgeLabel}
-                    placeholder={
-                      selectedEdges.length > 1 && bulkEdgeLabel === ""
-                        ? "Mixed labels"
-                        : "Optional label"
-                    }
-                    onChange={(e) => handleBulkEdgeLabelChange(e.target.value)}
-                    variant="small"
-                  />
-                </PropRow>
-              </PropertiesSection>
-            </>
-          )}
+          </>
+        )}
 
-          {selectedEdges.length > 0 && (
-            <>
-              <Separator className="my-2 first:hidden" />
-              <PropertiesSection
-                title={`Cardinality`}
-                icon={Hash}
-                defaultOpen={false}
-              >
-                <PropRow label="Source">
-                  <Input
-                    value={bulkSourceCardinality}
-                    placeholder={
-                      selectedEdges.length > 1 && bulkSourceCardinality === ""
-                        ? "Mixed"
-                        : "e.g. 1..*"
-                    }
-                    onChange={(e) =>
-                      handleBulkEdgeCardinalityChange(
-                        "sourceCardinality",
-                        e.target.value,
-                      )
-                    }
-                    variant="small"
-                  />
-                </PropRow>
-                <PropRow label="Target">
-                  <Input
-                    value={bulkTargetCardinality}
-                    placeholder={
-                      selectedEdges.length > 1 && bulkTargetCardinality === ""
-                        ? "Mixed"
-                        : "e.g. 0..1"
-                    }
-                    onChange={(e) =>
-                      handleBulkEdgeCardinalityChange(
-                        "targetCardinality",
-                        e.target.value,
-                      )
-                    }
-                    variant="small"
-                  />
-                </PropRow>
-              </PropertiesSection>
-            </>
-          )}
-        </div>
+        {selectedEdges.length > 0 && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Cardinality`}
+              icon={Hash}
+              defaultOpen={false}
+            >
+              <PropRow label="Source">
+                <Input
+                  value={bulkSourceCardinality}
+                  placeholder={
+                    selectedEdges.length > 1 && bulkSourceCardinality === ""
+                      ? "Mixed"
+                      : "e.g. 1..*"
+                  }
+                  onChange={(e) =>
+                    handleBulkEdgeCardinalityChange(
+                      "sourceCardinality",
+                      e.target.value,
+                    )
+                  }
+                  variant="small"
+                />
+              </PropRow>
+              <PropRow label="Target">
+                <Input
+                  value={bulkTargetCardinality}
+                  placeholder={
+                    selectedEdges.length > 1 && bulkTargetCardinality === ""
+                      ? "Mixed"
+                      : "e.g. 0..1"
+                  }
+                  onChange={(e) =>
+                    handleBulkEdgeCardinalityChange(
+                      "targetCardinality",
+                      e.target.value,
+                    )
+                  }
+                  variant="small"
+                />
+              </PropRow>
+            </PropertiesSection>
+          </>
+        )}
       </ScrollArea>
 
       {selectedNodeDialog && (
