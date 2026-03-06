@@ -420,15 +420,15 @@ function TreeItem({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger>
-        <div>
+      <ContextMenuTrigger asChild>
+        <div className="min-w-0">
           <div
             ref={itemRef}
             data-tree-item
             data-id={item.id}
             data-depth={depth}
             data-folder-closed={item.children && !isOpen}
-            className={`select-none hover:bg-background/50 rounded-md ${
+            className={`select-none hover:bg-background/50 rounded-md min-w-0 ${
               isSelected
                 ? `bg-background/50 ${selectionStyle}`
                 : "text-foreground"
@@ -436,9 +436,9 @@ function TreeItem({
             style={{ paddingLeft: `${depth * 20}px` }}
             onClick={handleClick}
           >
-            <div className="flex items-center h-8">
+            <div className="flex items-center h-8 min-w-0">
               {item.children ? (
-                <div className="flex items-center gap-2 flex-1 group">
+                <div className="flex items-center gap-2 flex-1 min-w-0 group">
                   <Collapsible
                     open={isOpen}
                     onOpenChange={(open) => onToggleExpand(item.id, open)}
@@ -491,7 +491,7 @@ function TreeItem({
                     </div>
                   )}
                   {renderIcon()}
-                  <span className="flex-1">{item.name}</span>
+                  <span className="flex-1 truncate min-w-0">{item.name}</span>
                   {selectedCount !== null && selectedCount > 0 && (
                     <Badge variant="outline" className="mr-2">
                       {selectedCount} selected
@@ -534,7 +534,7 @@ function TreeItem({
                   </HoverCard>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 flex-1 pl-8 group">
+                <div className="flex items-center gap-2 flex-1 pl-8 min-w-0 group">
                   {showAccessRights && (
                     <div
                       className="relative flex items-center justify-center w-4 h-4 hover:opacity-80"
@@ -562,7 +562,7 @@ function TreeItem({
                     </div>
                   )}
                   {renderIcon()}
-                  <span className="flex-1">{item.name}</span>
+                  <span className="flex-1 truncate min-w-0">{item.name}</span>
                   <HoverCard>
                     <HoverCardTrigger asChild>
                       <Button
@@ -788,7 +788,6 @@ export default function TreeView({
     [propSelectedIds, onSelectionChange, data],
   );
 
-
   // Function to collect all folder IDs
   const getAllFolderIds = useCallback((items: TreeViewItem[]): string[] => {
     let ids: string[] = [];
@@ -966,8 +965,8 @@ export default function TreeView({
   // }, [selectedIds, onSelectionChange, getSelectedItems]);
 
   return (
-    <div className="flex h-full gap-4">
-      <div ref={treeRef} className="w-full">
+    <div className="flex h-full gap-4 min-w-0">
+      <div ref={treeRef} className="w-full min-w-0">
         <AnimatePresence mode="wait">
           {selectedIds.size > 0 ? (
             <motion.div
@@ -1066,7 +1065,7 @@ export default function TreeView({
         <div
           ref={dragRef}
           className={cn(
-            "rounded-lg bg-card relative select-none h-full pb-12",
+            "rounded-lg bg-card relative select-none h-full min-h-0 min-w-0 pb-12",
             className,
           )}
           onMouseDown={handleMouseDown}

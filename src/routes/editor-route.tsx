@@ -487,7 +487,7 @@ const EditorRoute = () => {
               defaultSize={150}
             >
               <PanelBar>Project</PanelBar>
-              <div className="flex flex-col h-full pl-4 py-2 pb-7 min-h-0">
+              <div className="flex flex-col h-full pl-4 py-2 pb-7 min-h-0 min-w-0">
                 <ProjectPanel />
               </div>
             </ResizablePanel>
@@ -498,7 +498,7 @@ const EditorRoute = () => {
               defaultSize={200}
             >
               <PanelBar>Properties</PanelBar>
-              <div className="flex flex-col flex-1 px-4 py-2 min-h-0">
+              <div className="flex flex-col flex-1 px-4 py-2 min-h-0 min-w-0">
                 <PropertiesPanel />
               </div>
             </ResizablePanel>
