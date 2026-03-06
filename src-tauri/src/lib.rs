@@ -17,6 +17,7 @@ struct AppState {
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
 struct SettingsState {
     theme: String,
     pan_on_scroll: bool,
@@ -24,6 +25,43 @@ struct SettingsState {
     colored_nodes: bool,
     show_controls: bool,
     edge_style: String,
+
+    // General
+    auto_save: bool,
+    auto_save_interval: u32,
+
+    // Editor
+    show_grid: bool,
+    snap_to_grid: bool,
+    grid_size: u32,
+
+    // Nodes
+    compact_nodes: bool,
+    node_border_radius: u32,
+
+    // Edges
+    show_edge_labels: bool,
+}
+
+impl Default for SettingsState {
+    fn default() -> Self {
+        Self {
+            theme: "dark".to_string(),
+            pan_on_scroll: false,
+            show_minimap: true,
+            colored_nodes: true,
+            show_controls: true,
+            edge_style: "bezier".to_string(),
+            auto_save: false,
+            auto_save_interval: 5,
+            show_grid: true,
+            snap_to_grid: false,
+            grid_size: 15,
+            compact_nodes: false,
+            node_border_radius: 8,
+            show_edge_labels: true,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -387,6 +425,14 @@ async fn set_settings_state(
     colored_nodes: Option<bool>,
     show_controls: Option<bool>,
     edge_style: Option<String>,
+    auto_save: Option<bool>,
+    auto_save_interval: Option<u32>,
+    show_grid: Option<bool>,
+    snap_to_grid: Option<bool>,
+    grid_size: Option<u32>,
+    compact_nodes: Option<bool>,
+    node_border_radius: Option<u32>,
+    show_edge_labels: Option<bool>,
 ) -> tauri::Result<()> {
     let mut state = state.lock().unwrap();
 
@@ -396,6 +442,19 @@ async fn set_settings_state(
     state.settings.colored_nodes = colored_nodes.unwrap_or(state.settings.colored_nodes);
     state.settings.show_controls = show_controls.unwrap_or(state.settings.show_controls);
     state.settings.edge_style = edge_style.unwrap_or(state.settings.edge_style.clone());
+    state.settings.auto_save = auto_save.unwrap_or(state.settings.auto_save);
+    state.settings.auto_save_interval =
+        auto_save_interval.unwrap_or(state.settings.auto_save_interval);
+
+    state.settings.show_grid = show_grid.unwrap_or(state.settings.show_grid);
+    state.settings.snap_to_grid = snap_to_grid.unwrap_or(state.settings.snap_to_grid);
+    state.settings.grid_size = grid_size.unwrap_or(state.settings.grid_size);
+
+    state.settings.compact_nodes = compact_nodes.unwrap_or(state.settings.compact_nodes);
+    state.settings.node_border_radius =
+        node_border_radius.unwrap_or(state.settings.node_border_radius);
+
+    state.settings.show_edge_labels = show_edge_labels.unwrap_or(state.settings.show_edge_labels);
 
     app.emit(
         "settings-updated",
@@ -406,6 +465,14 @@ async fn set_settings_state(
             "coloredNodes": state.settings.colored_nodes,
             "showControls": state.settings.show_controls,
             "edgeStyle": state.settings.edge_style,
+            "autoSave": state.settings.auto_save,
+            "autoSaveInterval": state.settings.auto_save_interval,
+            "showGrid": state.settings.show_grid,
+            "snapToGrid": state.settings.snap_to_grid,
+            "gridSize": state.settings.grid_size,
+            "compactNodes": state.settings.compact_nodes,
+            "nodeBorderRadius": state.settings.node_border_radius,
+            "showEdgeLabels": state.settings.show_edge_labels,
         }),
     )?;
 
@@ -520,14 +587,7 @@ pub fn run() {
                 .items(&[&about_menu, &file_menu, &edit_menu, &window_menu])
                 .build()?;
 
-            let settings_state = util::load_settings().unwrap_or_else(|| SettingsState {
-                theme: "dark".to_string(),
-                pan_on_scroll: false,
-                show_minimap: true,
-                colored_nodes: true,
-                show_controls: true,
-                edge_style: "bezier".to_string(),
-            });
+            let settings_state = util::load_settings().unwrap_or_default();
 
             app.manage(Mutex::new(AppState {
                 menu_items: MenuItems {

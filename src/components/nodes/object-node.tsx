@@ -5,6 +5,7 @@ import { ChevronsLeft, ChevronsRight, Spline } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useShallow } from "zustand/react/shallow";
 import { Handle, Position, useConnection } from "@xyflow/react";
 
 export interface ObjectNodeProperty {
@@ -54,12 +55,25 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const coloredNodes = useSettingsStore((state) => state.colored_nodes);
+  const { coloredNodes, compactNodes, nodeBorderRadius } =
+    useSettingsStore(
+      useShallow((state) => ({
+        coloredNodes: state.colored_nodes,
+        compactNodes: state.compact_nodes,
+        nodeBorderRadius: state.node_border_radius,})),
+    );
 
   return (
     <>
       <Card
-        className={cn("gap-2 py-4 font-mono pb-6", selected && "ring")}
+        className={cn(
+          compactNodes
+            ? "gap-1 py-1 font-mono pb-2 text-xs"
+            : "gap-2 py-4 font-mono pb-6",
+          selected && "ring",
+        )}
+        style={{
+          borderRadius: `${nodeBorderRadius}px`,}}
         onDoubleClick={() => setDialogOpen(true)}
       >
         {data.stereotype && (
@@ -206,3 +220,5 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 };
 
 export default ObjectNode;
+
+

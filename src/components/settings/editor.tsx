@@ -1,6 +1,7 @@
 import { useSettingsStore } from "@/stores/settings-store";
 import SettingsField from "../ui/settings-field";
 import { Switch } from "../ui/switch";
+import { NumberInput } from "../ui/number-input";
 import { useShallow } from "zustand/react/shallow";
 import { FC } from "react";
 
@@ -20,14 +21,26 @@ const EditorSettings: FC<EditorSettingsProps> = ({
     setPanOnScroll,
     showControls,
     setShowControls,
+    showGrid,
+    setShowGrid,
+    snapToGrid,
+    setSnapToGrid,
+    gridSize,
+    setGridSize,
   } = useSettingsStore(
     useShallow((state) => ({
       showMinimap: state.show_minimap,
       panOnScroll: state.pan_on_scroll,
       showControls: state.show_controls,
+      showGrid: state.show_grid,
+      snapToGrid: state.snap_to_grid,
+      gridSize: state.grid_size,
       setShowMinimap: state.setShowMinimap,
       setPanOnScroll: state.setPanOnScroll,
       setShowControls: state.setShowControls,
+      setShowGrid: state.setShowGrid,
+      setSnapToGrid: state.setSnapToGrid,
+      setGridSize: state.setGridSize,
     })),
   );
 
@@ -85,6 +98,58 @@ const EditorSettings: FC<EditorSettingsProps> = ({
           />
         </SettingsField>
       )}
+
+      {(isMatch("Show Grid") ||
+        isMatch("Toggle the visibility of the background grid")) && (
+        <SettingsField
+          label="Show Grid"
+          description="Toggle the visibility of the background grid"
+        >
+          <Switch
+            checked={showGrid}
+            onCheckedChange={(checked) => {
+              setShowGrid(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
+
+      {(isMatch("Snap to Grid") ||
+        isMatch("Snap nodes to the grid when moving them")) && (
+        <SettingsField
+          label="Snap to Grid"
+          description="Snap nodes to the grid when moving them"
+        >
+          <Switch
+            checked={snapToGrid}
+            onCheckedChange={(checked) => {
+              setSnapToGrid(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
+
+      {snapToGrid &&
+        (isMatch("Grid Size") || isMatch("Size of the grid snapping step")) && (
+          <SettingsField
+            label="Grid Size"
+            description="Size of the grid snapping step"
+          >
+            <div className="w-48">
+              <NumberInput
+                value={gridSize}
+                min={5}
+                max={100}
+                onChange={(value) => {
+                  setGridSize(Number(value) || 5);
+                  onChange?.();
+                }}
+              />
+            </div>
+          </SettingsField>
+        )}
     </>
   );
 };

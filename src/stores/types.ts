@@ -45,10 +45,27 @@ export interface SettingsState {
   colored_nodes: boolean;
   show_controls: boolean;
   edge_style: "straight" | "smoothstep" | "bezier";
+  auto_save: boolean;
+  auto_save_interval: number;
+  show_grid: boolean;
+  snap_to_grid: boolean;
+  grid_size: number;
+  compact_nodes: boolean;
+  node_border_radius: number;
+  show_edge_labels: boolean;
+
   setTheme: (theme: "light" | "dark" | "system") => void;
   setPanOnScroll: (enabled: boolean) => void;
   setShowMinimap: (enabled: boolean) => void;
   setColoredNodes: (enabled: boolean) => void;
   setShowControls: (enabled: boolean) => void;
   setEdgeStyle: (edgeStyle: "straight" | "smoothstep" | "bezier") => void;
+  setAutoSave: (enabled: boolean) => void;
+  setAutoSaveInterval: (interval: number) => void;
+  setShowGrid: (enabled: boolean) => void;
+  setSnapToGrid: (enabled: boolean) => void;
+  setGridSize: (size: number) => void;
+  setCompactNodes: (compact: boolean) => void;
+  setNodeBorderRadius: (radius: number) => void;
+  setShowEdgeLabels: (show: boolean) => void;
 }

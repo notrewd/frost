@@ -25,11 +25,13 @@ function CompositionEdge({ id, source, target, style, data }: EdgeProps) {
     targetNode,
   );
 
-  const { edgeStyle } = useSettingsStore(
-    useShallow((state) => ({
-      edgeStyle: state.edge_style,
-    })),
-  );
+  const { edgeStyle, showEdgeLabels } =
+    useSettingsStore(
+      useShallow((state) => ({
+        edgeStyle: state.edge_style,
+        showEdgeLabels: state.show_edge_labels,
+      })),
+    );
 
   let path, labelX, labelY;
   if (edgeStyle === "straight") {
@@ -57,9 +59,7 @@ function CompositionEdge({ id, source, target, style, data }: EdgeProps) {
       targetX: tx,
       targetY: ty,
     });
-  }
-
-  return (
+  }return (
     <>
       <DiamondFilled />
       <BaseEdge
@@ -69,17 +69,24 @@ function CompositionEdge({ id, source, target, style, data }: EdgeProps) {
         markerEnd={"url(#diamond-filled)"}
         style={style}
       />
-      <EdgeLabel
-        labelX={labelX}
-        labelY={labelY}
-        sx={sx}
-        sy={sy}
-        tx={tx}
-        ty={ty}
-        data={data}
-      />
+      {showEdgeLabels && (
+        <EdgeLabel
+          labelX={labelX}
+          labelY={labelY}
+          sx={sx}
+          sy={sy}
+          tx={tx}
+          ty={ty}
+          data={data}
+        />
+      )}
     </>
   );
 }
 
 export default CompositionEdge;
+
+
+
+
+

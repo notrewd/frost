@@ -13,7 +13,7 @@ import { useShallow } from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
 import { ProjectOpenedEvent } from "@/types/events";
 import { listen } from "@tauri-apps/api/event";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useStore } from "zustand";
 import { Button } from "./button";
@@ -112,13 +112,23 @@ const FlowEditor = () => {
     })),
   );
 
-  const { theme, panOnScroll, showMinimap, showControls } = useSettingsStore(
+  const {
+    theme,
+    panOnScroll,
+    showMinimap,
+    showControls,
+    showGrid,
+    snapToGrid,
+    gridSize,} = useSettingsStore(
     useShallow((state) => ({
       theme: state.theme,
       panOnScroll: state.pan_on_scroll,
       showMinimap: state.show_minimap,
       showControls: state.show_controls,
-    })),
+      showGrid: state.show_grid,
+      snapToGrid: state.snap_to_grid,
+      gridSize: state.grid_size,
+      })),
   );
   useEffect(() => {
     console.log("Settings changed:", { theme, panOnScroll, showMinimap });
@@ -140,7 +150,6 @@ const FlowEditor = () => {
   const onNodeDragStop = useCallback(() => {
     resume();
   }, [resume]);
-
   useEffect(() => {
     console.log(theme, panOnScroll, showMinimap);
   }, [theme, panOnScroll, showMinimap]);
@@ -269,23 +278,31 @@ const FlowEditor = () => {
     [onConnect, currentConnection],
   );
 
+  const mappedEdges = useMemo(
+    () => edges.map((edge) => ({ ...edge }) as Edge),
+    [edges],
+  );
+
   return (
     <>
       <ReactFlow
         className="frost-editor-flow"
         nodes={nodes}
-        edges={edges}
-        colorMode={theme}
+        edges={mappedEdges}
+        colorMode={theme === "system" ? undefined : theme}
         panOnScroll={panOnScroll}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        deleteKeyCode={["Backspace", "Delete"]}
         defaultEdgeOptions={defaultEdgeOptions}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleOnConnect}
-        onInit={(instance) => setInstance(instance)}
+        onInit={(instance) => setInstance(instance as any)}
         onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
+        snapToGrid={snapToGrid}
+        snapGrid={[gridSize, gridSize]}
         proOptions={{
           hideAttribution: true,
         }}
@@ -324,7 +341,7 @@ const FlowEditor = () => {
           </>
         )}
         {showMinimap && <MiniMap hidden={false} />}
-        <Background />
+        {showGrid && <Background />}
       </ReactFlow>
 
       <DropdownMenu
@@ -372,3 +389,7 @@ const FlowEditor = () => {
 };
 
 export default FlowEditor;
+
+
+
+

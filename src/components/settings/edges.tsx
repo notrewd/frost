@@ -2,6 +2,7 @@ import SettingsField from "../ui/settings-field";
 import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/stores/settings-store";
 import { FC } from "react";
+import { Switch } from "../ui/switch";
 import {
   Select,
   SelectContent,
@@ -19,12 +20,15 @@ const EdgesSettings: FC<EdgesSettingsProps> = ({
   onChange,
   searchQuery = "",
 }) => {
-  const { edgeStyle, setEdgeStyle } = useSettingsStore(
-    useShallow((state) => ({
-      edgeStyle: state.edge_style,
-      setEdgeStyle: state.setEdgeStyle,
-    })),
-  );
+  const { edgeStyle, setEdgeStyle, showEdgeLabels, setShowEdgeLabels } =
+    useSettingsStore(
+      useShallow((state) => ({
+        edgeStyle: state.edge_style,
+        setEdgeStyle: state.setEdgeStyle,
+        showEdgeLabels: state.show_edge_labels,
+        setShowEdgeLabels: state.setShowEdgeLabels,
+      })),
+    );
 
   const isMatch = (text: string) =>
     text.toLowerCase().includes(searchQuery.toLowerCase());
@@ -56,6 +60,22 @@ const EdgesSettings: FC<EdgesSettingsProps> = ({
               <SelectItem value="bezier">Bezier</SelectItem>
             </SelectContent>
           </Select>
+        </SettingsField>
+      )}
+
+      {(isMatch("Show Edge Labels") ||
+        isMatch("Toggle the visibility of the labels on edges")) && (
+        <SettingsField
+          label="Show Edge Labels"
+          description="Toggle the visibility of the labels on edges"
+        >
+          <Switch
+            checked={showEdgeLabels}
+            onCheckedChange={(checked) => {
+              setShowEdgeLabels(checked);
+              onChange?.();
+            }}
+          />
         </SettingsField>
       )}
     </>

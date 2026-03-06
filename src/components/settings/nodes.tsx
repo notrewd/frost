@@ -2,6 +2,7 @@ import SettingsField from "../ui/settings-field";
 import { useShallow } from "zustand/react/shallow";
 import { useSettingsStore } from "@/stores/settings-store";
 import { Switch } from "../ui/switch";
+import { NumberInput } from "../ui/number-input";
 import { FC } from "react";
 
 interface NodesSettingsProps {
@@ -13,10 +14,21 @@ const NodesSettings: FC<NodesSettingsProps> = ({
   onChange,
   searchQuery = "",
 }) => {
-  const { coloredNodes, setColoredNodes } = useSettingsStore(
+  const {
+    coloredNodes,
+    setColoredNodes,
+    compactNodes,
+    setCompactNodes,
+    nodeBorderRadius,
+    setNodeBorderRadius,
+  } = useSettingsStore(
     useShallow((state) => ({
       coloredNodes: state.colored_nodes,
       setColoredNodes: state.setColoredNodes,
+      compactNodes: state.compact_nodes,
+      setCompactNodes: state.setCompactNodes,
+      nodeBorderRadius: state.node_border_radius,
+      setNodeBorderRadius: state.setNodeBorderRadius,
     })),
   );
 
@@ -38,6 +50,42 @@ const NodesSettings: FC<NodesSettingsProps> = ({
               onChange?.();
             }}
           />
+        </SettingsField>
+      )}
+
+      {(isMatch("Compact Nodes") ||
+        isMatch("Use a more compact visual style for nodes")) && (
+        <SettingsField
+          label="Compact Nodes"
+          description="Use a more compact visual style for nodes"
+        >
+          <Switch
+            checked={compactNodes}
+            onCheckedChange={(checked) => {
+              setCompactNodes(checked);
+              onChange?.();
+            }}
+          />
+        </SettingsField>
+      )}
+
+      {(isMatch("Node Border Radius") ||
+        isMatch("Corner roundness of the nodes")) && (
+        <SettingsField
+          label="Node Border Radius"
+          description="Corner roundness of the nodes (in px)"
+        >
+          <div className="w-48">
+            <NumberInput
+              value={nodeBorderRadius}
+              min={0}
+              max={32}
+              onChange={(value) => {
+                setNodeBorderRadius(Number(value) || 0);
+                onChange?.();
+              }}
+            />
+          </div>
         </SettingsField>
       )}
     </>

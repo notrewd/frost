@@ -25,11 +25,13 @@ function ImplementationEdge({ id, source, target, style, data }: EdgeProps) {
     targetNode,
   );
 
-  const { edgeStyle } = useSettingsStore(
-    useShallow((state) => ({
-      edgeStyle: state.edge_style,
-    })),
-  );
+  const { edgeStyle, showEdgeLabels } =
+    useSettingsStore(
+      useShallow((state) => ({
+        edgeStyle: state.edge_style,
+        showEdgeLabels: state.show_edge_labels,
+      })),
+    );
 
   let path, labelX, labelY;
   if (edgeStyle === "straight") {
@@ -57,9 +59,7 @@ function ImplementationEdge({ id, source, target, style, data }: EdgeProps) {
       targetX: tx,
       targetY: ty,
     });
-  }
-
-  return (
+  }return (
     <>
       <ArrowClosed />
       <DashedBaseEdge
@@ -67,22 +67,26 @@ function ImplementationEdge({ id, source, target, style, data }: EdgeProps) {
         className="react-flow__edge-path"
         path={path}
         markerEnd={"url(#arrow-closed)"}
-        style={{
-          strokeDasharray: "5 5",
-          ...style,
-        }}
+        style={{ strokeDasharray: "5 5", ...style }}
       />
-      <EdgeLabel
-        labelX={labelX}
-        labelY={labelY}
-        sx={sx}
-        sy={sy}
-        tx={tx}
-        ty={ty}
-        data={data}
-      />
+      {showEdgeLabels && (
+        <EdgeLabel
+          labelX={labelX}
+          labelY={labelY}
+          sx={sx}
+          sy={sy}
+          tx={tx}
+          ty={ty}
+          data={data}
+        />
+      )}
     </>
   );
 }
 
 export default ImplementationEdge;
+
+
+
+
+

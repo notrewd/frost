@@ -174,6 +174,14 @@ const SettingsRoute = () => {
           coloredNodes: initialSettings.colored_nodes,
           showControls: initialSettings.show_controls,
           edgeStyle: initialSettings.edge_style,
+          autoSave: initialSettings.auto_save,
+          autoSaveInterval: initialSettings.auto_save_interval,
+          showGrid: initialSettings.show_grid,
+          snapToGrid: initialSettings.snap_to_grid,
+          gridSize: initialSettings.grid_size,
+          compactNodes: initialSettings.compact_nodes,
+          nodeBorderRadius: initialSettings.node_border_radius,
+          showEdgeLabels: initialSettings.show_edge_labels,
         });
       }
 
@@ -326,3 +334,4 @@ const SettingsRoute = () => {
 };
 
 export default SettingsRoute;
+

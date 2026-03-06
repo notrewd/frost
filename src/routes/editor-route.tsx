@@ -18,6 +18,7 @@ import { useEditorActions } from "@/components/providers/editor-actions-provider
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useProjectStore } from "@/stores/project-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import DiscardDialog from "@/components/ui/dialogs/discard-dialog";
 import { useShallow } from "zustand/react/shallow";
@@ -28,10 +29,18 @@ import FlowEditor from "@/components/ui/editor";
 const appWindow = getCurrentWindow();
 
 const EditorRoute = () => {
-  const { projectEdited, setProjectEdited } = useProjectStore(
+  const { projectEdited, setProjectEdited, projectPath } = useProjectStore(
     useShallow((state) => ({
       projectEdited: state.projectEdited,
       setProjectEdited: state.setProjectEdited,
+      projectPath: state.projectPath,
+    })),
+  );
+
+  const { autoSave, autoSaveInterval } = useSettingsStore(
+    useShallow((state) => ({
+      autoSave: state.auto_save,
+      autoSaveInterval: state.auto_save_interval,
     })),
   );
   const { setHandlers, setState } = useEditorActions();
@@ -101,6 +110,34 @@ const EditorRoute = () => {
       saveAsUnlisten.then((f) => f());
     };
   }, [reactFlowInstance]);
+
+  useEffect(() => {
+    if (!autoSave || !reactFlowInstance || !projectPath) return;
+
+    const interval = setInterval(
+      async () => {
+        if (!projectEditedRef.current) return;
+
+        const flowData = reactFlowInstance.toObject();
+        const serializedData = JSON.stringify(flowData, null, 2);
+        try {
+          await invoke("save_file", { data: serializedData });
+          setProjectEdited(false);
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+        }
+      },
+      autoSaveInterval * 60 * 1000,
+    );
+
+    return () => clearInterval(interval);
+  }, [
+    autoSave,
+    autoSaveInterval,
+    reactFlowInstance,
+    projectPath,
+    setProjectEdited,
+  ]);
 
   const cloneData = useCallback(<T,>(value: T): T => {
     if (typeof structuredClone === "function") {
