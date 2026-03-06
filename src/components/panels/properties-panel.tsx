@@ -15,60 +15,11 @@ import {
 } from "../ui/select";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { ScrollArea } from "../ui/scroll-area";
-import {
-  Edit2,
-  ArrowRight,
-  ArrowRightLeft,
-  ChevronDown,
-  Box,
-  Hash,
-} from "lucide-react";
+import { Edit2, ArrowRight, ArrowRightLeft, Box, Hash } from "lucide-react";
 import { ObjectNodeData } from "@/components/nodes/object-node";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../ui/collapsible";
 import { cn } from "@/lib/utils";
-
-const Section = ({
-  title,
-  children,
-  icon: Icon,
-  defaultOpen = true,
-}: {
-  title: string;
-  children: React.ReactNode;
-  icon?: any;
-  defaultOpen?: boolean;
-}) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <Collapsible
-      open={open}
-      onOpenChange={setOpen}
-      className="flex flex-col border-b last:border-0 border-border/50"
-    >
-      <CollapsibleTrigger className="flex items-center justify-between px-3 py-2 bg-muted/10 hover:bg-muted/20 transition-colors w-full cursor-pointer outline-none">
-        <div className="flex items-center">
-          {Icon && <Icon className="w-3.5 h-3.5 mr-2 text-muted-foreground" />}
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {title}
-          </span>
-        </div>
-        <ChevronDown
-          className={cn(
-            "w-3.5 h-3.5 text-muted-foreground transition-transform",
-            !open && "-rotate-90",
-          )}
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="flex flex-col pb-2 pt-1">
-        {children}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-};
+import PropertiesSection from "../ui/properties-section";
+import { Separator } from "../ui/separator";
 
 const PropRow = ({
   label,
@@ -264,21 +215,21 @@ const PropertiesPanel: FC = () => {
 
   return (
     <>
-      <ScrollArea className="h-full">
+      <ScrollArea className="flex flex-col flex-1 overflow-hidden">
         <div className="flex flex-col pb-6">
           {selectedNodes.length > 0 && (
-            <Section
+            <PropertiesSection
               title={`Node Properties (${selectedNodes.length})`}
               icon={Box}
             >
               <div className="px-3 py-2 mb-1 flex items-center justify-between">
-                <span className="font-mono text-sm truncate max-w-[120px]">
+                <span className="font-mono text-sm truncate max-w-30">
                   {selectedNodes.length === 1
                     ? (selectedNodes[0].data.name as string)
                     : "Multiple selected"}
                 </span>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   size="sm"
                   className="h-7 text-xs"
                   disabled={selectedNodes.length > 1}
@@ -287,7 +238,7 @@ const PropertiesPanel: FC = () => {
                     handleNodeEditClick(selectedNodes[0].id)
                   }
                 >
-                  <Edit2 className="size-3 mr-1.5" />
+                  <Edit2 className="size-3" />
                   Edit Data
                 </Button>
               </div>
@@ -309,107 +260,116 @@ const PropertiesPanel: FC = () => {
                   step={10}
                 />
               </PropRow>
-            </Section>
+            </PropertiesSection>
           )}
-
           {selectedEdges.length > 0 && (
-            <Section
-              title={`Edge Properties (${selectedEdges.length})`}
-              icon={ArrowRight}
-            >
-              <div className="px-3 py-2 mb-1 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                    Connection
-                  </p>
-                  <p className="font-mono text-xs mt-0.5 opacity-80 truncate max-w-[150px]">
-                    {selectedEdges.length === 1
-                      ? `${selectedEdges[0].source} -> ${selectedEdges[0].target}`
-                      : "Multiple selected"}
-                  </p>
+            <>
+              <Separator className="my-2 first:hidden" />
+              <PropertiesSection
+                title={`Edge Properties (${selectedEdges.length})`}
+                icon={ArrowRight}
+              >
+                <div className="px-3 py-2 mb-1 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                      Connection
+                    </p>
+                    <p className="font-mono text-xs mt-0.5 opacity-80 truncate max-w-37.5">
+                      {selectedEdges.length === 1
+                        ? `${selectedEdges[0].source} -> ${selectedEdges[0].target}`
+                        : "Multiple selected"}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={handleReverseEdges}
+                    title="Reverse Connection"
+                  >
+                    <ArrowRightLeft className="size-3.5" />
+                  </Button>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={handleReverseEdges}
-                  title="Reverse Connection"
-                >
-                  <ArrowRightLeft className="size-3.5" />
-                </Button>
-              </div>
-              <PropRow label="Type">
-                <Select
-                  value={bulkEdgeType}
-                  onValueChange={handleBulkEdgeTypeChange}
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue placeholder="Mixed types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="generalization">
-                      Generalization
-                    </SelectItem>
-                    <SelectItem value="association">Association</SelectItem>
-                    <SelectItem value="composition">Composition</SelectItem>
-                    <SelectItem value="implementation">
-                      Implementation
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </PropRow>
-              <PropRow label="Label">
-                <Input
-                  value={bulkEdgeLabel}
-                  placeholder={
-                    selectedEdges.length > 1 && bulkEdgeLabel === ""
-                      ? "Mixed labels"
-                      : "Optional label"
-                  }
-                  onChange={(e) => handleBulkEdgeLabelChange(e.target.value)}
-                  variant="small"
-                />
-              </PropRow>
-            </Section>
+                <PropRow label="Type">
+                  <Select
+                    value={bulkEdgeType}
+                    onValueChange={handleBulkEdgeTypeChange}
+                  >
+                    <SelectTrigger className="h-7 text-xs">
+                      <SelectValue placeholder="Mixed types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="generalization">
+                        Generalization
+                      </SelectItem>
+                      <SelectItem value="association">Association</SelectItem>
+                      <SelectItem value="composition">Composition</SelectItem>
+                      <SelectItem value="implementation">
+                        Implementation
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </PropRow>
+                <PropRow label="Label">
+                  <Input
+                    value={bulkEdgeLabel}
+                    placeholder={
+                      selectedEdges.length > 1 && bulkEdgeLabel === ""
+                        ? "Mixed labels"
+                        : "Optional label"
+                    }
+                    onChange={(e) => handleBulkEdgeLabelChange(e.target.value)}
+                    variant="small"
+                  />
+                </PropRow>
+              </PropertiesSection>
+            </>
           )}
 
           {selectedEdges.length > 0 && (
-            <Section title={`Cardinality`} icon={Hash} defaultOpen={false}>
-              <PropRow label="Source">
-                <Input
-                  value={bulkSourceCardinality}
-                  placeholder={
-                    selectedEdges.length > 1 && bulkSourceCardinality === ""
-                      ? "Mixed"
-                      : "e.g. 1..*"
-                  }
-                  onChange={(e) =>
-                    handleBulkEdgeCardinalityChange(
-                      "sourceCardinality",
-                      e.target.value,
-                    )
-                  }
-                  variant="small"
-                />
-              </PropRow>
-              <PropRow label="Target">
-                <Input
-                  value={bulkTargetCardinality}
-                  placeholder={
-                    selectedEdges.length > 1 && bulkTargetCardinality === ""
-                      ? "Mixed"
-                      : "e.g. 0..1"
-                  }
-                  onChange={(e) =>
-                    handleBulkEdgeCardinalityChange(
-                      "targetCardinality",
-                      e.target.value,
-                    )
-                  }
-                  variant="small"
-                />
-              </PropRow>
-            </Section>
+            <>
+              <Separator className="my-2 first:hidden" />
+              <PropertiesSection
+                title={`Cardinality`}
+                icon={Hash}
+                defaultOpen={false}
+              >
+                <PropRow label="Source">
+                  <Input
+                    value={bulkSourceCardinality}
+                    placeholder={
+                      selectedEdges.length > 1 && bulkSourceCardinality === ""
+                        ? "Mixed"
+                        : "e.g. 1..*"
+                    }
+                    onChange={(e) =>
+                      handleBulkEdgeCardinalityChange(
+                        "sourceCardinality",
+                        e.target.value,
+                      )
+                    }
+                    variant="small"
+                  />
+                </PropRow>
+                <PropRow label="Target">
+                  <Input
+                    value={bulkTargetCardinality}
+                    placeholder={
+                      selectedEdges.length > 1 && bulkTargetCardinality === ""
+                        ? "Mixed"
+                        : "e.g. 0..1"
+                    }
+                    onChange={(e) =>
+                      handleBulkEdgeCardinalityChange(
+                        "targetCardinality",
+                        e.target.value,
+                      )
+                    }
+                    variant="small"
+                  />
+                </PropRow>
+              </PropertiesSection>
+            </>
           )}
         </div>
       </ScrollArea>
