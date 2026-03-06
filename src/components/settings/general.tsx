@@ -97,8 +97,9 @@ const GeneralSettings: FC<GeneralSettingsProps> = ({
           <SettingsField
             label="Auto Save Interval"
             description="Time in minutes between auto saves"
+            subsetting
           >
-            <div className="w-48">
+            <div className="w-48!">
               <NumberInput
                 value={auto_save_interval}
                 min={1}

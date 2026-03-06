@@ -136,8 +136,9 @@ const EditorSettings: FC<EditorSettingsProps> = ({
           <SettingsField
             label="Grid Size"
             description="Size of the grid snapping step"
+            subsetting
           >
-            <div className="w-48">
+            <div className="w-48!">
               <NumberInput
                 value={gridSize}
                 min={5}

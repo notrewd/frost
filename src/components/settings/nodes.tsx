@@ -75,7 +75,7 @@ const NodesSettings: FC<NodesSettingsProps> = ({
           label="Node Border Radius"
           description="Corner roundness of the nodes (in px)"
         >
-          <div className="w-48">
+          <div className="w-48!">
             <NumberInput
               value={nodeBorderRadius}
               min={0}
