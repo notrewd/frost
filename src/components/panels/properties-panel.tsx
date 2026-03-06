@@ -215,7 +215,7 @@ const PropertiesPanel: FC = () => {
 
   return (
     <>
-      <ScrollArea className="flex flex-col flex-1 overflow-hidden">
+      <ScrollArea className="flex-1 min-h-0 w-[calc(100%+16px)] pr-4">
         {selectedNodes.length > 0 && (
           <PropertiesSection
             title={`Node Properties (${selectedNodes.length})`}
