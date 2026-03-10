@@ -10,6 +10,7 @@ import EditorRoute from "./routes/editor-route.tsx";
 import { initProjectListeners } from "@/stores/project-store";
 import SettingsRoute from "./routes/settings-route.tsx";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
+import ExportRoute from "./routes/export-route.tsx";
 
 initProjectListeners();
 
@@ -24,6 +25,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
               <Route element={<DialogLayout />}>
                 <Route path="/new-project" element={<NewProjectRoute />} />
                 <Route path="/settings" element={<SettingsRoute />} />
+                <Route path="/export" element={<ExportRoute />} />
               </Route>
               <Route element={<MainLayout />}>
                 <Route path="/editor" element={<EditorRoute />} />

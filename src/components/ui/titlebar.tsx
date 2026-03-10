@@ -18,6 +18,7 @@ import {
   Copy,
   ClipboardPaste,
   BoxSelect,
+  SquareArrowRightIcon,
 } from "lucide-react";
 import {
   Menubar,
@@ -102,6 +103,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
       await invoke("open_new_project_window");
     } catch (error) {
       console.error("Failed to open new project window:", error);
+    }
+  }, []);
+
+  const showExportWindow = useCallback(async () => {
+    try {
+      await invoke("open_export_window");
+    } catch (error) {
+      console.error("Failed to open export window:", error);
     }
   }, []);
 
@@ -198,6 +207,10 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
           } else {
             handleSave();
           }
+          break;
+        case "e":
+          event.preventDefault();
+          showExportWindow();
           break;
         default:
           break;
@@ -317,6 +330,12 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                       <SaveAll className="size-4" />
                       Save As...
                       <MenubarShortcut>Ctrl+Shift+S</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={showExportWindow}>
+                      <SquareArrowRightIcon className="size-4" />
+                      Export...
+                      <MenubarShortcut>Ctrl+E</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={handleSettings}>

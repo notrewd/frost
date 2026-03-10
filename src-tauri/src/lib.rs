@@ -202,6 +202,26 @@ async fn open_settings_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+async fn open_export_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("export") {
+        None => {
+            WebviewWindowBuilder::new(&app, "export", WebviewUrl::App("/export".into()))
+                .title("Export")
+                .inner_size(800.0, 600.0)
+                .min_inner_size(400.0, 600.0)
+                .decorations(if cfg!(windows) { false } else { true })
+                .theme(Some(tauri::Theme::Dark))
+                .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
     if let Some(window) = app.webview_windows().get(&label) {
         window.close()?;
@@ -503,6 +523,7 @@ pub fn run() {
             open_editor_window,
             open_welcome_window,
             open_settings_window,
+            open_export_window,
             close_window,
             request_project_details,
             request_project_data,
@@ -548,6 +569,9 @@ pub fn run() {
             let save_as_item =
                 MenuItem::with_id(app, "save_as", "Save As...", false, Some("CMD+SHIFT+S"))?;
 
+            let export_item =
+                MenuItem::with_id(app, "export", "Export...", true, Some("CMD+E")).unwrap();
+
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_project_item)
                 .separator()
@@ -555,6 +579,8 @@ pub fn run() {
                 .separator()
                 .item(&save_item)
                 .item(&save_as_item)
+                .separator()
+                .item(&export_item)
                 .separator()
                 .close_window()
                 .build()?;
@@ -623,6 +649,9 @@ pub fn run() {
                     }
                     "save_as" => {
                         app.emit("save-as-requested", ()).unwrap();
+                    }
+                    "export" => {
+                        tauri::async_runtime::spawn(open_export_window(app.clone()));
                     }
                     "undo" | "redo" => {
                         app.emit(event.id().0.as_str(), ()).unwrap();
