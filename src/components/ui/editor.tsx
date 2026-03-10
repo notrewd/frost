@@ -8,13 +8,16 @@ import {
   MiniMap,
   Panel,
   ReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
 } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
 import { ProjectOpenedEvent } from "@/types/events";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { toPng } from "html-to-image";
 import { useStore } from "zustand";
 import { Button } from "./button";
 import { Undo, Redo } from "lucide-react";
@@ -119,7 +122,8 @@ const FlowEditor = () => {
     showControls,
     showGrid,
     snapToGrid,
-    gridSize,} = useSettingsStore(
+    gridSize,
+  } = useSettingsStore(
     useShallow((state) => ({
       theme: state.theme,
       panOnScroll: state.pan_on_scroll,
@@ -128,7 +132,7 @@ const FlowEditor = () => {
       showGrid: state.show_grid,
       snapToGrid: state.snap_to_grid,
       gridSize: state.grid_size,
-      })),
+    })),
   );
   useEffect(() => {
     console.log("Settings changed:", { theme, panOnScroll, showMinimap });
@@ -234,10 +238,58 @@ const FlowEditor = () => {
       if (useProjectStore.getState().canRedo) redo();
     });
 
+    const exportUnlisten = listen("request-export-image", async () => {
+      const nodes = useFlowStore.getState().nodes;
+      if (!nodes || nodes.length === 0) {
+        emit("export-image-ready", "");
+        return;
+      }
+
+      const nodesBounds = getNodesBounds(nodes);
+      const imageWidth = 1024;
+      const imageHeight = 768;
+
+      const viewport = getViewportForBounds(
+        nodesBounds,
+        imageWidth,
+        imageHeight,
+        0.5,
+        2,
+        0,
+      );
+
+      const viewportElement: HTMLElement | null = document.querySelector(
+        ".react-flow__viewport",
+      );
+
+      if (!viewportElement) {
+        emit("export-image-ready", "");
+        return;
+      }
+
+      try {
+        const dataUrl = await toPng(viewportElement, {
+          backgroundColor: "#1a365d",
+          width: imageWidth,
+          height: imageHeight,
+          style: {
+            width: imageWidth.toString() + "px",
+            height: imageHeight.toString() + "px",
+            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+          },
+        });
+        emit("export-image-ready", dataUrl);
+      } catch (error) {
+        console.error("Export failed:", error);
+        emit("export-image-ready", "");
+      }
+    });
+
     return () => {
       projectOpenedUnlisten.then((f) => f());
       undoUnlisten.then((f) => f());
       redoUnlisten.then((f) => f());
+      exportUnlisten.then((f) => f());
     };
   }, []);
 
@@ -389,7 +441,3 @@ const FlowEditor = () => {
 };
 
 export default FlowEditor;
-
-
-
-

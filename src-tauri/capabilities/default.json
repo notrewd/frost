@@ -5,7 +5,8 @@
   "windows": [
     "welcome",
     "editor",
-    "settings"
+    "settings",
+    "export"
   ],
   "permissions": [
     "core:default",
