@@ -192,9 +192,7 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
       <ContextMenu>
         <ContextMenuTrigger>
           <Card
-            className={cn(
-              "absolute border-dashed bg-card/40 shadow-none"
-            )}
+            className={cn("absolute border-dashed bg-card/40 shadow-none")}
             style={{
               borderRadius: `${nodeBorderRadius}px`,
               left: visualLeft,
@@ -204,9 +202,9 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
             }}
           >
             {selected && (
-              <div 
-                className="absolute inset-0 ring-2 ring-primary ring-offset-2 ring-offset-background react-flow__ring pointer-events-none" 
-                style={{ borderRadius: `${nodeBorderRadius}px` }} 
+              <div
+                className="absolute inset-0 ring-2 ring-primary ring-offset-2 ring-offset-background react-flow__ring pointer-events-none"
+                style={{ borderRadius: `${nodeBorderRadius}px` }}
               />
             )}
             <div
@@ -224,16 +222,16 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onClick={handleFocus}>
-            <Focus className="size-4 mr-2" />
+            <Focus className="size-4" />
             Focus
           </ContextMenuItem>
           <ContextMenuItem onClick={handleUngroup}>
-            <Ungroup className="size-4 mr-2" />
+            <Ungroup className="size-4" />
             Ungroup
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem variant="destructive" onClick={handleDelete}>
-            <Trash2 className="size-4 mr-2" />
+            <Trash2 className="size-4" />
             Delete
           </ContextMenuItem>
         </ContextMenuContent>
