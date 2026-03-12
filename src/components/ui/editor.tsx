@@ -20,7 +20,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { toPng } from "html-to-image";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo } from "lucide-react";
+import { Undo, Redo, Focus, Trash2 } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -31,6 +31,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from "./dropdown-menu";
 import AssociationEdge from "../edges/association-edge";
 import AssociationArrow from "@/components/ui/icons/arrows/association-arrow";
@@ -69,6 +70,11 @@ const FlowEditor = () => {
     y: number;
   } | null>(null);
 
+  const [selectionMenuPosition, setSelectionMenuPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
   const [currentConnection, setCurrentConnection] = useState<Connection | null>(
     null,
   );
@@ -76,6 +82,7 @@ const FlowEditor = () => {
   const {
     nodes,
     edges,
+    instance,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -86,6 +93,7 @@ const FlowEditor = () => {
     useShallow((state: FlowState) => ({
       nodes: state.nodes,
       edges: state.edges,
+      instance: state.instance,
       onNodesChange: state.onNodesChange,
       onEdgesChange: state.onEdgesChange,
       onConnect: state.onConnect,
@@ -319,6 +327,27 @@ const FlowEditor = () => {
     [onConnect, mousePosition],
   );
 
+  const handleSelectionContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setSelectionMenuPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }, []);
+
+  const handleSelectionFocus = useCallback(() => {
+    instance?.fitView({
+      nodes: nodes.filter((node) => node.selected).map((n) => ({ id: n.id })),
+    });
+    setSelectionMenuPosition(null);
+  }, [instance, nodes]);
+
+  const handleSelectionDelete = useCallback(() => {
+    setNodes((nodes) => nodes.filter((node) => !node.selected));
+    setEdges((edges) => edges.filter((edge) => !edge.selected));
+    setSelectionMenuPosition(null);
+  }, [setNodes, setEdges]);
+
   const addEdge = useCallback(
     (edgeType: string, marker: MarkerType) => {
       if (!currentConnection) return;
@@ -365,6 +394,7 @@ const FlowEditor = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={handleOnConnect}
+        onSelectionContextMenu={handleSelectionContextMenu}
         onInit={(instance) => setInstance(instance as any)}
         onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
@@ -448,6 +478,34 @@ const FlowEditor = () => {
           >
             <ImplementationArrow className="size-4" />
             Implementation
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DropdownMenu
+        open={!!selectionMenuPosition}
+        onOpenChange={() => {
+          setSelectionMenuPosition(null);
+        }}
+      >
+        <DropdownMenuContent
+          className="absolute"
+          style={{
+            top: selectionMenuPosition?.y || 0,
+            left: selectionMenuPosition?.x || 0,
+          }}
+        >
+          <DropdownMenuItem onClick={handleSelectionFocus}>
+            <Focus className="size-4" />
+            Focus
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={handleSelectionDelete}
+          >
+            <Trash2 className="size-4" />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

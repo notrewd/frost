@@ -1,12 +1,27 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { ChevronsLeft, ChevronsRight, Spline } from "lucide-react";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  Edit2,
+  Focus,
+  Spline,
+  Trash2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
 import { Handle, Position, useConnection } from "@xyflow/react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "../ui/context-menu";
+import useFlowStore from "@/stores/flow-store";
 
 export interface ObjectNodeProperty {
   id: string;
@@ -55,6 +70,15 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const { nodes, setNodes, instance } = useFlowStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      setNodes: state.setNodes,
+      instance: state.instance,
+    })),
+  );
+
   const { coloredNodes, compactNodes, nodeBorderRadius } = useSettingsStore(
     useShallow((state) => ({
       coloredNodes: state.colored_nodes,
@@ -63,144 +87,106 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     })),
   );
 
+  const handleFocus = useCallback(() => {
+    instance?.fitView({
+      nodes: nodes
+        .filter((node) => node.selected || node.id === id)
+        .map((node) => ({ id: node.id })),
+    });
+  }, [instance, id, nodes]);
+
+  const handleDelete = useCallback(() => {
+    const nodesToDelete = nodes
+      .filter((node) => node.selected || node.id === id)
+      .map((node) => node.id);
+    setNodes((nodes) =>
+      nodes.filter((node) => !nodesToDelete.includes(node.id)),
+    );
+  }, [setNodes, id, nodes]);
+
   return (
     <>
-      <Card
-        className={cn(
-          "flex flex-col relative",
-          compactNodes
-            ? "gap-0.5 py-2 font-mono text-xs"
-            : "gap-2 py-4 font-mono pb-6",
-        )}
-        style={{
-          borderRadius: `${nodeBorderRadius}px`,
-        }}
-        onDoubleClick={() => setDialogOpen(true)}
-      >
-        {selected && (
-          <div className="absolute inset-0 ring rounded-md react-flow__ring" />
-        )}
-
-        {data.stereotype && (
-          <div
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <Card
             className={cn(
-              "px-4 w-full flex items-center justify-center text-muted-foreground",
-              compactNodes ? "text-[10px]" : "text-sm",
+              "flex flex-col relative",
+              compactNodes
+                ? "gap-0.5 py-2 font-mono text-xs"
+                : "gap-2 py-4 font-mono pb-6",
             )}
+            style={{
+              borderRadius: `${nodeBorderRadius}px`,
+            }}
+            onDoubleClick={() => setDialogOpen(true)}
           >
-            <ChevronsLeft className={cn(compactNodes ? "size-3" : "size-4")} />
-            <span>{data.stereotype}</span>
-            <ChevronsRight className={cn(compactNodes ? "size-3" : "size-4")} />
-          </div>
-        )}
-        <p
-          className={cn(
-            "px-4 w-full text-center font-semibold",
-            compactNodes ? "text-sm" : "text-base",
-          )}
-        >
-          {data.name}
-        </p>
-        <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
-        {data.attributes?.map((attr, index) => (
-          <p key={index} className="px-4">
-            <span
+            {selected && (
+              <div className="absolute inset-0 ring rounded-md react-flow__ring" />
+            )}
+
+            {data.stereotype && (
+              <div
+                className={cn(
+                  "px-4 w-full flex items-center justify-center text-muted-foreground",
+                  compactNodes ? "text-[10px]" : "text-sm",
+                )}
+              >
+                <ChevronsLeft
+                  className={cn(compactNodes ? "size-3" : "size-4")}
+                />
+                <span>{data.stereotype}</span>
+                <ChevronsRight
+                  className={cn(compactNodes ? "size-3" : "size-4")}
+                />
+              </div>
+            )}
+            <p
               className={cn(
-                coloredNodes && "text-green-600 dark:text-green-400",
+                "px-4 w-full text-center font-semibold",
+                compactNodes ? "text-sm" : "text-base",
               )}
             >
-              {attr.accessModifier === "public"
-                ? "+"
-                : attr.accessModifier === "private"
-                  ? "-"
-                  : "#"}{" "}
-            </span>
-            <span
-              className={cn({
-                underline: attr.static,
-              })}
-            >
-              {attr.name}
-              {attr.type && (
-                <>
-                  <span
-                    className={cn(
-                      coloredNodes && "text-red-600 dark:text-red-400",
-                    )}
-                  >
-                    :
-                  </span>{" "}
-                  <span
-                    className={cn(
-                      coloredNodes && "text-blue-600 dark:text-blue-400",
-                    )}
-                  >
-                    {attr.type}
-                  </span>
-                </>
-              )}
-              {attr.defaultValue && (
-                <>
-                  {" = "}
-                  <span
-                    className={cn(
-                      coloredNodes && "text-purple-600 dark:text-purple-400",
-                    )}
-                  >
-                    {attr.defaultValue}
-                  </span>
-                </>
-              )}
-            </span>
-          </p>
-        ))}
-        {data.methods && data.methods.length > 0 && (
-          <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
-        )}
-        {data.methods?.map((method, index) => (
-          <p key={index} className="px-4">
-            <span
-              className={cn(
-                coloredNodes && "text-green-600 dark:text-green-400",
-              )}
-            >
-              {method.accessModifier === "public"
-                ? "+"
-                : method.accessModifier === "private"
-                  ? "-"
-                  : "#"}{" "}
-            </span>
-            <span
-              className={cn({
-                underline: method.static,
-                italic: method.abstract,
-              })}
-            >
-              {method.name}(
-              {method.parameters.map((param, index) => (
-                <>
-                  <span
-                    className={cn(
-                      coloredNodes && "text-orange-600 dark:text-orange-400",
-                    )}
-                  >
-                    {param.name}
-                  </span>
-                  <span
-                    className={cn(
-                      coloredNodes && "text-red-600 dark:text-red-400",
-                    )}
-                  >
-                    :
-                  </span>{" "}
-                  <span
-                    className={cn(
-                      coloredNodes && "text-blue-600 dark:text-blue-400",
-                    )}
-                  >
-                    {param.type}
-                  </span>
-                  {param.defaultValue && (
+              {data.name}
+            </p>
+            <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
+            {data.attributes?.map((attr, index) => (
+              <p key={index} className="px-4">
+                <span
+                  className={cn(
+                    coloredNodes && "text-green-600 dark:text-green-400",
+                  )}
+                >
+                  {attr.accessModifier === "public"
+                    ? "+"
+                    : attr.accessModifier === "private"
+                      ? "-"
+                      : "#"}{" "}
+                </span>
+                <span
+                  className={cn({
+                    underline: attr.static,
+                  })}
+                >
+                  {attr.name}
+                  {attr.type && (
+                    <>
+                      <span
+                        className={cn(
+                          coloredNodes && "text-red-600 dark:text-red-400",
+                        )}
+                      >
+                        :
+                      </span>{" "}
+                      <span
+                        className={cn(
+                          coloredNodes && "text-blue-600 dark:text-blue-400",
+                        )}
+                      >
+                        {attr.type}
+                      </span>
+                    </>
+                  )}
+                  {attr.defaultValue && (
                     <>
                       {" = "}
                       <span
@@ -209,73 +195,155 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                             "text-purple-600 dark:text-purple-400",
                         )}
                       >
-                        {param.defaultValue}
+                        {attr.defaultValue}
                       </span>
                     </>
                   )}
-                  {index < method.parameters.length - 1 ? ", " : ""}
-                </>
-              ))}
-              )
-              <span
-                className={cn(coloredNodes && "text-red-600 dark:text-red-400")}
+                </span>
+              </p>
+            ))}
+            {data.methods && data.methods.length > 0 && (
+              <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
+            )}
+            {data.methods?.map((method, index) => (
+              <p key={index} className="px-4">
+                <span
+                  className={cn(
+                    coloredNodes && "text-green-600 dark:text-green-400",
+                  )}
+                >
+                  {method.accessModifier === "public"
+                    ? "+"
+                    : method.accessModifier === "private"
+                      ? "-"
+                      : "#"}{" "}
+                </span>
+                <span
+                  className={cn({
+                    underline: method.static,
+                    italic: method.abstract,
+                  })}
+                >
+                  {method.name}(
+                  {method.parameters.map((param, index) => (
+                    <>
+                      <span
+                        className={cn(
+                          coloredNodes &&
+                            "text-orange-600 dark:text-orange-400",
+                        )}
+                      >
+                        {param.name}
+                      </span>
+                      <span
+                        className={cn(
+                          coloredNodes && "text-red-600 dark:text-red-400",
+                        )}
+                      >
+                        :
+                      </span>{" "}
+                      <span
+                        className={cn(
+                          coloredNodes && "text-blue-600 dark:text-blue-400",
+                        )}
+                      >
+                        {param.type}
+                      </span>
+                      {param.defaultValue && (
+                        <>
+                          {" = "}
+                          <span
+                            className={cn(
+                              coloredNodes &&
+                                "text-purple-600 dark:text-purple-400",
+                            )}
+                          >
+                            {param.defaultValue}
+                          </span>
+                        </>
+                      )}
+                      {index < method.parameters.length - 1 ? ", " : ""}
+                    </>
+                  ))}
+                  )
+                  <span
+                    className={cn(
+                      coloredNodes && "text-red-600 dark:text-red-400",
+                    )}
+                  >
+                    :
+                  </span>{" "}
+                  <span
+                    className={cn(
+                      coloredNodes && "text-blue-600 dark:text-blue-400",
+                    )}
+                  >
+                    {method.returnType}
+                  </span>
+                </span>
+              </p>
+            ))}
+            {!data.attributes?.length && !data.methods?.length && (
+              <p className="px-4 italic text-muted-foreground">
+                No attributes or methods
+              </p>
+            )}
+            {!connection.inProgress && (
+              <Handle
+                type="source"
+                position={Position.Right}
+                style={{
+                  position: "absolute",
+                  top: "unset",
+                  right: "1em",
+                  bottom: "0",
+                  background: "none",
+                  border: "none",
+                  width: "1em",
+                  height: "1em",
+                }}
               >
-                :
-              </span>{" "}
-              <span
-                className={cn(
-                  coloredNodes && "text-blue-600 dark:text-blue-400",
-                )}
-              >
-                {method.returnType}
-              </span>
-            </span>
-          </p>
-        ))}
-        {!data.attributes?.length && !data.methods?.length && (
-          <p className="px-4 italic text-muted-foreground">
-            No attributes or methods
-          </p>
-        )}
-        {!connection.inProgress && (
-          <Handle
-            type="source"
-            position={Position.Right}
-            style={{
-              position: "absolute",
-              top: "unset",
-              right: "1em",
-              bottom: "0",
-              background: "none",
-              border: "none",
-              width: "1em",
-              height: "1em",
-            }}
-          >
-            <div className="rounded-md bg-muted size-8 flex flex-col items-center justify-center">
-              <Spline className="size-4 text-foreground" />
-            </div>
-          </Handle>
-        )}
-        {(!connection.inProgress || isTarget) && (
-          <Handle
-            type="target"
-            position={Position.Left}
-            isConnectableStart={false}
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              top: "0",
-              left: "0",
-              background: "none",
-              border: "none",
-              zIndex: "50",
-              transform: "none",
-            }}
-          />
-        )}
-      </Card>
+                <div className="rounded-md bg-muted size-8 flex flex-col items-center justify-center">
+                  <Spline className="size-4 text-foreground" />
+                </div>
+              </Handle>
+            )}
+            {(!connection.inProgress || isTarget) && (
+              <Handle
+                type="target"
+                position={Position.Left}
+                isConnectableStart={false}
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  height: "100%",
+                  top: "0",
+                  left: "0",
+                  background: "none",
+                  border: "none",
+                  zIndex: "50",
+                  transform: "none",
+                }}
+              />
+            )}
+          </Card>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onClick={() => setDialogOpen(true)}>
+            <Edit2 className="size-4" />
+            Edit Data
+          </ContextMenuItem>
+          <ContextMenuItem onClick={handleFocus}>
+            <Focus className="size-4" />
+            Focus
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem variant="destructive" onClick={handleDelete}>
+            <Trash2 className="size-4" />
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       <ObjectNodeDialog
         id={id}
         open={dialogOpen}
