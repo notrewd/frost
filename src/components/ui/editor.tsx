@@ -301,6 +301,9 @@ const FlowEditor = () => {
             ) {
               return false;
             }
+            if (node?.classList && typeof node.classList.remove === "function") {
+              node.classList.remove("selected");
+            }
             return true;
           },
         });
@@ -577,3 +580,4 @@ const FlowEditor = () => {
 };
 
 export default FlowEditor;
+

@@ -193,9 +193,7 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
         <ContextMenuTrigger>
           <Card
             className={cn(
-              "absolute border-dashed bg-card/40 shadow-none",
-              selected &&
-                "ring-2 ring-primary ring-offset-2 ring-offset-background",
+              "absolute border-dashed bg-card/40 shadow-none"
             )}
             style={{
               borderRadius: `${nodeBorderRadius}px`,
@@ -206,7 +204,10 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
             }}
           >
             {selected && (
-              <div className="absolute inset-0 ring rounded-md react-flow__ring pointer-events-none" />
+              <div 
+                className="absolute inset-0 ring-2 ring-primary ring-offset-2 ring-offset-background react-flow__ring pointer-events-none" 
+                style={{ borderRadius: `${nodeBorderRadius}px` }} 
+              />
             )}
             <div
               className={cn(
