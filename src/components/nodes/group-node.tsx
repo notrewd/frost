@@ -53,10 +53,21 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
 
   const handleDelete = useCallback(() => {
     setNodes((currentNodes) => {
-      const nodesToDelete = currentNodes
+      // Find all groups that are selected or the current group
+      const groupsToDelete = currentNodes
         .filter((node) => node.selected || node.id === id)
         .map((node) => node.id);
-      return currentNodes.filter((node) => !nodesToDelete.includes(node.id));
+
+      // Find all nodes that are children of these groups
+      const childrenToDelete = currentNodes
+        .filter(
+          (node) => node.parentId && groupsToDelete.includes(node.parentId),
+        )
+        .map((node) => node.id);
+
+      const allToDelete = new Set([...groupsToDelete, ...childrenToDelete]);
+
+      return currentNodes.filter((node) => !allToDelete.has(node.id));
     });
   }, [setNodes, id]);
 
