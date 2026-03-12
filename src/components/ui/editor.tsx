@@ -262,7 +262,26 @@ const FlowEditor = () => {
         return;
       }
 
-      const nodesBounds = getNodesBounds(nodes);
+      
+      // To calculate correct bounds for export, we need to map child relative positions to absolute positions, or just get bounds from react flow
+      // However, ReactFlow`s hook `useReactFlow` provides `getNodes` which returns absolute positions out of the box when requested, but we are fetching it directly from store.
+      // So let`s resolve absolute positions manually for export calculation.
+      const exportNodes = nodes.map((n) => {
+        if (n.parentId) {
+          const parent = nodes.find(p => p.id === n.parentId);
+          if (parent) {
+            return {
+              ...n,
+              position: {
+                x: n.position.x + parent.position.x,
+                y: n.position.y + parent.position.y
+              }
+            };
+          }
+        }
+        return n;
+      });
+      const nodesBounds = getNodesBounds(exportNodes);
       const imageWidth = 1024;
       const imageHeight = 768;
 
