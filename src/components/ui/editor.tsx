@@ -261,7 +261,7 @@ const FlowEditor = () => {
         imageHeight,
         0.5,
         2,
-        0,
+        padding / 100,
       );
 
       const viewportElement: HTMLElement | null = document.querySelector(
@@ -281,7 +281,7 @@ const FlowEditor = () => {
           style: {
             width: imageWidth.toString() + "px",
             height: imageHeight.toString() + "px",
-            transform: `translate(${viewport.x + padding}px, ${viewport.y + padding}px) scale(${viewport.zoom - padding / 100})`,
+            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
           },
           filter: (node) => {
             if (node?.classList?.contains("react-flow__handle")) {
