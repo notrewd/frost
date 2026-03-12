@@ -45,7 +45,7 @@ const ExportRoute = () => {
               Configure your export settings and download your flow as a PNG
               image.
             </p>
-            <div className="flex flex-col gap-2 mt-4">
+            <div className="flex flex-col gap-3 mt-4">
               <SettingsField label="Transparent Background">
                 <Switch
                   checked={transparentBackground}
