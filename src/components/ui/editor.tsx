@@ -20,7 +20,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { toPng } from "html-to-image";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo, Focus, Trash2 } from "lucide-react";
+import { Undo, Redo, Focus, Trash2, FolderPlus } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -41,8 +41,11 @@ import GeneralizationArrow from "./icons/arrows/generalization-arrow";
 import ImplementationEdge from "../edges/implementation-edge";
 import CompositionEdge from "../edges/composition-edge";
 
+import GroupNode from "../nodes/group-node";
+
 const nodeTypes = {
   object: ObjectNode,
+  group: GroupNode,
 };
 
 const edgeTypes = {
@@ -335,6 +338,62 @@ const FlowEditor = () => {
     });
   }, []);
 
+  const handleSelectionGroup = useCallback(() => {
+    const selectedNodes = nodes.filter((node) => node.selected);
+    if (selectedNodes.length === 0) return;
+
+    // Calculate bounding box
+    const minX = Math.min(...selectedNodes.map((n) => n.position.x));
+    const minY = Math.min(...selectedNodes.map((n) => n.position.y));
+    const maxX = Math.max(
+      ...selectedNodes.map((n) => n.position.x + (n.measured?.width || 200)),
+    );
+    const maxY = Math.max(
+      ...selectedNodes.map((n) => n.position.y + (n.measured?.height || 200)),
+    );
+
+    const padding = 40;
+    const groupX = minX - padding;
+    const groupY = minY - padding;
+    const groupWidth = maxX - minX + padding * 2;
+    const groupHeight = maxY - minY + padding * 2;
+
+    const groupId = `group-${Date.now()}`;
+    const newGroup = {
+      id: groupId,
+      type: "group",
+      position: { x: groupX, y: groupY },
+      style: {
+        width: groupWidth,
+        height: groupHeight,
+        border: "none",
+        background: "transparent",
+      },
+      zIndex: -1,
+      data: { name: "New Group" },
+    };
+
+    setNodes((currentNodes) => {
+      // Add parent to selected nodes, update their position to relative, unselect them
+      const updatedNodes = currentNodes.map((node) => {
+        if (node.selected) {
+          return {
+            ...node,
+            parentId: groupId,
+            position: {
+              x: node.position.x - groupX,
+              y: node.position.y - groupY,
+            },
+            selected: false,
+          };
+        }
+        return node;
+      });
+      return [{ ...newGroup, selected: true } as any, ...updatedNodes];
+    });
+    setSelectionMenuPosition(null);
+  }, [nodes, setNodes]);
+
   const handleSelectionFocus = useCallback(() => {
     instance?.fitView({
       nodes: nodes.filter((node) => node.selected).map((n) => ({ id: n.id })),
@@ -498,6 +557,10 @@ const FlowEditor = () => {
           <DropdownMenuItem onClick={handleSelectionFocus}>
             <Focus className="size-4" />
             Focus
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSelectionGroup}>
+            <FolderPlus className="size-4" />
+            Group
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

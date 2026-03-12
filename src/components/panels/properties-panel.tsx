@@ -44,14 +44,16 @@ const PropRow = ({
 );
 
 const PropertiesPanel: FC = () => {
-  const { nodes, edges, setNodes, setEdges } = useFlowStore(
+  const { setNodes, setEdges } = useFlowStore(
     useShallow((state: FlowState) => ({
-      nodes: state.nodes,
-      edges: state.edges,
       setNodes: state.setNodes,
       setEdges: state.setEdges,
     })),
   );
+
+  const nodes = useFlowStore(useShallow((state: FlowState) => state.nodes));
+
+  const edges = useFlowStore(useShallow((state: FlowState) => state.edges));
 
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false);
   const [selectedNodeForDialog, setSelectedNodeForDialog] = useState<
@@ -135,6 +137,22 @@ const PropertiesPanel: FC = () => {
               position: {
                 ...node.position,
                 [axis]: numValue,
+              },
+            }
+          : node,
+      ),
+    );
+  };
+
+  const handleGroupNameChange = (value: string) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.selected && node.type === "group"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                name: value,
               },
             }
           : node,
@@ -227,20 +245,35 @@ const PropertiesPanel: FC = () => {
                   ? (selectedNodes[0].data.name as string)
                   : "Multiple selected"}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={selectedNodes.length > 1}
-                onClick={() =>
-                  selectedNodes.length === 1 &&
-                  handleNodeEditClick(selectedNodes[0].id)
-                }
-              >
-                <Edit2 className="size-3" />
-                Edit Data
-              </Button>
+              {!(
+                selectedNodes.length === 1 && selectedNodes[0].type === "group"
+              ) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  disabled={selectedNodes.length > 1}
+                  onClick={() =>
+                    selectedNodes.length === 1 &&
+                    handleNodeEditClick(selectedNodes[0].id)
+                  }
+                >
+                  <Edit2 className="size-3" />
+                  Edit Data
+                </Button>
+              )}
             </div>
+            {selectedNodes.length === 1 &&
+              selectedNodes[0].type === "group" && (
+                <PropRow label="Group Name">
+                  <Input
+                    value={(selectedNodes[0].data.name as string) || ""}
+                    placeholder="Group Name"
+                    onChange={(e) => handleGroupNameChange(e.target.value)}
+                    variant="small"
+                  />
+                </PropRow>
+              )}
             <PropRow label="Position X">
               <NumberInput
                 value={bulkNodeX}

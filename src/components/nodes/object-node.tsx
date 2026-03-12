@@ -6,8 +6,10 @@ import {
   ChevronsRight,
   Edit2,
   Focus,
+  FolderPlus,
   Spline,
   Trash2,
+  Ungroup,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
@@ -103,6 +105,90 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
       nodes.filter((node) => !nodesToDelete.includes(node.id)),
     );
   }, [setNodes, id, nodes]);
+
+  const handleGroup = useCallback(() => {
+    const selectedNodes = nodes.filter(
+      (node) => node.selected || node.id === id,
+    );
+    if (selectedNodes.length === 0) return;
+
+    const minX = Math.min(...selectedNodes.map((n) => n.position.x));
+    const minY = Math.min(...selectedNodes.map((n) => n.position.y));
+    const maxX = Math.max(
+      ...selectedNodes.map((n) => n.position.x + (n.measured?.width || 200)),
+    );
+    const maxY = Math.max(
+      ...selectedNodes.map((n) => n.position.y + (n.measured?.height || 200)),
+    );
+
+    const padding = 40;
+    const groupX = minX - padding;
+    const groupY = minY - padding;
+    const groupWidth = maxX - minX + padding * 2;
+    const groupHeight = maxY - minY + padding * 2;
+
+    const groupId = `group-${Date.now()}`;
+    const newGroup = {
+      id: groupId,
+      type: "group",
+      position: { x: groupX, y: groupY },
+      style: {
+        width: groupWidth,
+        height: groupHeight,
+        border: "none",
+        background: "transparent",
+      },
+      zIndex: -1,
+      data: { name: "New Group" },
+    };
+
+    setNodes((currentNodes) => {
+      const selectedIds = selectedNodes.map((n) => n.id);
+      const updatedNodes = currentNodes.map((node) => {
+        if (selectedIds.includes(node.id)) {
+          return {
+            ...node,
+            parentId: groupId,
+            position: {
+              x: node.position.x - groupX,
+              y: node.position.y - groupY,
+            },
+            selected: false,
+          };
+        }
+        return node;
+      });
+      return [{ ...newGroup, selected: true } as any, ...updatedNodes];
+    });
+  }, [nodes, setNodes, id]);
+
+  const handleUngroup = useCallback(() => {
+    // If part of a group, remove just these from the group
+    const targetNodes = nodes.filter((node) => node.selected || node.id === id);
+    const nodesToUngroup = targetNodes.filter((n) => n.parentId);
+    if (nodesToUngroup.length === 0) return;
+
+    setNodes((currentNodes) => {
+      return currentNodes.map((node) => {
+        if (nodesToUngroup.find((n) => n.id === node.id)) {
+          const parent = currentNodes.find((p) => p.id === node.parentId);
+          return {
+            ...node,
+            parentId: undefined,
+            position: {
+              x: (parent?.position.x || 0) + node.position.x,
+              y: (parent?.position.y || 0) + node.position.y,
+            },
+          };
+        }
+        return node;
+      });
+    });
+  }, [nodes, setNodes, id]);
+
+  const showUngroup = nodes.some(
+    (n) => (n.selected || n.id === id) && n.parentId,
+  );
 
   return (
     <>
@@ -337,6 +423,16 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
             <Focus className="size-4" />
             Focus
           </ContextMenuItem>
+          <ContextMenuItem onClick={handleGroup}>
+            <FolderPlus className="size-4" />
+            Group
+          </ContextMenuItem>
+          {showUngroup && (
+            <ContextMenuItem onClick={handleUngroup}>
+              <Ungroup className="size-4" />
+              Ungroup (from parent)
+            </ContextMenuItem>
+          )}
           <ContextMenuSeparator />
           <ContextMenuItem variant="destructive" onClick={handleDelete}>
             <Trash2 className="size-4" />
