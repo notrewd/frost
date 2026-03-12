@@ -12,6 +12,8 @@ import SettingsRoute from "./routes/settings-route.tsx";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import ExportRoute from "./routes/export-route.tsx";
 
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
 initProjectListeners();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
