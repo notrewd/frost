@@ -18,7 +18,7 @@ import {
   Copy,
   ClipboardPaste,
   BoxSelect,
-  SquareArrowRightIcon,
+  Download,
 } from "lucide-react";
 import {
   Menubar,
@@ -333,7 +333,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={showExportWindow}>
-                      <SquareArrowRightIcon className="size-4" />
+                      <Download className="size-4" />
                       Export...
                       <MenubarShortcut>Ctrl+E</MenubarShortcut>
                     </MenubarItem>
