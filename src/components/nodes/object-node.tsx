@@ -67,17 +67,20 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     <>
       <Card
         className={cn(
-          "flex flex-col",
+          "flex flex-col relative",
           compactNodes
             ? "gap-0.5 py-2 font-mono text-xs"
             : "gap-2 py-4 font-mono pb-6",
-          selected && "ring",
         )}
         style={{
           borderRadius: `${nodeBorderRadius}px`,
         }}
         onDoubleClick={() => setDialogOpen(true)}
       >
+        {selected && (
+          <div className="absolute inset-0 ring rounded-md react-flow__ring" />
+        )}
+
         {data.stereotype && (
           <div
             className={cn(

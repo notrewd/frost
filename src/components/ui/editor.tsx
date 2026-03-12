@@ -284,7 +284,10 @@ const FlowEditor = () => {
             transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
           },
           filter: (node) => {
-            if (node?.classList?.contains("react-flow__handle")) {
+            if (
+              node?.classList?.contains("react-flow__handle") ||
+              node?.classList?.contains("react-flow__ring")
+            ) {
               return false;
             }
             return true;
