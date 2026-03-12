@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { invoke } from "@tauri-apps/api/core";
 import { type } from "@tauri-apps/plugin-os";
 import {
-  Loader2,
   LucideIcon,
   Save,
   Settings2,
@@ -180,8 +179,9 @@ const SettingsRoute = () => {
           snapToGrid: initialSettings.snap_to_grid,
           gridSize: initialSettings.grid_size,
           compactNodes: initialSettings.compact_nodes,
-          nodeBorderRadius: initialSettings.node_border_radius,
-          showEdgeLabels: initialSettings.show_edge_labels,
+          nodeBorderRadius: initialSettings.node_border_radius,
+
+          showEdgeLabels: initialSettings.show_edge_labels,
         });
       }
 
@@ -309,16 +309,8 @@ const SettingsRoute = () => {
             onClick={handleSave}
             disabled={busy || !changed}
           >
-            {busy ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="size-4" /> Save
-              </>
-            )}
+            <Save className="size-4" />
+            Save
           </Button>
         </div>
       </main>
@@ -334,4 +326,3 @@ const SettingsRoute = () => {
 };
 
 export default SettingsRoute;
-
