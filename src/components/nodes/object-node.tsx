@@ -88,7 +88,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         <Separator className="my-2" />
         {data.attributes?.map((attr, index) => (
           <p key={index} className="px-4">
-            <span className={cn(coloredNodes && "text-green-400")}>
+            <span
+              className={cn(
+                coloredNodes && "text-green-600 dark:text-green-400",
+              )}
+            >
               {attr.accessModifier === "public"
                 ? "+"
                 : attr.accessModifier === "private"
@@ -103,8 +107,18 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               {attr.name}
               {attr.type && (
                 <>
-                  <span className={cn(coloredNodes && "text-red-400")}>:</span>{" "}
-                  <span className={cn(coloredNodes && "text-blue-400")}>
+                  <span
+                    className={cn(
+                      coloredNodes && "text-red-600 dark:text-red-400",
+                    )}
+                  >
+                    :
+                  </span>{" "}
+                  <span
+                    className={cn(
+                      coloredNodes && "text-blue-600 dark:text-blue-400",
+                    )}
+                  >
                     {attr.type}
                   </span>
                 </>
@@ -112,7 +126,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               {attr.defaultValue && (
                 <>
                   {" = "}
-                  <span className={cn(coloredNodes && "text-purple-400")}>
+                  <span
+                    className={cn(
+                      coloredNodes && "text-purple-600 dark:text-purple-400",
+                    )}
+                  >
                     {attr.defaultValue}
                   </span>
                 </>
@@ -125,7 +143,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         )}
         {data.methods?.map((method, index) => (
           <p key={index} className="px-4">
-            <span className={cn(coloredNodes && "text-green-400")}>
+            <span
+              className={cn(
+                coloredNodes && "text-green-600 dark:text-green-400",
+              )}
+            >
               {method.accessModifier === "public"
                 ? "+"
                 : method.accessModifier === "private"
@@ -141,17 +163,36 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               {method.name}(
               {method.parameters.map((param, index) => (
                 <>
-                  <span className={cn(coloredNodes && "text-orange-400")}>
+                  <span
+                    className={cn(
+                      coloredNodes && "text-orange-600 dark:text-orange-400",
+                    )}
+                  >
                     {param.name}
                   </span>
-                  <span className={cn(coloredNodes && "text-red-400")}>:</span>{" "}
-                  <span className={cn(coloredNodes && "text-blue-400")}>
+                  <span
+                    className={cn(
+                      coloredNodes && "text-red-600 dark:text-red-400",
+                    )}
+                  >
+                    :
+                  </span>{" "}
+                  <span
+                    className={cn(
+                      coloredNodes && "text-blue-600 dark:text-blue-400",
+                    )}
+                  >
                     {param.type}
                   </span>
                   {param.defaultValue && (
                     <>
                       {" = "}
-                      <span className={cn(coloredNodes && "text-purple-400")}>
+                      <span
+                        className={cn(
+                          coloredNodes &&
+                            "text-purple-600 dark:text-purple-400",
+                        )}
+                      >
                         {param.defaultValue}
                       </span>
                     </>
@@ -159,8 +200,17 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   {index < method.parameters.length - 1 ? ", " : ""}
                 </>
               ))}
-              )<span className={cn(coloredNodes && "text-red-400")}>:</span>{" "}
-              <span className={cn(coloredNodes && "text-blue-400")}>
+              )
+              <span
+                className={cn(coloredNodes && "text-red-600 dark:text-red-400")}
+              >
+                :
+              </span>{" "}
+              <span
+                className={cn(
+                  coloredNodes && "text-blue-600 dark:text-blue-400",
+                )}
+              >
                 {method.returnType}
               </span>
             </span>
