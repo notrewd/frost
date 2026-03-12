@@ -55,13 +55,13 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   );
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { coloredNodes, compactNodes, nodeBorderRadius } =
-    useSettingsStore(
-      useShallow((state) => ({
-        coloredNodes: state.colored_nodes,
-        compactNodes: state.compact_nodes,
-        nodeBorderRadius: state.node_border_radius,})),
-    );
+  const { coloredNodes, compactNodes, nodeBorderRadius } = useSettingsStore(
+    useShallow((state) => ({
+      coloredNodes: state.colored_nodes,
+      compactNodes: state.compact_nodes,
+      nodeBorderRadius: state.node_border_radius,
+    })),
+  );
 
   return (
     <>
@@ -73,7 +73,8 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
           selected && "ring",
         )}
         style={{
-          borderRadius: `${nodeBorderRadius}px`,}}
+          borderRadius: `${nodeBorderRadius}px`,
+        }}
         onDoubleClick={() => setDialogOpen(true)}
       >
         {data.stereotype && (
@@ -220,5 +221,3 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 };
 
 export default ObjectNode;
-
-

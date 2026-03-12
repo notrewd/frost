@@ -287,7 +287,7 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     <>
       <div
         data-tauri-drag-region
-        className="h-8 bg-secondary backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none w-full"
+        className="h-8 shrink-0 bg-secondary backdrop-blur-md border-b border-border/50 flex items-center justify-between px-4 select-none w-full sticky top-0 z-10"
       >
         <div className="flex items-center gap-2">
           {(variant === "default" || variant === "dialog") && (

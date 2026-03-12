@@ -238,7 +238,13 @@ const FlowEditor = () => {
       if (useProjectStore.getState().canRedo) redo();
     });
 
-    const exportUnlisten = listen("request-export-image", async () => {
+    const exportUnlisten = listen<{
+      transparentBackground?: boolean;
+      padding?: number;
+    }>("request-export-image", async (event) => {
+      const { transparentBackground = true, padding = 10 } =
+        event.payload || {};
+
       const nodes = useFlowStore.getState().nodes;
       if (!nodes || nodes.length === 0) {
         emit("export-image-ready", "");
@@ -269,13 +275,19 @@ const FlowEditor = () => {
 
       try {
         const dataUrl = await toPng(viewportElement, {
-          backgroundColor: "#1a365d",
+          backgroundColor: transparentBackground ? "transparent" : "#1a365d",
           width: imageWidth,
           height: imageHeight,
           style: {
             width: imageWidth.toString() + "px",
             height: imageHeight.toString() + "px",
-            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+            transform: `translate(${viewport.x + padding}px, ${viewport.y + padding}px) scale(${viewport.zoom - padding / 100})`,
+          },
+          filter: (node) => {
+            if (node?.classList?.contains("react-flow__handle")) {
+              return false;
+            }
+            return true;
           },
         });
         emit("export-image-ready", dataUrl);

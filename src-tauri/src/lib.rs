@@ -207,7 +207,7 @@ async fn open_export_window(app: AppHandle) -> tauri::Result<()> {
         None => {
             WebviewWindowBuilder::new(&app, "export", WebviewUrl::App("/export".into()))
                 .title("Export")
-                .inner_size(800.0, 600.0)
+                .inner_size(1000.0, 600.0)
                 .min_inner_size(400.0, 600.0)
                 .decorations(if cfg!(windows) { false } else { true })
                 .theme(Some(tauri::Theme::Dark))

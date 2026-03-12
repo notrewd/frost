@@ -18,7 +18,7 @@ const SettingsField: FC<SettingsFieldProps> = ({
   return (
     <Field
       className={cn(
-        "flex-row gap-4",
+        "flex-row gap-4 items-center",
         subsetting && "pl-4 border-border border-l-2",
       )}
     >
