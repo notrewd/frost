@@ -1,3 +1,4 @@
+use base64::prelude::*;
 use std::sync::Mutex;
 
 use tauri::{
@@ -286,6 +287,28 @@ async fn save_file(state: tauri::State<'_, Mutex<AppState>>, data: String) -> ta
 }
 
 #[tauri::command]
+async fn save_image_as(app: AppHandle, data: String) -> tauri::Result<()> {
+    let file_path = app
+        .dialog()
+        .file()
+        .set_file_name("exported_flow.png")
+        .set_title("Save Image As")
+        .add_filter("PNG Image", &["png"])
+        .blocking_save_file();
+
+    if let Some(path) = file_path {
+        let file_path = path.to_string();
+        let raw_content_string = data.trim_start_matches("data:image/png;base64,");
+        let decoded_bytes = BASE64_STANDARD.decode(raw_content_string).unwrap();
+        let img = image::load_from_memory(&decoded_bytes).unwrap();
+
+        img.save(&file_path).unwrap();
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
     let file_path = app
         .dialog()
@@ -529,6 +552,7 @@ pub fn run() {
             request_project_data,
             save_file,
             save_file_as,
+            save_image_as,
             open_project_file,
             open_project_path,
             get_recent_projects,

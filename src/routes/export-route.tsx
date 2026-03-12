@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import SettingsField from "@/components/ui/settings-field";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { NumberInput } from "@/components/ui/number-input";
+import { invoke } from "@tauri-apps/api/core";
 
 const ExportRoute = () => {
   const [transparentBackground, setTransparentBackground] = useState(true);
@@ -28,11 +29,7 @@ const ExportRoute = () => {
 
   const downloadImage = useCallback(() => {
     if (!imageData) return;
-
-    const a = document.createElement("a");
-    a.setAttribute("download", "reactflow.png");
-    a.setAttribute("href", imageData);
-    a.click();
+    invoke("save_image_as", { data: imageData });
   }, [imageData]);
 
   return (
@@ -69,6 +66,7 @@ const ExportRoute = () => {
             variant="outline"
             onClick={downloadImage}
           >
+            <Download className="size-4" />
             Export as PNG
           </Button>
         </div>
