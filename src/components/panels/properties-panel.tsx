@@ -328,11 +328,7 @@ const PropertiesPanel: FC = () => {
         {selectedEdges.length > 0 && (
           <>
             <Separator className="my-2 first:hidden" />
-            <PropertiesSection
-              title={`Cardinality`}
-              icon={Hash}
-              defaultOpen={false}
-            >
+            <PropertiesSection title={`Cardinality`} icon={Hash}>
               <PropRow label="Source">
                 <Input
                   value={bulkSourceCardinality}
