@@ -67,8 +67,9 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     <>
       <Card
         className={cn(
+          "flex flex-col",
           compactNodes
-            ? "gap-1 py-1 font-mono pb-2 text-xs"
+            ? "gap-0.5 py-2 font-mono text-xs"
             : "gap-2 py-4 font-mono pb-6",
           selected && "ring",
         )}
@@ -78,14 +79,26 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         onDoubleClick={() => setDialogOpen(true)}
       >
         {data.stereotype && (
-          <div className="px-4 w-full flex items-center justify-center text-muted-foreground">
-            <ChevronsLeft className="size-4" />
+          <div
+            className={cn(
+              "px-4 w-full flex items-center justify-center text-muted-foreground",
+              compactNodes ? "text-[10px]" : "text-sm",
+            )}
+          >
+            <ChevronsLeft className={cn(compactNodes ? "size-3" : "size-4")} />
             <span>{data.stereotype}</span>
-            <ChevronsRight className="size-4" />
+            <ChevronsRight className={cn(compactNodes ? "size-3" : "size-4")} />
           </div>
         )}
-        <p className="px-4 w-full text-center">{data.name}</p>
-        <Separator className="my-2" />
+        <p
+          className={cn(
+            "px-4 w-full text-center font-semibold",
+            compactNodes ? "text-sm" : "text-base",
+          )}
+        >
+          {data.name}
+        </p>
+        <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
         {data.attributes?.map((attr, index) => (
           <p key={index} className="px-4">
             <span
@@ -139,7 +152,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
           </p>
         ))}
         {data.methods && data.methods.length > 0 && (
-          <Separator className="my-2" />
+          <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
         )}
         {data.methods?.map((method, index) => (
           <p key={index} className="px-4">
