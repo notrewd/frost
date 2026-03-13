@@ -1,4 +1,4 @@
-import { FC, useState, useMemo } from "react";
+import { FC, useState, useMemo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import useFlowStore from "@/stores/flow-store";
 import { FlowState } from "@/stores/types";
@@ -69,6 +69,8 @@ const PropertiesPanel: FC = () => {
     string | null
   >(null);
 
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+
   const selectedNodes = nodes.filter((node) => node.selected);
   const selectedEdges = edges.filter((edge) => edge.selected);
 
@@ -123,6 +125,16 @@ const PropertiesPanel: FC = () => {
       ? firstTargetCard || ""
       : "";
   }, [selectedEdges]);
+
+  useEffect(() => {
+    const temporalState = useFlowStore.temporal.getState();
+
+    if (colorPickerOpen) {
+      temporalState.pause();
+    } else {
+      temporalState.resume();
+    }
+  }, [colorPickerOpen]);
 
   if (selectedNodes.length === 0 && selectedEdges.length === 0) {
     return <PropertiesEmptyView />;
@@ -327,7 +339,10 @@ const PropertiesPanel: FC = () => {
                 />
               </PropRow>
               <PropRow label="Group Color">
-                <Popover>
+                <Popover
+                  open={colorPickerOpen}
+                  onOpenChange={setColorPickerOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
