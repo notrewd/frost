@@ -383,7 +383,19 @@ const FlowEditor = () => {
   }, []);
 
   const handleSelectionGroup = useCallback(() => {
-    const selectedNodes = nodes.filter((node) => node.selected);
+    const selectedNodesAll = nodes.filter((node) => node.selected);
+    if (selectedNodesAll.length === 0) return;
+
+    const selectedNodes = selectedNodesAll.filter((node) => {
+      let current = node.parentId;
+      while (current) {
+        if (selectedNodesAll.some((n) => n.id === current)) return false;
+        const parent = nodes.find((n) => n.id === current);
+        current = parent?.parentId;
+      }
+      return true;
+    });
+
     if (selectedNodes.length === 0) return;
 
     const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];

@@ -107,9 +107,21 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   }, [setNodes, id, nodes]);
 
   const handleGroup = useCallback(() => {
-    const selectedNodes = nodes.filter(
+    const selectedNodesAll = nodes.filter(
       (node) => node.selected || node.id === id,
     );
+    if (selectedNodesAll.length === 0) return;
+
+    const selectedNodes = selectedNodesAll.filter((node) => {
+      let current = node.parentId;
+      while (current) {
+        if (selectedNodesAll.some((n) => n.id === current)) return false;
+        const parent = nodes.find((n) => n.id === current);
+        current = parent?.parentId;
+      }
+      return true;
+    });
+
     if (selectedNodes.length === 0) return;
 
     const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
