@@ -148,7 +148,9 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 
     setNodes((currentNodes) => {
       const selectedIds = selectedNodes.map((n) => n.id);
-      const minIndex = currentNodes.findIndex((n) => selectedIds.includes(n.id));
+      const minIndex = currentNodes.findIndex((n) =>
+        selectedIds.includes(n.id),
+      );
       const updatedNodes = currentNodes.map((node) => {
         if (selectedIds.includes(node.id)) {
           return {
@@ -164,7 +166,10 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         return node;
       });
       const finalNodes = [...updatedNodes];
-      finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, { ...newGroup, selected: true } as any);
+      finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, {
+        ...newGroup,
+        selected: true,
+      } as any);
       return finalNodes;
     });
   }, [nodes, setNodes, id]);
@@ -176,20 +181,33 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     if (nodesToUngroup.length === 0) return;
 
     setNodes((currentNodes) => {
-      return currentNodes.map((node) => {
-        if (nodesToUngroup.find((n) => n.id === node.id)) {
-          const parent = currentNodes.find((p) => p.id === node.parentId);
-          return {
-            ...node,
-            parentId: parent?.parentId,
-            position: {
-              x: (parent?.position.x || 0) + node.position.x,
-              y: (parent?.position.y || 0) + node.position.y,
-            },
-          };
-        }
-        return node;
-      });
+      const groupIds = [...new Set(nodesToUngroup.map((n) => n.parentId))];
+      const groupsToDelete = groupIds
+        .map((groupId) =>
+          !currentNodes.some(
+            (n) => n.parentId === groupId && !nodesToUngroup.includes(n),
+          )
+            ? groupId
+            : null,
+        )
+        .filter(Boolean);
+
+      return currentNodes
+        .filter((node) => !groupsToDelete.includes(node.id))
+        .map((node) => {
+          if (nodesToUngroup.find((n) => n.id === node.id)) {
+            const parent = currentNodes.find((p) => p.id === node.parentId);
+            return {
+              ...node,
+              parentId: parent?.parentId,
+              position: {
+                x: (parent?.position.x || 0) + node.position.x,
+                y: (parent?.position.y || 0) + node.position.y,
+              },
+            };
+          }
+          return node;
+        });
     });
   }, [nodes, setNodes, id]);
 
