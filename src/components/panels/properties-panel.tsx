@@ -27,6 +27,12 @@ import { ObjectNodeData } from "@/components/nodes/object-node";
 import { cn } from "@/lib/utils";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import {
+  ColorPicker,
+  ColorPickerHex,
+  ColorPickerInput,
+} from "../ui/color-picker";
 
 const PropRow = ({
   label,
@@ -160,6 +166,22 @@ const PropertiesPanel: FC = () => {
               data: {
                 ...node.data,
                 name: value,
+              },
+            }
+          : node,
+      ),
+    );
+  };
+
+  const handleGroupColorChange = (color: string) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.selected && node.type === "group"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                color: color || node.data?.color || "#18181b",
               },
             }
           : node,
@@ -307,6 +329,43 @@ const PropertiesPanel: FC = () => {
                   onChange={(e) => handleGroupNameChange(e.target.value)}
                   variant="small"
                 />
+              </PropRow>
+              <PropRow label="Group Color">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-full p-0 transition-none"
+                      title="Change Group Color"
+                      style={{
+                        backgroundColor:
+                          selectedNodes
+                            .filter((n) => n.type === "group")[0]
+                            .data.color?.toString() || "#18181b",
+                      }}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto!" align="end">
+                    <ColorPicker className="flex flex-col gap-2 border-none">
+                      <ColorPickerHex
+                        color={
+                          selectedNodes.filter((n) => n.type === "group")[0]
+                            .data.color as string
+                        }
+                        onChange={handleGroupColorChange}
+                      />
+                      <Input
+                        variant="small"
+                        value={
+                          selectedNodes.filter((n) => n.type === "group")[0]
+                            .data.color as string
+                        }
+                        onChange={(e) => handleGroupColorChange(e.target.value)}
+                      />
+                    </ColorPicker>
+                  </PopoverContent>
+                </Popover>
               </PropRow>
             </PropertiesSection>
           </>

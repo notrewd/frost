@@ -15,6 +15,7 @@ import { Card } from "../ui/card";
 
 export interface GroupNodeData extends Record<string, unknown> {
   name: string;
+  color: string;
 }
 
 interface GroupNodeProps {
