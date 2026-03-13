@@ -8,7 +8,6 @@ import {
   MiniMap,
   Panel,
   ReactFlow,
-  getNodesBounds,
   getViewportForBounds,
 } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
@@ -262,26 +261,46 @@ const FlowEditor = () => {
         return;
       }
 
-      
-      // To calculate correct bounds for export, we need to map child relative positions to absolute positions, or just get bounds from react flow
-      // However, ReactFlow`s hook `useReactFlow` provides `getNodes` which returns absolute positions out of the box when requested, but we are fetching it directly from store.
-      // So let`s resolve absolute positions manually for export calculation.
-      const exportNodes = nodes.map((n) => {
-        if (n.parentId) {
-          const parent = nodes.find(p => p.id === n.parentId);
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      nodes.forEach((node) => {
+        let x = node.position.x;
+        let y = node.position.y;
+        let pId = node.parentId;
+
+        while (pId) {
+          const parent = nodes.find((n) => n.id === pId);
           if (parent) {
-            return {
-              ...n,
-              position: {
-                x: n.position.x + parent.position.x,
-                y: n.position.y + parent.position.y
-              }
-            };
+            x += parent.position.x;
+            y += parent.position.y;
+            pId = parent.parentId;
+          } else {
+            pId = undefined;
           }
         }
-        return n;
+
+        const width = Number(
+          node.measured?.width || node.style?.width || node.width || 200,
+        );
+        const height = Number(
+          node.measured?.height || node.style?.height || node.height || 200,
+        );
+
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + width);
+        maxY = Math.max(maxY, y + height);
       });
-      const nodesBounds = getNodesBounds(exportNodes);
+
+      const nodesBounds = {
+        x: minX === Infinity ? 0 : minX,
+        y: minY === Infinity ? 0 : minY,
+        width: maxX === -Infinity ? 10 : Math.max(0, maxX - minX),
+        height: maxY === -Infinity ? 10 : Math.max(0, maxY - minY),
+      };
       const imageWidth = 1024;
       const imageHeight = 768;
 
@@ -320,7 +339,10 @@ const FlowEditor = () => {
             ) {
               return false;
             }
-            if (node?.classList && typeof node.classList.remove === "function") {
+            if (
+              node?.classList &&
+              typeof node.classList.remove === "function"
+            ) {
               node.classList.remove("selected");
             }
             return true;
@@ -364,6 +386,9 @@ const FlowEditor = () => {
     const selectedNodes = nodes.filter((node) => node.selected);
     if (selectedNodes.length === 0) return;
 
+    const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
+    const commonParentId = parentIds.length === 1 ? parentIds[0] : undefined;
+
     // Calculate bounding box
     const minX = Math.min(...selectedNodes.map((n) => n.position.x));
     const minY = Math.min(...selectedNodes.map((n) => n.position.y));
@@ -393,9 +418,11 @@ const FlowEditor = () => {
       },
       zIndex: -1,
       data: { name: "New Group" },
+      ...(commonParentId ? { parentId: commonParentId } : {}),
     };
 
     setNodes((currentNodes) => {
+      const minIndex = currentNodes.findIndex((n) => n.selected);
       // Add parent to selected nodes, update their position to relative, unselect them
       const updatedNodes = currentNodes.map((node) => {
         if (node.selected) {
@@ -411,7 +438,12 @@ const FlowEditor = () => {
         }
         return node;
       });
-      return [{ ...newGroup, selected: true } as any, ...updatedNodes];
+      const finalNodes = [...updatedNodes];
+      finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, {
+        ...newGroup,
+        selected: true,
+      } as any);
+      return finalNodes;
     });
     setSelectionMenuPosition(null);
   }, [nodes, setNodes]);
@@ -599,4 +631,3 @@ const FlowEditor = () => {
 };
 
 export default FlowEditor;
-

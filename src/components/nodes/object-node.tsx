@@ -112,6 +112,9 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     );
     if (selectedNodes.length === 0) return;
 
+    const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
+    const commonParentId = parentIds.length === 1 ? parentIds[0] : undefined;
+
     const minX = Math.min(...selectedNodes.map((n) => n.position.x));
     const minY = Math.min(...selectedNodes.map((n) => n.position.y));
     const maxX = Math.max(
@@ -140,10 +143,12 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
       },
       zIndex: -1,
       data: { name: "New Group" },
+      ...(commonParentId ? { parentId: commonParentId } : {}),
     };
 
     setNodes((currentNodes) => {
       const selectedIds = selectedNodes.map((n) => n.id);
+      const minIndex = currentNodes.findIndex((n) => selectedIds.includes(n.id));
       const updatedNodes = currentNodes.map((node) => {
         if (selectedIds.includes(node.id)) {
           return {
@@ -158,7 +163,9 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         }
         return node;
       });
-      return [{ ...newGroup, selected: true } as any, ...updatedNodes];
+      const finalNodes = [...updatedNodes];
+      finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, { ...newGroup, selected: true } as any);
+      return finalNodes;
     });
   }, [nodes, setNodes, id]);
 
@@ -174,7 +181,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
           const parent = currentNodes.find((p) => p.id === node.parentId);
           return {
             ...node,
-            parentId: undefined,
+            parentId: parent?.parentId,
             position: {
               x: (parent?.position.x || 0) + node.position.x,
               y: (parent?.position.y || 0) + node.position.y,

@@ -85,6 +85,9 @@ const ProjectPanel = () => {
       const selectedNodes = nodes.filter((n) => itemIds.includes(n.id));
       if (selectedNodes.length === 0) return;
 
+      const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
+      const commonParentId = parentIds.length === 1 ? parentIds[0] : undefined;
+
       const minX = Math.min(...selectedNodes.map((n) => n.position.x));
       const minY = Math.min(...selectedNodes.map((n) => n.position.y));
       const maxX = Math.max(
@@ -113,9 +116,11 @@ const ProjectPanel = () => {
         },
         zIndex: -1,
         data: { name: "New Group" },
+        ...(commonParentId ? { parentId: commonParentId } : {}),
       };
 
       setNodes((currentNodes) => {
+        const minIndex = currentNodes.findIndex((n) => itemIds.includes(n.id));
         const updatedNodes = currentNodes.map((node) => {
           if (itemIds.includes(node.id)) {
             return {
@@ -130,7 +135,9 @@ const ProjectPanel = () => {
           }
           return node;
         });
-        return [{ ...newGroup, selected: true } as any, ...updatedNodes];
+        const finalNodes = [...updatedNodes];
+        finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, { ...newGroup, selected: true } as any);
+        return finalNodes;
       });
     },
     [nodes, setNodes],
@@ -157,7 +164,7 @@ const ProjectPanel = () => {
             const parent = currentNodes.find((p) => p.id === node.parentId);
             return {
               ...node,
-              parentId: undefined,
+              parentId: parent?.parentId,
               position: {
                 x: (parent?.position?.x || 0) + node.position.x,
                 y: (parent?.position?.y || 0) + node.position.y,

@@ -82,7 +82,7 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
           if (n.parentId === id) {
             return {
               ...n,
-              parentId: undefined,
+              parentId: groupNode.parentId,
               position: {
                 x: (groupNode.position?.x ?? 0) + n.position.x,
                 y: (groupNode.position?.y ?? 0) + n.position.y,
