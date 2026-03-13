@@ -15,7 +15,14 @@ import {
 } from "../ui/select";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { ScrollArea } from "../ui/scroll-area";
-import { Edit2, ArrowRight, ArrowRightLeft, Box, Hash } from "lucide-react";
+import {
+  Edit2,
+  ArrowRight,
+  ArrowRightLeft,
+  Box,
+  Hash,
+  SquareDashed,
+} from "lucide-react";
 import { ObjectNodeData } from "@/components/nodes/object-node";
 import { cn } from "@/lib/utils";
 import PropertiesSection from "../ui/properties-section";
@@ -263,17 +270,6 @@ const PropertiesPanel: FC = () => {
                 </Button>
               )}
             </div>
-            {selectedNodes.length === 1 &&
-              selectedNodes[0].type === "group" && (
-                <PropRow label="Group Name">
-                  <Input
-                    value={(selectedNodes[0].data.name as string) || ""}
-                    placeholder="Group Name"
-                    onChange={(e) => handleGroupNameChange(e.target.value)}
-                    variant="small"
-                  />
-                </PropRow>
-              )}
             <PropRow label="Position X">
               <NumberInput
                 value={bulkNodeX}
@@ -293,6 +289,27 @@ const PropertiesPanel: FC = () => {
               />
             </PropRow>
           </PropertiesSection>
+        )}
+        {selectedNodes.some((node) => node.type === "group") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Group Properties (${selectedNodes.filter((node) => node.type === "group").length})`}
+              icon={SquareDashed}
+            >
+              <PropRow label="Group Name">
+                <Input
+                  value={
+                    (selectedNodes.filter((n) => n.type === "group")[0].data
+                      .name as string) || ""
+                  }
+                  placeholder="Group Name"
+                  onChange={(e) => handleGroupNameChange(e.target.value)}
+                  variant="small"
+                />
+              </PropRow>
+            </PropertiesSection>
+          </>
         )}
         {selectedEdges.length > 0 && (
           <>
