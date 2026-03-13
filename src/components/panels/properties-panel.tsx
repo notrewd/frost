@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { ColorPicker, ColorPickerHex } from "../ui/color-picker";
+import { HexAlphaColorPicker } from "react-colorful";
 
 const PropRow = ({
   label,
@@ -343,8 +343,8 @@ const PropertiesPanel: FC = () => {
                     />
                   </PopoverTrigger>
                   <PopoverContent className="w-auto!" align="end">
-                    <ColorPicker className="flex flex-col gap-2 border-none">
-                      <ColorPickerHex
+                    <div className="flex flex-col gap-2">
+                      <HexAlphaColorPicker
                         color={
                           selectedNodes.filter((n) => n.type === "group")[0]
                             .data.color as string
@@ -359,7 +359,7 @@ const PropertiesPanel: FC = () => {
                         }
                         onChange={(e) => handleGroupColorChange(e.target.value)}
                       />
-                    </ColorPicker>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </PropRow>

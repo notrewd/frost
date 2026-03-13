@@ -154,7 +154,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         background: "transparent",
       },
       zIndex: -1,
-      data: { name: "New Group" },
+      data: { name: "New Group", color: "#18181b50" },
       ...(commonParentId ? { parentId: commonParentId } : {}),
     };
 

@@ -115,7 +115,7 @@ const ProjectPanel = () => {
           background: "transparent",
         },
         zIndex: -1,
-        data: { name: "New Group" },
+        data: { name: "New Group", color: "#18181b50" },
         ...(commonParentId ? { parentId: commonParentId } : {}),
       };
 
@@ -136,7 +136,10 @@ const ProjectPanel = () => {
           return node;
         });
         const finalNodes = [...updatedNodes];
-        finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, { ...newGroup, selected: true } as any);
+        finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, {
+          ...newGroup,
+          selected: true,
+        } as any);
         return finalNodes;
       });
     },

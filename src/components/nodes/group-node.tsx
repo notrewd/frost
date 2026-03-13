@@ -215,13 +215,14 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
       <ContextMenu>
         <ContextMenuTrigger>
           <Card
-            className={cn("absolute border-dashed bg-card/40 shadow-none")}
+            className={cn("absolute border-dashed shadow-none")}
             style={{
               borderRadius: `${nodeBorderRadius}px`,
               left: visualLeft,
               top: visualTop,
               width: visualWidth,
               height: visualHeight,
+              backgroundColor: data.color,
             }}
           >
             {selected && (
