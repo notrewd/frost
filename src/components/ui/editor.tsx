@@ -422,10 +422,13 @@ const FlowEditor = () => {
     };
 
     setNodes((currentNodes) => {
-      const minIndex = currentNodes.findIndex((n) => n.selected);
+      const selectedIds = selectedNodes.map((n) => n.id);
+      const minIndex = currentNodes.findIndex((n) =>
+        selectedIds.includes(n.id),
+      );
       // Add parent to selected nodes, update their position to relative, unselect them
       const updatedNodes = currentNodes.map((node) => {
-        if (node.selected) {
+        if (selectedIds.includes(node.id)) {
           return {
             ...node,
             parentId: groupId,

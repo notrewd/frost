@@ -12,9 +12,24 @@ const useFlowStore = create<FlowState>()(
       edges: initialEdges,
       instance: null,
       onNodesChange: (changes) => {
-        set({
-          nodes: applyNodeChanges(changes, get().nodes),
-        });
+        const isOnlyVisual = changes.every(
+          (c) => c.type === "dimensions" || c.type === "select",
+        );
+
+        if (isOnlyVisual) {
+          const temporalStore = (
+            useFlowStore as unknown as any
+          ).temporal?.getState();
+          if (temporalStore) temporalStore.pause();
+          set({
+            nodes: applyNodeChanges(changes, get().nodes),
+          });
+          if (temporalStore) temporalStore.resume();
+        } else {
+          set({
+            nodes: applyNodeChanges(changes, get().nodes),
+          });
+        }
       },
       onEdgesChange: (changes) => {
         set({

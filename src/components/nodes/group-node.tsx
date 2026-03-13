@@ -138,6 +138,10 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
       const hDiff = Math.abs((Number(node.style?.height) || 0) - targetHeight);
 
       if (wDiff > 1 || hDiff > 1 || visualLeft !== 0 || visualTop !== 0) {
+        // Pause undo/redo tracking for auto-bounds adjustment
+        const temporalState = (useFlowStore as any).temporal?.getState();
+        if (temporalState) temporalState.pause();
+
         let targetX = currentX;
         let targetY = currentY;
         let childrenUpdateMaps = [] as any[];
@@ -156,7 +160,7 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
             }));
         }
 
-        return nds.map((n) => {
+        const nextNodes = nds.map((n) => {
           if (n.id === id) {
             return {
               ...n,
@@ -184,6 +188,13 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
 
           return n;
         });
+
+        // Resume temporal tracking shortly after the state is updated
+        if (temporalState) {
+          setTimeout(() => temporalState.resume(), 50);
+        }
+
+        return nextNodes;
       }
       return nds;
     });
