@@ -55,6 +55,7 @@ export interface TreeViewMenuItem {
   icon?: ReactNode;
   variant?: "default" | "destructive";
   action: (items: TreeViewItem[]) => void;
+  show?: (items: TreeViewItem[]) => boolean;
 }
 
 export interface TreeViewMenuItemsByType {
@@ -645,21 +646,28 @@ function TreeItem({
       </ContextMenuTrigger>
       {hasMenuItems && (
         <ContextMenuContent>
-          {resolvedMenuItems?.map((menuItem) => (
-            <ContextMenuItem
-              key={menuItem.id}
-              onClick={() => {
-                const items = selectedIds.has(item.id)
-                  ? getSelectedItems()
-                  : [item];
-                menuItem.action(items);
-              }}
-              variant={menuItem.variant || "default"}
-            >
-              {renderMenuIcon(menuItem.icon)}
-              {menuItem.label}
-            </ContextMenuItem>
-          ))}
+          {resolvedMenuItems
+            ?.filter((menuItem) => {
+              const targetItems = selectedIds.has(item.id)
+                ? getSelectedItems()
+                : [item];
+              return menuItem.show ? menuItem.show(targetItems) : true;
+            })
+            .map((menuItem) => (
+              <ContextMenuItem
+                key={menuItem.id}
+                onClick={() => {
+                  const items = selectedIds.has(item.id)
+                    ? getSelectedItems()
+                    : [item];
+                  menuItem.action(items);
+                }}
+                variant={menuItem.variant || "default"}
+              >
+                {renderMenuIcon(menuItem.icon)}
+                {menuItem.label}
+              </ContextMenuItem>
+            ))}
         </ContextMenuContent>
       )}
     </ContextMenu>

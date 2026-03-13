@@ -1,4 +1,4 @@
-import { FC, useState, useMemo } from "react";
+import { FC, useState, useMemo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import useFlowStore from "@/stores/flow-store";
 import { FlowState } from "@/stores/types";
@@ -15,11 +15,20 @@ import {
 } from "../ui/select";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { ScrollArea } from "../ui/scroll-area";
-import { Edit2, ArrowRight, ArrowRightLeft, Box, Hash } from "lucide-react";
+import {
+  Edit2,
+  ArrowRight,
+  ArrowRightLeft,
+  Box,
+  Hash,
+  SquareDashed,
+} from "lucide-react";
 import { ObjectNodeData } from "@/components/nodes/object-node";
 import { cn } from "@/lib/utils";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { HexAlphaColorPicker } from "react-colorful";
 
 const PropRow = ({
   label,
@@ -44,19 +53,23 @@ const PropRow = ({
 );
 
 const PropertiesPanel: FC = () => {
-  const { nodes, edges, setNodes, setEdges } = useFlowStore(
+  const { setNodes, setEdges } = useFlowStore(
     useShallow((state: FlowState) => ({
-      nodes: state.nodes,
-      edges: state.edges,
       setNodes: state.setNodes,
       setEdges: state.setEdges,
     })),
   );
 
+  const nodes = useFlowStore(useShallow((state: FlowState) => state.nodes));
+
+  const edges = useFlowStore(useShallow((state: FlowState) => state.edges));
+
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false);
   const [selectedNodeForDialog, setSelectedNodeForDialog] = useState<
     string | null
   >(null);
+
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   const selectedNodes = nodes.filter((node) => node.selected);
   const selectedEdges = edges.filter((edge) => edge.selected);
@@ -113,6 +126,16 @@ const PropertiesPanel: FC = () => {
       : "";
   }, [selectedEdges]);
 
+  useEffect(() => {
+    const temporalState = useFlowStore.temporal.getState();
+
+    if (colorPickerOpen) {
+      temporalState.pause();
+    } else {
+      temporalState.resume();
+    }
+  }, [colorPickerOpen]);
+
   if (selectedNodes.length === 0 && selectedEdges.length === 0) {
     return <PropertiesEmptyView />;
   }
@@ -135,6 +158,38 @@ const PropertiesPanel: FC = () => {
               position: {
                 ...node.position,
                 [axis]: numValue,
+              },
+            }
+          : node,
+      ),
+    );
+  };
+
+  const handleGroupNameChange = (value: string) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.selected && node.type === "group"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                name: value,
+              },
+            }
+          : node,
+      ),
+    );
+  };
+
+  const handleGroupColorChange = (color: string) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.selected && node.type === "group"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                color: color || node.data?.color || "#18181b",
               },
             }
           : node,
@@ -227,19 +282,23 @@ const PropertiesPanel: FC = () => {
                   ? (selectedNodes[0].data.name as string)
                   : "Multiple selected"}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={selectedNodes.length > 1}
-                onClick={() =>
-                  selectedNodes.length === 1 &&
-                  handleNodeEditClick(selectedNodes[0].id)
-                }
-              >
-                <Edit2 className="size-3" />
-                Edit Data
-              </Button>
+              {!(
+                selectedNodes.length === 1 && selectedNodes[0].type === "group"
+              ) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  disabled={selectedNodes.length > 1}
+                  onClick={() =>
+                    selectedNodes.length === 1 &&
+                    handleNodeEditClick(selectedNodes[0].id)
+                  }
+                >
+                  <Edit2 className="size-3" />
+                  Edit Data
+                </Button>
+              )}
             </div>
             <PropRow label="Position X">
               <NumberInput
@@ -260,6 +319,67 @@ const PropertiesPanel: FC = () => {
               />
             </PropRow>
           </PropertiesSection>
+        )}
+        {selectedNodes.some((node) => node.type === "group") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Group Properties (${selectedNodes.filter((node) => node.type === "group").length})`}
+              icon={SquareDashed}
+            >
+              <PropRow label="Group Name">
+                <Input
+                  value={
+                    (selectedNodes.filter((n) => n.type === "group")[0].data
+                      .name as string) || ""
+                  }
+                  placeholder="Group Name"
+                  onChange={(e) => handleGroupNameChange(e.target.value)}
+                  variant="small"
+                />
+              </PropRow>
+              <PropRow label="Group Color">
+                <Popover
+                  open={colorPickerOpen}
+                  onOpenChange={setColorPickerOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-full p-0 transition-none"
+                      title="Change Group Color"
+                      style={{
+                        backgroundColor:
+                          selectedNodes
+                            .filter((n) => n.type === "group")[0]
+                            .data.color?.toString() || "#18181b",
+                      }}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto!" align="end">
+                    <div className="flex flex-col gap-2">
+                      <HexAlphaColorPicker
+                        color={
+                          selectedNodes.filter((n) => n.type === "group")[0]
+                            .data.color as string
+                        }
+                        onChange={handleGroupColorChange}
+                      />
+                      <Input
+                        variant="small"
+                        value={
+                          selectedNodes.filter((n) => n.type === "group")[0]
+                            .data.color as string
+                        }
+                        onChange={(e) => handleGroupColorChange(e.target.value)}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </PropRow>
+            </PropertiesSection>
+          </>
         )}
         {selectedEdges.length > 0 && (
           <>

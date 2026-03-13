@@ -1,9 +1,11 @@
 import {
   Focus,
   Folder,
+  FolderPlus,
   FolderRoot,
   SquareChartGantt,
   Trash,
+  Ungroup,
 } from "lucide-react";
 import TreeView, {
   TreeViewItem,
@@ -24,22 +26,28 @@ const iconMap = {
 const ProjectPanel = () => {
   const projectName = useProjectStore((state) => state.projectName);
 
-  const selector = useShallow((state: FlowState) => ({
-    nodes: state.nodes,
-    setNodes: state.setNodes,
-    setEdges: state.setEdges,
-    instance: state.instance,
-  }));
+  const { setNodes, setEdges, instance } = useFlowStore(
+    useShallow((state: FlowState) => ({
+      setNodes: state.setNodes,
+      setEdges: state.setEdges,
+      instance: state.instance,
+    })),
+  );
 
-  const { setNodes, setEdges, nodes, instance } = useFlowStore(selector);
+  const nodes = useFlowStore(useShallow((state: FlowState) => state.nodes));
 
   const treeData = useMemo(() => {
-    return nodes.map((node) => ({
-      id: node.id,
-      name: node.data.name,
-      type: "node" as const,
-      selected: node.selected,
-    }));
+    const buildHierarchy = (parentId: string | undefined): TreeViewItem[] => {
+      const children = nodes.filter((node) => node.parentId === parentId);
+      return children.map((node) => ({
+        id: node.id,
+        name: (node.data.name as string) || "Group",
+        type: node.type === "group" ? ("folder" as const) : ("node" as const),
+        selected: node.selected,
+        ...(node.type === "group" ? { children: buildHierarchy(node.id) } : {}),
+      }));
+    };
+    return buildHierarchy(undefined);
   }, [nodes]);
 
   const treeSelectedIds = useMemo(() => {
@@ -71,35 +79,164 @@ const ProjectPanel = () => {
     [setNodes, setEdges],
   );
 
+  const handleGroup = useCallback(
+    (items: TreeViewItem[]) => {
+      const itemIds = items.map((item) => item.id);
+      const selectedNodes = nodes.filter((n) => itemIds.includes(n.id));
+      if (selectedNodes.length === 0) return;
+
+      const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
+      const commonParentId = parentIds.length === 1 ? parentIds[0] : undefined;
+
+      const minX = Math.min(...selectedNodes.map((n) => n.position.x));
+      const minY = Math.min(...selectedNodes.map((n) => n.position.y));
+      const maxX = Math.max(
+        ...selectedNodes.map((n) => n.position.x + (n.measured?.width || 200)),
+      );
+      const maxY = Math.max(
+        ...selectedNodes.map((n) => n.position.y + (n.measured?.height || 200)),
+      );
+
+      const padding = 40;
+      const groupX = minX - padding;
+      const groupY = minY - padding;
+      const groupWidth = maxX - minX + padding * 2;
+      const groupHeight = maxY - minY + padding * 2;
+
+      const groupId = `group-${Date.now()}`;
+      const newGroup = {
+        id: groupId,
+        type: "group",
+        position: { x: groupX, y: groupY },
+        style: {
+          width: groupWidth,
+          height: groupHeight,
+          border: "none",
+          background: "transparent",
+        },
+        zIndex: -1,
+        data: { name: "New Group", color: "#18181b50" },
+        ...(commonParentId ? { parentId: commonParentId } : {}),
+      };
+
+      setNodes((currentNodes) => {
+        const minIndex = currentNodes.findIndex((n) => itemIds.includes(n.id));
+        const updatedNodes = currentNodes.map((node) => {
+          if (itemIds.includes(node.id)) {
+            return {
+              ...node,
+              parentId: groupId,
+              position: {
+                x: node.position.x - groupX,
+                y: node.position.y - groupY,
+              },
+              selected: false,
+            };
+          }
+          return node;
+        });
+        const finalNodes = [...updatedNodes];
+        finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, {
+          ...newGroup,
+          selected: true,
+        } as any);
+        return finalNodes;
+      });
+    },
+    [nodes, setNodes],
+  );
+
+  const handleUngroup = useCallback(
+    (items: TreeViewItem[]) => {
+      const itemIds = items.map((item) => item.id);
+
+      setNodes((currentNodes) => {
+        // First, find if we selected any groups and we want to just dissolve them
+        const groupsToDissolve = currentNodes.filter(
+          (n) => n.type === "group" && itemIds.includes(n.id),
+        );
+        const groupIdsToDissolve = groupsToDissolve.map((g) => g.id);
+
+        let finalNodes = currentNodes.map((node) => {
+          // If node was directly inside a dissolved group or it is one of the nodes to ungroup
+          if (
+            node.parentId &&
+            (groupIdsToDissolve.includes(node.parentId) ||
+              itemIds.includes(node.id))
+          ) {
+            const parent = currentNodes.find((p) => p.id === node.parentId);
+            return {
+              ...node,
+              parentId: parent?.parentId,
+              position: {
+                x: (parent?.position?.x || 0) + node.position.x,
+                y: (parent?.position?.y || 0) + node.position.y,
+              },
+            };
+          }
+          return node;
+        });
+
+        // Remove the dissolved groups entirely
+        finalNodes = finalNodes.filter(
+          (n) => !groupIdsToDissolve.includes(n.id),
+        );
+
+        return finalNodes;
+      });
+    },
+    [setNodes],
+  );
+
   const [data, setData] = useState<TreeViewItem[]>([]);
 
   const menuItems: TreeViewMenuItemsByType = useMemo(() => {
+    const commonNodeActions = [
+      {
+        id: "focus",
+        label: "Focus",
+        icon: <Focus className="size-4" />,
+        action: (items: TreeViewItem[]) => {
+          instance?.fitView({
+            nodes: items.map((item) => ({ id: item.id })),
+          });
+        },
+      },
+      {
+        id: "group",
+        label: "Group",
+        icon: <FolderPlus className="size-4" />,
+        action: handleGroup,
+      },
+      {
+        id: "ungroup",
+        label: "Ungroup",
+        icon: <Ungroup className="size-4" />,
+        action: handleUngroup,
+        show: (items: TreeViewItem[]) => {
+          const itemIds = items.map((item) => item.id);
+          const selectedNodes = nodes.filter((n) => itemIds.includes(n.id));
+          return selectedNodes.some((n) => n.parentId || n.type === "group");
+        },
+      },
+      {
+        id: "delete",
+        label: "Delete",
+        icon: <Trash className="size-4" />,
+        variant: "destructive" as const,
+        action: (items: TreeViewItem[]) => {
+          items.forEach((item) => {
+            handleDelete(item.id);
+          });
+        },
+      },
+    ];
+
     return {
-      node: [
-        {
-          id: "focus",
-          label: "Focus",
-          icon: <Focus className="size-4" />,
-          action: (items: TreeViewItem[]) => {
-            instance?.fitView({
-              nodes: items.map((item) => ({ id: item.id })),
-            });
-          },
-        },
-        {
-          id: "delete",
-          label: "Delete",
-          icon: <Trash className="size-4" />,
-          variant: "destructive",
-          action: (items: TreeViewItem[]) => {
-            items.forEach((item) => {
-              handleDelete(item.id);
-            });
-          },
-        },
-      ],
+      node: commonNodeActions,
+      folder: commonNodeActions,
     };
-  }, [handleDelete, instance]);
+  }, [handleDelete, handleGroup, handleUngroup, instance]);
 
   useEffect(() => {
     const rootItem: TreeViewItem = {

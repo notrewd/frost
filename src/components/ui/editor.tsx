@@ -8,7 +8,6 @@ import {
   MiniMap,
   Panel,
   ReactFlow,
-  getNodesBounds,
   getViewportForBounds,
 } from "@xyflow/react";
 import { useShallow } from "zustand/react/shallow";
@@ -20,7 +19,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { toPng } from "html-to-image";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo, Focus, Trash2 } from "lucide-react";
+import { Undo, Redo, Focus, Trash2, FolderPlus } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -41,8 +40,11 @@ import GeneralizationArrow from "./icons/arrows/generalization-arrow";
 import ImplementationEdge from "../edges/implementation-edge";
 import CompositionEdge from "../edges/composition-edge";
 
+import GroupNode from "../nodes/group-node";
+
 const nodeTypes = {
   object: ObjectNode,
+  group: GroupNode,
 };
 
 const edgeTypes = {
@@ -259,7 +261,46 @@ const FlowEditor = () => {
         return;
       }
 
-      const nodesBounds = getNodesBounds(nodes);
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      nodes.forEach((node) => {
+        let x = node.position.x;
+        let y = node.position.y;
+        let pId = node.parentId;
+
+        while (pId) {
+          const parent = nodes.find((n) => n.id === pId);
+          if (parent) {
+            x += parent.position.x;
+            y += parent.position.y;
+            pId = parent.parentId;
+          } else {
+            pId = undefined;
+          }
+        }
+
+        const width = Number(
+          node.measured?.width || node.style?.width || node.width || 200,
+        );
+        const height = Number(
+          node.measured?.height || node.style?.height || node.height || 200,
+        );
+
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + width);
+        maxY = Math.max(maxY, y + height);
+      });
+
+      const nodesBounds = {
+        x: minX === Infinity ? 0 : minX,
+        y: minY === Infinity ? 0 : minY,
+        width: maxX === -Infinity ? 10 : Math.max(0, maxX - minX),
+        height: maxY === -Infinity ? 10 : Math.max(0, maxY - minY),
+      };
       const imageWidth = 1024;
       const imageHeight = 768;
 
@@ -298,6 +339,12 @@ const FlowEditor = () => {
             ) {
               return false;
             }
+            if (
+              node?.classList &&
+              typeof node.classList.remove === "function"
+            ) {
+              node.classList.remove("selected");
+            }
             return true;
           },
         });
@@ -334,6 +381,92 @@ const FlowEditor = () => {
       y: event.clientY,
     });
   }, []);
+
+  const handleSelectionGroup = useCallback(() => {
+    const selectedNodesAll = nodes.filter((node) => node.selected);
+    if (selectedNodesAll.length === 0) return;
+
+    const selectedNodes = selectedNodesAll.filter((node) => {
+      let current = node.parentId;
+      while (current) {
+        if (selectedNodesAll.some((n) => n.id === current)) return false;
+        const parent = nodes.find((n) => n.id === current);
+        current = parent?.parentId;
+      }
+      return true;
+    });
+
+    if (selectedNodes.length === 0) return;
+
+    const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
+    const commonParentId = parentIds.length === 1 ? parentIds[0] : undefined;
+
+    // Calculate bounding box
+    const minX = Math.min(...selectedNodes.map((n) => n.position.x));
+    const minY = Math.min(...selectedNodes.map((n) => n.position.y));
+    const maxX = Math.max(
+      ...selectedNodes.map((n) => n.position.x + (n.measured?.width || 200)),
+    );
+    const maxY = Math.max(
+      ...selectedNodes.map((n) => n.position.y + (n.measured?.height || 200)),
+    );
+
+    const padding = 40;
+    const groupX = minX - padding;
+    const groupY = minY - padding;
+    const groupWidth = maxX - minX + padding * 2;
+    const groupHeight = maxY - minY + padding * 2;
+
+    const groupId = `group-${Date.now()}`;
+    const newGroup = {
+      id: groupId,
+      type: "group",
+      position: { x: groupX, y: groupY },
+      style: {
+        width: groupWidth,
+        height: groupHeight,
+        border: "none",
+        background: "transparent",
+      },
+      zIndex: -1,
+      data: { name: "New Group", color: "#18181b50" },
+      ...(commonParentId ? { parentId: commonParentId } : {}),
+    };
+
+    setNodes((currentNodes) => {
+      const selectedIds = selectedNodes.map((n) => n.id);
+      const minIndex = currentNodes.findIndex((n) =>
+        selectedIds.includes(n.id),
+      );
+      // Add parent to selected nodes, update their position to relative, unselect them
+      const updatedNodes = currentNodes.map((node) => {
+        if (selectedIds.includes(node.id)) {
+          return {
+            ...node,
+            parentId: groupId,
+            position: {
+              x: node.position.x - groupX,
+              y: node.position.y - groupY,
+            },
+            selected: false,
+          };
+        }
+        return node;
+      });
+      const finalNodes = [...updatedNodes];
+      finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, {
+        ...newGroup,
+        selected: true,
+      } as any);
+
+      const groupsToDelete = parentIds.filter(
+        (pid) => pid && !finalNodes.some((n) => n.parentId === pid),
+      );
+
+      return finalNodes.filter((n) => !groupsToDelete.includes(n.id));
+    });
+    setSelectionMenuPosition(null);
+  }, [nodes, setNodes]);
 
   const handleSelectionFocus = useCallback(() => {
     instance?.fitView({
@@ -498,6 +631,10 @@ const FlowEditor = () => {
           <DropdownMenuItem onClick={handleSelectionFocus}>
             <Focus className="size-4" />
             Focus
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSelectionGroup}>
+            <FolderPlus className="size-4" />
+            Group
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
