@@ -182,7 +182,12 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
         ...newGroup,
         selected: true,
       } as any);
-      return finalNodes;
+
+      const groupsToDelete = parentIds.filter(
+        (pid) => pid && !finalNodes.some((n) => n.parentId === pid),
+      );
+
+      return finalNodes.filter((n) => !groupsToDelete.includes(n.id));
     });
   }, [nodes, setNodes, id]);
 

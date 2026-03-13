@@ -458,7 +458,12 @@ const FlowEditor = () => {
         ...newGroup,
         selected: true,
       } as any);
-      return finalNodes;
+
+      const groupsToDelete = parentIds.filter(
+        (pid) => pid && !finalNodes.some((n) => n.parentId === pid),
+      );
+
+      return finalNodes.filter((n) => !groupsToDelete.includes(n.id));
     });
     setSelectionMenuPosition(null);
   }, [nodes, setNodes]);
