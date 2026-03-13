@@ -28,11 +28,7 @@ import { cn } from "@/lib/utils";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  ColorPicker,
-  ColorPickerHex,
-  ColorPickerInput,
-} from "../ui/color-picker";
+import { ColorPicker, ColorPickerHex } from "../ui/color-picker";
 
 const PropRow = ({
   label,
