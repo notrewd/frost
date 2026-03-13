@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { RecentProject } from "@/types/app";
 import RecentProjectsList from "@/components/ui/lists/recent-projects-list";
+import { Badge } from "@/components/ui/badge";
 
 const WelcomeRoute = () => {
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
@@ -67,7 +68,10 @@ const WelcomeRoute = () => {
               alt="Application Icon"
             />
             <p className="text-xl font-medium">Frost</p>
-            <p className="text-muted-foreground text-sm">version 0.1.0</p>
+            <div className="flex gap-2">
+              <p className="text-muted-foreground text-sm">version 0.1.0</p>
+              <Badge variant="outline">beta</Badge>
+            </div>
             <div className="flex flex-col gap-2 mt-10">
               <Button onClick={handleNewProject}>
                 <CirclePlus />
