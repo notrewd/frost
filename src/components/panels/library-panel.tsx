@@ -43,6 +43,7 @@ export type LibraryPalleteCategory = {
 
 type LibraryPanelProps = {
   onItemDropped?: (item: LibraryPaletteItem, drag: DragEventData) => void;
+  onItemClicked?: (item: LibraryPaletteItem) => void;
 };
 
 const categories: LibraryPalleteCategory[] = [
@@ -152,9 +153,8 @@ const categories: LibraryPalleteCategory[] = [
   },
 ] as const;
 
-const LibraryPanel = ({ onItemDropped }: LibraryPanelProps) => {
+const LibraryPanel = ({ onItemDropped, onItemClicked }: LibraryPanelProps) => {
   const [query, setQuery] = useState("");
-  const [resetKey, setResetKey] = useState(0);
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -192,12 +192,12 @@ const LibraryPanel = ({ onItemDropped }: LibraryPanelProps) => {
               <div className="grid grid-cols-2 gap-4">
                 {item.items.map((paletteItem) => (
                   <LibraryItem
-                    key={`${paletteItem.label}-${resetKey}`}
+                    key={`${paletteItem.label}`}
                     icon={paletteItem.icon}
                     draggable
+                    onClick={() => onItemClicked?.(paletteItem)}
                     onDragEnd={(drag) => {
                       onItemDropped?.(paletteItem, drag);
-                      setResetKey((k) => k + 1);
                     }}
                   >
                     {paletteItem.label}

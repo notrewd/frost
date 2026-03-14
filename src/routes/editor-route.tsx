@@ -486,6 +486,63 @@ const EditorRoute = () => {
     [reactFlowInstance, setNodes],
   );
 
+  const handleLibraryItemClicked = useCallback(
+    (item: LibraryPaletteItem) => {
+      if (!reactFlowInstance) return;
+
+      const id = `n${Date.now().toString(36)}${Math.random()
+        .toString(36)
+        .slice(2, 8)}`;
+
+      // Get the center of the current viewport
+      const { x, y, zoom } = reactFlowInstance.getViewport();
+
+      // We want to place it in the center of the React Flow container
+      const wrapperBounds =
+        reactFlowWrapperRef.current?.getBoundingClientRect();
+
+      // Convert screen/container center to flow position
+      // For some reason screenToFlowPosition doesn't account for the container's absolute position automatically
+      // without passing the absolute client coordinates. So we pass the bounded coordinates.
+      const position = wrapperBounds
+        ? reactFlowInstance.screenToFlowPosition({
+            x: wrapperBounds.left + wrapperBounds.width / 2,
+            y: wrapperBounds.top + wrapperBounds.height / 2,
+          })
+        : { x: -x / zoom, y: -y / zoom };
+
+      setNodes((nds) => {
+        // Deselect all other nodes
+        const unselectedNodes = nds.map((node) => ({
+          ...node,
+          selected: false,
+        }));
+
+        return [
+          ...unselectedNodes,
+          {
+            id,
+            type: item.template.type,
+            position,
+            data: item.template.data,
+            selected: true,
+          } as any,
+        ];
+      });
+
+      // Focus on the newly created node
+      setTimeout(() => {
+        reactFlowInstance.fitView({
+          nodes: [{ id }],
+          duration: 500,
+          padding: 0.2,
+          maxZoom: 1,
+        });
+      }, 50);
+    },
+    [reactFlowInstance, setNodes],
+  );
+
   const handleDiscardConfirm = useCallback(async () => {
     setShowDiscardDialog(false);
     allowCloseRef.current = true;
@@ -508,7 +565,10 @@ const EditorRoute = () => {
         >
           <PanelBar>Library</PanelBar>
           <div className="flex flex-col flex-1 px-4 py-3 min-h-0">
-            <LibraryPanel onItemDropped={handleLibraryItemDropped} />
+            <LibraryPanel
+              onItemDropped={handleLibraryItemDropped}
+              onItemClicked={handleLibraryItemClicked}
+            />
           </div>
         </ResizablePanel>
         <ResizablePanel className="flex flex-col" minSize={300}>

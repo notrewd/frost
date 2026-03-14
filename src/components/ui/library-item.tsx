@@ -28,6 +28,9 @@ const LibraryItem: FC<LibraryItemProps> = ({
     height: number;
   } | null>(null);
 
+  const onDragEndRef = useRef(onDragEnd);
+  onDragEndRef.current = onDragEnd;
+
   const updatePreviewPosition = (data: DragEventData) => {
     setPreview((prev) => {
       if (!prev) return prev;
@@ -51,16 +54,22 @@ const LibraryItem: FC<LibraryItemProps> = ({
 
   const handleDragEnd = (data: DragEventData) => {
     setPreview(null);
-    onDragEnd?.(data);
+    onDragEndRef.current?.(data);
   };
 
-  const { isDragging } = useDraggable(draggableRef, {
-    handle: ".library-item-drag-handle",
-    onDragStart: handleDragStart,
-    onDrag: updatePreviewPosition,
-    onDragEnd: handleDragEnd,
-    transform: () => "translate3d(0, 0, 0)", // Prevent the original element from moving
-  });
+  const dragOptions = useMemo(
+    () => ({
+      handle: ".library-item-drag-handle",
+      onDragStart: handleDragStart,
+      onDrag: updatePreviewPosition,
+      onDragEnd: handleDragEnd,
+      transform: () => "translate3d(0, 0, 0)" as any, // Prevent the original element from moving
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const { isDragging } = useDraggable(draggableRef, dragOptions);
 
   const card = useMemo(
     () => (
