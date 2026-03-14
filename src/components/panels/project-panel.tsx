@@ -7,7 +7,9 @@ import {
   SquareChartGantt,
   Trash,
   Ungroup,
+  Download,
 } from "lucide-react";
+import { emit } from "@tauri-apps/api/event";
 import TreeView, {
   TreeViewItem,
   TreeViewMenuItemsByType,
@@ -329,6 +331,15 @@ const ProjectPanel = () => {
           const itemIds = items.map((item) => item.id);
           const selectedNodes = nodes.filter((n) => itemIds.includes(n.id));
           return selectedNodes.some((n) => n.parentId || n.type === "group");
+        },
+      },
+      {
+        id: "export",
+        label: "Export to PNG",
+        icon: <Download className="size-4" />,
+        action: (items: TreeViewItem[]) => {
+          const nodeIds = items.map((item) => item.id);
+          emit("request-export-selection-image", { nodeIds });
         },
       },
       {

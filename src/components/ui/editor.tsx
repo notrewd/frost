@@ -19,7 +19,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { toPng } from "html-to-image";
 import { useStore } from "zustand";
 import { Button } from "./button";
-import { Undo, Redo, Focus, Trash2, FolderPlus } from "lucide-react";
+import { Undo, Redo, Focus, Trash2, FolderPlus, Download } from "lucide-react";
 import { useProjectStore } from "@/stores/project-store";
 import EditorControls from "./editor-controls";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -372,6 +372,157 @@ const FlowEditor = () => {
       }
     });
 
+    const exportSelectionUnlisten = listen<{
+      nodeIds: string[];
+      transparentBackground?: boolean;
+      padding?: number;
+    }>("request-export-selection-image", async (event) => {
+      const {
+        nodeIds,
+        transparentBackground = true,
+        padding = 10,
+      } = event.payload || {};
+
+      const nodesState = useFlowStore.getState().nodes;
+      const edgesState = useFlowStore.getState().edges;
+
+      const expandedNodeIds = new Set(nodeIds);
+      let added = true;
+      while (added) {
+        added = false;
+        nodesState.forEach((n) => {
+          if (
+            n.parentId &&
+            expandedNodeIds.has(n.parentId) &&
+            !expandedNodeIds.has(n.id)
+          ) {
+            expandedNodeIds.add(n.id);
+            added = true;
+          }
+        });
+      }
+      const finalNodeIds = Array.from(expandedNodeIds);
+
+      const nodes = nodesState.filter((n) => finalNodeIds.includes(n.id));
+
+      if (!nodes || nodes.length === 0) {
+        return;
+      }
+
+      const validEdgeIds = edgesState
+        .filter(
+          (e) =>
+            finalNodeIds.includes(e.source) && finalNodeIds.includes(e.target),
+        )
+        .map((e) => e.id);
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      nodes.forEach((node) => {
+        let x = node.position.x;
+        let y = node.position.y;
+        let pId = node.parentId;
+
+        while (pId) {
+          const parent = nodesState.find((n) => n.id === pId);
+          if (parent) {
+            x += parent.position.x;
+            y += parent.position.y;
+            pId = parent.parentId;
+          } else {
+            pId = undefined;
+          }
+        }
+
+        const width = Number(
+          node.measured?.width || node.style?.width || node.width || 200,
+        );
+        const height = Number(
+          node.measured?.height || node.style?.height || node.height || 200,
+        );
+
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + width);
+        maxY = Math.max(maxY, y + height);
+      });
+
+      const nodesBounds = {
+        x: minX === Infinity ? 0 : minX,
+        y: minY === Infinity ? 0 : minY,
+        width: maxX === -Infinity ? 10 : Math.max(0, maxX - minX),
+        height: maxY === -Infinity ? 10 : Math.max(0, maxY - minY),
+      };
+
+      const imageWidth = Math.max(
+        1024,
+        Math.ceil(nodesBounds.width) + padding * 2,
+      );
+      const imageHeight = Math.max(
+        768,
+        Math.ceil(nodesBounds.height) + padding * 2,
+      );
+
+      const viewport = getViewportForBounds(
+        nodesBounds,
+        imageWidth,
+        imageHeight,
+        0.01,
+        2,
+        padding / 100,
+      );
+
+      const viewportElement: HTMLElement | null = document.querySelector(
+        ".react-flow__viewport",
+      );
+
+      if (!viewportElement) {
+        return;
+      }
+
+      try {
+        const dataUrl = await toPng(viewportElement, {
+          backgroundColor: transparentBackground ? "transparent" : "#1a365d",
+          width: imageWidth,
+          height: imageHeight,
+          style: {
+            width: imageWidth.toString() + "px",
+            height: imageHeight.toString() + "px",
+            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+          },
+          filter: (node) => {
+            if (
+              node?.classList?.contains("react-flow__handle") ||
+              node?.classList?.contains("react-flow__ring")
+            ) {
+              return false;
+            }
+            if (node?.classList?.contains("react-flow__node")) {
+              const id = node.getAttribute("data-id");
+              if (id && !finalNodeIds.includes(id)) return false;
+            }
+            if (node?.classList?.contains("react-flow__edge")) {
+              const id = node.getAttribute("data-id");
+              if (id && !validEdgeIds.includes(id)) return false;
+            }
+            if (
+              node?.classList &&
+              typeof node.classList.remove === "function"
+            ) {
+              node.classList.remove("selected");
+            }
+            return true;
+          },
+        });
+        invoke("save_image_as", { data: dataUrl });
+      } catch (error) {
+        console.error("Export selection failed:", error);
+      }
+    });
+
     const edgesUnlisten = listen("request-edges", async () => {
       const edges = useFlowStore.getState().edges;
       emit("edges-data", edges);
@@ -472,6 +623,7 @@ const FlowEditor = () => {
       undoUnlisten.then((f) => f());
       redoUnlisten.then((f) => f());
       exportUnlisten.then((f) => f());
+      exportSelectionUnlisten.then((f) => f());
       edgesUnlisten.then((f) => f());
       historyUnlisten.then((f) => f());
       historyJumpUnlisten.then((f) => f());
@@ -608,6 +760,14 @@ const FlowEditor = () => {
     const { setNodes, setEdges } = useFlowStore.getState();
     setNodes((nodes) => nodes.filter((node) => !node.selected));
     setEdges((edges) => edges.filter((edge) => !edge.selected));
+    setSelectionMenuPosition(null);
+  }, []);
+
+  const handleSelectionExport = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
+    const selectedNodes = nodes.filter((node) => node.selected);
+    const nodeIds = selectedNodes.map((n) => n.id);
+    emit("request-export-selection-image", { nodeIds });
     setSelectionMenuPosition(null);
   }, []);
 
@@ -750,7 +910,7 @@ const FlowEditor = () => {
         }}
       >
         <DropdownMenuContent
-          className="absolute"
+          className="absolute w-36"
           style={{
             top: selectionMenuPosition?.y || 0,
             left: selectionMenuPosition?.x || 0,
@@ -763,6 +923,11 @@ const FlowEditor = () => {
           <DropdownMenuItem onClick={handleSelectionGroup}>
             <FolderPlus className="size-4" />
             Group
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSelectionExport}>
+            <Download className="size-4" />
+            Export to PNG
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

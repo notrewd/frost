@@ -4,6 +4,7 @@ import NodeContextMenu, {
   NodeContextMenuContent,
   NodeContextMenuDeleteOption,
   NodeContextMenuFocusOption,
+  NodeContextMenuExportOption,
   NodeContextMenuGroupOption,
   NodeContextMenuOptions,
   NodeContextMenuUngroupOption,
@@ -62,6 +63,8 @@ const PackageNode: FC<PackageNodeProps> = ({ id, data, selected }) => {
         <NodeContextMenuFocusOption nodeId={id} />
         <NodeContextMenuGroupOption nodeId={id} />
         <NodeContextMenuUngroupOption nodeId={id} />
+        <ContextMenuSeparator />
+        <NodeContextMenuExportOption nodeId={id} />
         <ContextMenuSeparator />
         <NodeContextMenuDeleteOption nodeId={id} />
       </NodeContextMenuOptions>

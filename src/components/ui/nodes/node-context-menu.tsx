@@ -5,8 +5,9 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../context-menu";
-import { Focus, FolderPlus, Trash2, Ungroup } from "lucide-react";
+import { Focus, FolderPlus, Trash2, Ungroup, Download } from "lucide-react";
 import useFlowStore from "@/stores/flow-store";
+import { emit } from "@tauri-apps/api/event";
 
 interface NodeContextMenuProps {
   children?: ReactNode;
@@ -73,6 +74,26 @@ export const NodeContextMenuFocusOption: FC<NodeContextMenuOptionProps> = ({
     <ContextMenuItem onClick={handleFocus}>
       <Focus className="size-4" />
       Focus
+    </ContextMenuItem>
+  );
+};
+
+export const NodeContextMenuExportOption: FC<NodeContextMenuOptionProps> = ({
+  nodeId,
+}) => {
+  const handleExport = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
+    const selectedNodes = nodes.filter(
+      (node) => node.selected || node.id === nodeId,
+    );
+    const nodeIds = selectedNodes.map((n) => n.id);
+    emit("request-export-selection-image", { nodeIds });
+  }, [nodeId]);
+
+  return (
+    <ContextMenuItem onClick={handleExport}>
+      <Download className="size-4" />
+      Export to PNG
     </ContextMenuItem>
   );
 };

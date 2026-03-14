@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect } from "react";
-import { Focus, Trash2, Ungroup } from "lucide-react";
+import { Focus, Trash2, Ungroup, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
@@ -12,6 +12,7 @@ import {
 } from "../ui/context-menu";
 import useFlowStore from "@/stores/flow-store";
 import { Card } from "../ui/card";
+import { emit } from "@tauri-apps/api/event";
 
 export interface GroupNodeData extends Record<string, unknown> {
   name: string;
@@ -51,6 +52,15 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
         .map((node) => ({ id: node.id })),
     });
   }, [instance, id]);
+
+  const handleExport = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
+    const selectedNodes = nodes.filter(
+      (node) => node.selected || node.id === id,
+    );
+    const nodeIds = selectedNodes.map((n) => n.id);
+    emit("request-export-selection-image", { nodeIds });
+  }, [id]);
 
   const handleDelete = useCallback(() => {
     setNodes((currentNodes) => {
@@ -254,6 +264,10 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
             Ungroup
           </ContextMenuItem>
           <ContextMenuSeparator />
+          <ContextMenuItem onClick={handleExport}>
+            <Download className="size-4" />
+            Export to PNG
+          </ContextMenuItem>
           <ContextMenuItem variant="destructive" onClick={handleDelete}>
             <Trash2 className="size-4" />
             Delete
