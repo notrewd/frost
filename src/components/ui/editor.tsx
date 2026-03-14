@@ -109,18 +109,25 @@ const FlowEditor = () => {
   );
 
   // Undo/Redo hooks
-  const { undo, redo, pause, resume, canUndo, canRedo } = useStore(
-    (useFlowStore as any).temporal,
-    useShallow((state: any) => ({
-      undo: state.undo,
-      redo: state.redo,
-      pause: state.pause,
-      resume: state.resume,
-      canUndo: state.pastStates.length > 0,
-      canRedo: state.futureStates.length > 0,
-    })),
-  );
+  const { undo, redo, pause, resume, canUndo, canRedo, pastLen, futureLen } =
+    useStore(
+      (useFlowStore as any).temporal,
+      useShallow((state: any) => ({
+        undo: state.undo,
+        redo: state.redo,
+        pause: state.pause,
+        resume: state.resume,
+        canUndo: state.pastStates.length > 0,
+        canRedo: state.futureStates.length > 0,
+        pastLen: state.pastStates.length,
+        futureLen: state.futureStates.length,
+      })),
+    );
 
+  useEffect(() => {
+    // Broadcast history whenever it changes
+    emit("request-history");
+  }, [pastLen, futureLen]);
   const { setCanUndo, setCanRedo } = useProjectStore(
     useShallow((state) => ({
       setCanUndo: state.setCanUndo,
@@ -368,6 +375,45 @@ const FlowEditor = () => {
       emit("edges-data", edges);
     });
 
+    const historyUnlisten = listen("request-history", async () => {
+      const temporalState = (useFlowStore as any).temporal.getState();
+      const pastLen = temporalState.pastStates.length;
+      const futureLen = temporalState.futureStates.length;
+
+      const historyItems = [];
+      for (let i = 0; i <= pastLen + futureLen; i++) {
+        historyItems.push({
+          index: i,
+          isActive: i === pastLen,
+          label: i === 0 ? "Initial State" : `History State #${i}`,
+        });
+      }
+
+      emit("history-data", historyItems);
+    });
+
+    const historyJumpUnlisten = listen<{ index: number }>(
+      "history-jump",
+      async (event) => {
+        const targetIndex = event.payload.index;
+        const temporalState = (useFlowStore as any).temporal.getState();
+        const currentIndex = temporalState.pastStates.length;
+
+        const distance = currentIndex - targetIndex;
+
+        if (distance > 0) {
+          temporalState.undo(distance);
+        } else if (distance < 0) {
+          temporalState.redo(Math.abs(distance));
+        }
+
+        // Emit updated history after state changes
+        setTimeout(() => {
+          emit("request-history");
+        }, 10);
+      },
+    );
+
     const updateEdgeUnlisten = listen<{ id: string; type: string }>(
       "update-edge-type",
       async (event) => {
@@ -425,6 +471,8 @@ const FlowEditor = () => {
       redoUnlisten.then((f) => f());
       exportUnlisten.then((f) => f());
       edgesUnlisten.then((f) => f());
+      historyUnlisten.then((f) => f());
+      historyJumpUnlisten.then((f) => f());
       updateEdgeUnlisten.then((f) => f());
       deleteEdgeUnlisten.then((f) => f());
       focusEdgeUnlisten.then((f) => f());

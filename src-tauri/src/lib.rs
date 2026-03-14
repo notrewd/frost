@@ -248,6 +248,27 @@ async fn open_edges_outliner_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("history") {
+        None => {
+            WebviewWindowBuilder::new(&app, "history", WebviewUrl::App("/history".into()))
+                .title("History")
+                .always_on_top(true)
+                .inner_size(400.0, 500.0)
+                .min_inner_size(400.0, 500.0)
+                .decorations(if cfg!(windows) { false } else { true })
+                .theme(Some(tauri::Theme::Dark))
+                .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
     if let Some(window) = app.webview_windows().get(&label) {
         window.close()?;
@@ -573,6 +594,7 @@ pub fn run() {
             open_settings_window,
             open_export_window,
             open_edges_outliner_window,
+            open_history_window,
             close_window,
             request_project_details,
             request_project_data,
@@ -659,8 +681,11 @@ pub fn run() {
 
             let edges_outliner_item =
                 MenuItem::with_id(app, "edges_outliner", "Edges Outliner", true, None::<&str>)?;
+            let history_item = MenuItem::with_id(app, "history", "History", true, None::<&str>)?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
+                .item(&history_item)
+                .separator()
                 .item(&edges_outliner_item)
                 .build()?;
 
@@ -718,6 +743,9 @@ pub fn run() {
                     }
                     "edges_outliner" => {
                         tauri::async_runtime::spawn(open_edges_outliner_window(app.clone()));
+                    }
+                    "history" => {
+                        tauri::async_runtime::spawn(open_history_window(app.clone()));
                     }
                     "undo" | "redo" => {
                         app.emit(event.id().0.as_str(), ()).unwrap();

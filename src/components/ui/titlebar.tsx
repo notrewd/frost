@@ -20,6 +20,7 @@ import {
   BoxSelect,
   Download,
   ListTree,
+  History,
 } from "lucide-react";
 import {
   Menubar,
@@ -120,6 +121,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
       await invoke("open_edges_outliner_window");
     } catch (error) {
       console.error("Failed to open edges outliner window:", error);
+    }
+  }, []);
+
+  const showHistoryWindow = useCallback(async () => {
+    try {
+      await invoke("open_history_window");
+    } catch (error) {
+      console.error("Failed to open history window:", error);
     }
   }, []);
 
@@ -394,6 +403,11 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                 <MenubarMenu>
                   <MenubarTrigger>View</MenubarTrigger>
                   <MenubarContent>
+                    <MenubarItem onClick={showHistoryWindow}>
+                      <History className="size-4" />
+                      History
+                    </MenubarItem>
+                    <MenubarSeparator />
                     <MenubarItem onClick={showEdgesOutlinerWindow}>
                       <ListTree className="size-4" />
                       Edges Outliner
