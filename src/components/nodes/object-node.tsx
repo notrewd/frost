@@ -1,12 +1,11 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useState } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { ChevronsLeft, ChevronsRight, Edit2, Spline } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
-import { Handle, Position, useConnection } from "@xyflow/react";
 import { ContextMenuItem, ContextMenuSeparator } from "../ui/context-menu";
 import NodeContextMenu, {
   NodeContextMenuContent,
@@ -16,6 +15,7 @@ import NodeContextMenu, {
   NodeContextMenuOptions,
   NodeContextMenuUngroupOption,
 } from "../ui/nodes/node-context-menu";
+import NodeConnectionHandle from "../ui/nodes/node-connection-handle";
 
 export interface ObjectNodeProperty {
   id: string;
@@ -56,13 +56,6 @@ interface ObjectNodeProps {
 }
 
 const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
-  const connection = useConnection();
-
-  const isTarget = useMemo(
-    () => connection.inProgress && connection.fromNode.id !== id,
-    [connection, id],
-  );
-
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { coloredNodes, compactNodes, nodeBorderRadius } = useSettingsStore(
@@ -257,44 +250,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                 No attributes or methods
               </p>
             )}
-            {!connection.inProgress && (
-              <Handle
-                type="source"
-                position={Position.Right}
-                style={{
-                  position: "absolute",
-                  top: "unset",
-                  right: "1em",
-                  bottom: "0",
-                  background: "none",
-                  border: "none",
-                  width: "1em",
-                  height: "1em",
-                }}
-              >
-                <div className="rounded-md bg-muted size-8 flex flex-col items-center justify-center">
-                  <Spline className="size-4 text-foreground" />
-                </div>
-              </Handle>
-            )}
-            {(!connection.inProgress || isTarget) && (
-              <Handle
-                type="target"
-                position={Position.Left}
-                isConnectableStart={false}
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  top: "0",
-                  left: "0",
-                  background: "none",
-                  border: "none",
-                  zIndex: "50",
-                  transform: "none",
-                }}
-              />
-            )}
+            <NodeConnectionHandle nodeId={id} />
           </Card>
         </NodeContextMenuContent>
         <NodeContextMenuOptions>
