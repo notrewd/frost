@@ -11,6 +11,7 @@ import { initProjectListeners } from "@/stores/project-store";
 import SettingsRoute from "./routes/settings-route.tsx";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import ExportRoute from "./routes/export-route.tsx";
+import EdgesOutlinerRoute from "./routes/edges-outliner-route.tsx";
 
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
@@ -28,6 +29,10 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                 <Route path="/new-project" element={<NewProjectRoute />} />
                 <Route path="/settings" element={<SettingsRoute />} />
                 <Route path="/export" element={<ExportRoute />} />
+                <Route
+                  path="/edges-outliner"
+                  element={<EdgesOutlinerRoute />}
+                />
               </Route>
               <Route element={<MainLayout />}>
                 <Route path="/editor" element={<EditorRoute />} />

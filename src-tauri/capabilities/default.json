@@ -6,7 +6,8 @@
     "welcome",
     "editor",
     "settings",
-    "export"
+    "export",
+    "edges-outliner"
   ],
   "permissions": [
     "core:default",

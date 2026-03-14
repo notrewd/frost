@@ -363,12 +363,79 @@ const FlowEditor = () => {
       }
     });
 
+    const edgesUnlisten = listen("request-edges", async () => {
+      const edges = useFlowStore.getState().edges;
+      emit("edges-data", edges);
+    });
+
+    const updateEdgeUnlisten = listen<{ id: string; type: string }>(
+      "update-edge-type",
+      async (event) => {
+        const { id, type } = event.payload;
+        const currentEdges = useFlowStore.getState().edges;
+        const newEdges = currentEdges.map((e) =>
+          e.id === id ? { ...e, type } : e,
+        );
+        useFlowStore.getState().setEdges(() => newEdges);
+        emit("edges-data", newEdges);
+      },
+    );
+
+    const deleteEdgeUnlisten = listen<{ id: string }>(
+      "delete-edge",
+      async (event) => {
+        const { id } = event.payload;
+        const currentEdges = useFlowStore.getState().edges;
+        const newEdges = currentEdges.filter((e) => e.id !== id);
+        useFlowStore.getState().setEdges(() => newEdges);
+        emit("edges-data", newEdges);
+      },
+    );
+
+    const focusEdgeUnlisten = listen<{ id: string }>(
+      "focus-edge",
+      async (event) => {
+        const { id } = event.payload;
+        const currentEdges = useFlowStore.getState().edges;
+        const newEdges = currentEdges.map((e) => ({
+          ...e,
+          selected: e.id === id,
+        }));
+        useFlowStore.getState().setEdges(() => newEdges);
+
+        const reactFlowInstance = useFlowStore.getState().instance;
+        const edge = currentEdges.find((e) => e.id === id);
+        if (edge && reactFlowInstance) {
+          const nodes = useFlowStore.getState().nodes;
+          const sourceNode = nodes.find((n) => n.id === edge.source);
+          if (sourceNode) {
+            reactFlowInstance.setCenter(
+              sourceNode.position.x,
+              sourceNode.position.y,
+              { zoom: 1, duration: 800 },
+            );
+          }
+        }
+      },
+    );
+
     return () => {
       projectOpenedUnlisten.then((f) => f());
       undoUnlisten.then((f) => f());
       redoUnlisten.then((f) => f());
       exportUnlisten.then((f) => f());
+      edgesUnlisten.then((f) => f());
+      updateEdgeUnlisten.then((f) => f());
+      deleteEdgeUnlisten.then((f) => f());
+      focusEdgeUnlisten.then((f) => f());
     };
+  }, []);
+
+  useEffect(() => {
+    const unsub = useFlowStore.subscribe((state) => {
+      emit("edges-data", state.edges);
+    });
+    return unsub;
   }, []);
 
   const handleOnConnect = useCallback(

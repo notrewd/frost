@@ -19,6 +19,7 @@ import {
   ClipboardPaste,
   BoxSelect,
   Download,
+  ListTree,
 } from "lucide-react";
 import {
   Menubar,
@@ -111,6 +112,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
       await invoke("open_export_window");
     } catch (error) {
       console.error("Failed to open export window:", error);
+    }
+  }, []);
+
+  const showEdgesOutlinerWindow = useCallback(async () => {
+    try {
+      await invoke("open_edges_outliner_window");
+    } catch (error) {
+      console.error("Failed to open edges outliner window:", error);
     }
   }, []);
 
@@ -379,6 +388,15 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                       <BoxSelect className="size-4" />
                       Select All
                       <MenubarShortcut>Ctrl+A</MenubarShortcut>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>View</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={showEdgesOutlinerWindow}>
+                      <ListTree className="size-4" />
+                      Edges Outliner
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>

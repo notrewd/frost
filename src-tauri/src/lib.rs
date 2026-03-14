@@ -223,6 +223,31 @@ async fn open_export_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+async fn open_edges_outliner_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("edges-outliner") {
+        None => {
+            WebviewWindowBuilder::new(
+                &app,
+                "edges-outliner",
+                WebviewUrl::App("/edges-outliner".into()),
+            )
+            .title("Edges Outliner")
+            .always_on_top(true)
+            .inner_size(700.0, 600.0)
+            .min_inner_size(700.0, 600.0)
+            .decorations(if cfg!(windows) { false } else { true })
+            .theme(Some(tauri::Theme::Dark))
+            .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn close_window(app: AppHandle, label: String) -> tauri::Result<()> {
     if let Some(window) = app.webview_windows().get(&label) {
         window.close()?;
@@ -547,6 +572,7 @@ pub fn run() {
             open_welcome_window,
             open_settings_window,
             open_export_window,
+            open_edges_outliner_window,
             close_window,
             request_project_details,
             request_project_data,
@@ -631,10 +657,23 @@ pub fn run() {
                 .item(&select_all_nodes_item)
                 .build()?;
 
+            let edges_outliner_item =
+                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", true, None::<&str>)?;
+
+            let view_menu = SubmenuBuilder::new(app, "View")
+                .item(&edges_outliner_item)
+                .build()?;
+
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
 
             let menu = MenuBuilder::new(app)
-                .items(&[&about_menu, &file_menu, &edit_menu, &window_menu])
+                .items(&[
+                    &about_menu,
+                    &file_menu,
+                    &edit_menu,
+                    &view_menu,
+                    &window_menu,
+                ])
                 .build()?;
 
             let settings_state = util::load_settings().unwrap_or_default();
@@ -676,6 +715,9 @@ pub fn run() {
                     }
                     "export" => {
                         tauri::async_runtime::spawn(open_export_window(app.clone()));
+                    }
+                    "edges_outliner" => {
+                        tauri::async_runtime::spawn(open_edges_outliner_window(app.clone()));
                     }
                     "undo" | "redo" => {
                         app.emit(event.id().0.as_str(), ()).unwrap();
