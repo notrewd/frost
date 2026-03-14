@@ -184,7 +184,7 @@ const LibraryPanel = ({ onItemDropped, onItemClicked }: LibraryPanelProps) => {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex items-center gap-2 mb-4 shrink-0">
+      <div className="flex items-center gap-2 mb-2 shrink-0">
         <SearchInput
           placeholder="Search library..."
           className="w-full"
