@@ -7,6 +7,8 @@ import {
   Circle,
   User,
   Component,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import LibraryItem from "../ui/library-item";
@@ -21,6 +23,9 @@ import type { ComponentNodeData } from "@/components/nodes/component-node";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
 import { ScrollArea } from "../ui/scroll-area";
+import { ButtonGroup } from "../ui/button-group";
+import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
 
 export type LibraryNodeTemplate =
   | { type: "object"; data: ObjectNodeData }
@@ -155,6 +160,7 @@ const categories: LibraryPalleteCategory[] = [
 
 const LibraryPanel = ({ onItemDropped, onItemClicked }: LibraryPanelProps) => {
   const [query, setQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -178,23 +184,56 @@ const LibraryPanel = ({ onItemDropped, onItemClicked }: LibraryPanelProps) => {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <SearchInput
-        placeholder="Search library..."
-        className="w-full mb-4 shrink-0"
-        value={query}
-        onChange={handleSearch}
-      />
+      <div className="flex items-center gap-2 mb-4 shrink-0">
+        <SearchInput
+          placeholder="Search library..."
+          className="w-full"
+          value={query}
+          onChange={handleSearch}
+        />
+        <ButtonGroup>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode("grid")}
+            title="Grid View"
+            className="h-8"
+          >
+            <LayoutGrid
+              className={cn(viewMode === "list" && "text-muted-foreground")}
+            />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setViewMode("list")}
+            title="List View"
+            className="h-8"
+          >
+            <List
+              className={cn(viewMode === "grid" && "text-muted-foreground")}
+            />
+          </Button>
+        </ButtonGroup>
+      </div>
       <ScrollArea className="flex-1 min-h-0 w-[calc(100%+16px)] pr-4">
         {filteredCategories.map((item, index) => (
           <div key={index}>
             <Separator className="my-2" />
             <PropertiesSection title={item.label}>
-              <div className="grid grid-cols-2 gap-4">
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-2 gap-4"
+                    : "flex flex-col gap-2"
+                }
+              >
                 {item.items.map((paletteItem) => (
                   <LibraryItem
                     key={`${paletteItem.label}`}
                     icon={paletteItem.icon}
                     draggable
+                    viewMode={viewMode}
                     onClick={() => onItemClicked?.(paletteItem)}
                     onDragEnd={(drag) => {
                       onItemDropped?.(paletteItem, drag);
