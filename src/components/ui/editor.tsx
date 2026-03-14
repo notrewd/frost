@@ -301,14 +301,20 @@ const FlowEditor = () => {
         width: maxX === -Infinity ? 10 : Math.max(0, maxX - minX),
         height: maxY === -Infinity ? 10 : Math.max(0, maxY - minY),
       };
-      const imageWidth = 1024;
-      const imageHeight = 768;
+      const imageWidth = Math.max(
+        1024,
+        Math.ceil(nodesBounds.width) + padding * 2,
+      );
+      const imageHeight = Math.max(
+        768,
+        Math.ceil(nodesBounds.height) + padding * 2,
+      );
 
       const viewport = getViewportForBounds(
         nodesBounds,
         imageWidth,
         imageHeight,
-        0.5,
+        0.01,
         2,
         padding / 100,
       );
