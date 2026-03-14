@@ -151,8 +151,31 @@ const EditorRoute = () => {
     return nodes.filter((node) => node.selected);
   }, [nodes]);
 
+  const getNodesWithChildren = useCallback(
+    (initialNodes: Node[]) => {
+      const resultIds = new Set(initialNodes.map((n) => n.id));
+      let added = true;
+      while (added) {
+        added = false;
+        nodes.forEach((node) => {
+          if (
+            node.parentId &&
+            resultIds.has(node.parentId) &&
+            !resultIds.has(node.id)
+          ) {
+            resultIds.add(node.id);
+            added = true;
+          }
+        });
+      }
+      return nodes.filter((n) => resultIds.has(n.id));
+    },
+    [nodes],
+  );
+
   const copyNodes = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    let selectedNodes = getSelectedNodes();
+    selectedNodes = getNodesWithChildren(selectedNodes);
 
     if (selectedNodes.length === 0) {
       return;
@@ -187,7 +210,8 @@ const EditorRoute = () => {
   }, [setEdges, setNodes]);
 
   const cutNodes = useCallback(() => {
-    const selectedNodes = getSelectedNodes();
+    let selectedNodes = getSelectedNodes();
+    selectedNodes = getNodesWithChildren(selectedNodes);
 
     if (selectedNodes.length === 0) {
       return;
@@ -238,7 +262,7 @@ const EditorRoute = () => {
     const timestamp = Date.now().toString(36);
     const idMap = new Map<string, string>();
 
-    const newNodes = clipboard.nodes.map((node, index) => {
+    const newNodesInitial = clipboard.nodes.map((node, index) => {
       const newId = `n${timestamp}${index}${Math.random()
         .toString(36)
         .slice(2, 7)}`;
@@ -248,10 +272,28 @@ const EditorRoute = () => {
       return {
         ...node,
         id: newId,
-        position: {
-          x: node.position.x + offset,
-          y: node.position.y + offset,
-        },
+      };
+    });
+
+    const newNodes = newNodesInitial.map((node, index) => {
+      const originalNode = clipboard.nodes[index];
+      const newParentId = originalNode.parentId
+        ? idMap.get(originalNode.parentId) || originalNode.parentId
+        : undefined;
+      const isParentCopied =
+        originalNode.parentId && idMap.has(originalNode.parentId);
+
+      const newPos = isParentCopied
+        ? { ...originalNode.position }
+        : {
+            x: originalNode.position.x + offset,
+            y: originalNode.position.y + offset,
+          };
+
+      return {
+        ...node,
+        parentId: newParentId,
+        position: newPos,
         selected: true,
       };
     });
