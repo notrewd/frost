@@ -42,11 +42,19 @@ import CompositionEdge from "../edges/composition-edge";
 
 import GroupNode from "../nodes/group-node";
 import PackageNode from "../nodes/package-node";
+import NoteNode from "../nodes/note-node";
+import UseCaseNode from "../nodes/use-case-node";
+import ActorNode from "../nodes/actor-node";
+import ComponentNode from "../nodes/component-node";
 
 const nodeTypes = {
   object: ObjectNode,
   group: GroupNode,
   package: PackageNode,
+  note: NoteNode,
+  "use-case": UseCaseNode,
+  actor: ActorNode,
+  component: ComponentNode,
 };
 
 const edgeTypes = {

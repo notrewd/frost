@@ -473,16 +473,15 @@ const EditorRoute = () => {
         .toString(36)
         .slice(2, 8)}`;
 
-      setNodes((nds) =>
-        nds.concat([
-          {
-            id,
-            type: item.template.type,
-            position,
-            data: item.template.data,
-          },
-        ]),
-      );
+      setNodes((nds) => [
+        ...nds,
+        {
+          id,
+          type: item.template.type,
+          position,
+          data: item.template.data,
+        } as any,
+      ]);
     },
     [reactFlowInstance, setNodes],
   );

@@ -8,6 +8,10 @@ import {
   Trash,
   Ungroup,
   Download,
+  MessageSquare,
+  Circle,
+  User,
+  Component,
 } from "lucide-react";
 import { emit } from "@tauri-apps/api/event";
 import TreeView, {
@@ -25,6 +29,10 @@ const iconMap = {
   folder: <Folder className="size-4" />,
   node: <SquareChartGantt className="size-4" />,
   package: <Archive className="size-4" />,
+  note: <MessageSquare className="size-4" />,
+  "use-case": <Circle className="size-4" />,
+  actor: <User className="size-4" />,
+  component: <Component className="size-4" />,
 };
 
 const ProjectPanel = () => {
@@ -51,7 +59,15 @@ const ProjectPanel = () => {
             ? ("folder" as const)
             : node.type === "package"
               ? ("package" as const)
-              : ("node" as const),
+              : node.type === "note"
+                ? ("note" as const)
+                : node.type === "use-case"
+                  ? ("use-case" as const)
+                  : node.type === "actor"
+                    ? ("actor" as const)
+                    : node.type === "component"
+                      ? ("component" as const)
+                      : ("node" as const),
         selected: node.selected,
         ...(node.type === "group" ? { children: buildHierarchy(node.id) } : {}),
       }));
@@ -359,6 +375,10 @@ const ProjectPanel = () => {
       node: commonNodeActions,
       folder: commonNodeActions,
       package: commonNodeActions,
+      note: commonNodeActions,
+      "use-case": commonNodeActions,
+      actor: commonNodeActions,
+      component: commonNodeActions,
     };
   }, [handleDelete, handleGroup, handleUngroup, instance]);
 

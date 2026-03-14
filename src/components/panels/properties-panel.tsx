@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
+import NoteNodeDialog from "../ui/dialogs/note-node-dialog";
 import { ScrollArea } from "../ui/scroll-area";
 import {
   Edit2,
@@ -23,8 +24,13 @@ import {
   Hash,
   SquareDashed,
   Archive,
+  MessageSquare,
+  Circle,
+  User,
+  Component,
 } from "lucide-react";
 import { ObjectNodeData } from "@/components/nodes/object-node";
+import { NoteNodeData } from "@/components/nodes/note-node";
 import { cn } from "@/lib/utils";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
@@ -35,15 +41,18 @@ const PropRow = ({
   label,
   children,
   disabled = false,
+  className,
 }: {
   label: string;
   children: React.ReactNode;
   disabled?: boolean;
+  className?: string;
 }) => (
   <div
     className={cn(
       "flex items-center justify-between px-3 py-1.5 focus-within:bg-muted/5 transition-colors",
       disabled && "opacity-50 pointer-events-none",
+      className,
     )}
   >
     <span className="text-xs text-muted-foreground w-1/3 truncate font-medium">
@@ -417,6 +426,137 @@ const PropertiesPanel: FC = () => {
             </PropertiesSection>
           </>
         )}
+        {selectedNodes.some((node) => node.type === "note") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Note Properties (${selectedNodes.filter((node) => node.type === "note").length})`}
+              icon={MessageSquare}
+            >
+              <PropRow label="Content">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs w-full"
+                  disabled={
+                    selectedNodes.filter((node) => node.type === "note")
+                      .length > 1
+                  }
+                  onClick={() => {
+                    const noteNodes = selectedNodes.filter(
+                      (node) => node.type === "note",
+                    );
+                    if (noteNodes.length === 1) {
+                      handleNodeEditClick(noteNodes[0].id);
+                    }
+                  }}
+                >
+                  <Edit2 className="size-3 mr-2" />
+                  Edit Content
+                </Button>
+              </PropRow>
+            </PropertiesSection>
+          </>
+        )}
+        {selectedNodes.some((node) => node.type === "use-case") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Use Case Properties (${selectedNodes.filter((node) => node.type === "use-case").length})`}
+              icon={Circle}
+            >
+              <PropRow label="Name">
+                <Input
+                  value={
+                    (selectedNodes.filter((n) => n.type === "use-case")[0].data
+                      .name as string) || ""
+                  }
+                  placeholder="Use Case Name"
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setNodes((prevNodes) =>
+                      prevNodes.map((node) =>
+                        node.selected && node.type === "use-case"
+                          ? {
+                              ...node,
+                              data: { ...node.data, name: newName },
+                            }
+                          : node,
+                      ),
+                    );
+                  }}
+                  variant="small"
+                />
+              </PropRow>
+            </PropertiesSection>
+          </>
+        )}
+        {selectedNodes.some((node) => node.type === "actor") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Actor Properties (${selectedNodes.filter((node) => node.type === "actor").length})`}
+              icon={User}
+            >
+              <PropRow label="Name">
+                <Input
+                  value={
+                    (selectedNodes.filter((n) => n.type === "actor")[0].data
+                      .name as string) || ""
+                  }
+                  placeholder="Actor Name"
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setNodes((prevNodes) =>
+                      prevNodes.map((node) =>
+                        node.selected && node.type === "actor"
+                          ? {
+                              ...node,
+                              data: { ...node.data, name: newName },
+                            }
+                          : node,
+                      ),
+                    );
+                  }}
+                  variant="small"
+                />
+              </PropRow>
+            </PropertiesSection>
+          </>
+        )}
+        {selectedNodes.some((node) => node.type === "component") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Component Properties (${selectedNodes.filter((node) => node.type === "component").length})`}
+              icon={Component}
+            >
+              <PropRow label="Name">
+                <Input
+                  value={
+                    (selectedNodes.filter((n) => n.type === "component")[0].data
+                      .name as string) || ""
+                  }
+                  placeholder="Component Name"
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setNodes((prevNodes) =>
+                      prevNodes.map((node) =>
+                        node.selected && node.type === "component"
+                          ? {
+                              ...node,
+                              data: { ...node.data, name: newName },
+                            }
+                          : node,
+                      ),
+                    );
+                  }}
+                  variant="small"
+                />
+              </PropRow>
+            </PropertiesSection>
+          </>
+        )}
         {selectedEdges.length > 0 && (
           <>
             <Separator className="my-2 first:hidden" />
@@ -524,10 +664,28 @@ const PropertiesPanel: FC = () => {
         )}
       </ScrollArea>
 
-      {selectedNodeDialog && (
+      {selectedNodeDialog && selectedNodeDialog.type === "object" && (
         <ObjectNodeDialog
           id={selectedNodeDialog.id}
           data={selectedNodeDialog.data as ObjectNodeData}
+          open={nodeDialogOpen}
+          onOpenChange={(open) => {
+            setNodeDialogOpen(open);
+            if (!open) {
+              const timer = setTimeout(
+                () => setSelectedNodeForDialog(null),
+                150,
+              );
+              return () => clearTimeout(timer);
+            }
+          }}
+        />
+      )}
+
+      {selectedNodeDialog && selectedNodeDialog.type === "note" && (
+        <NoteNodeDialog
+          id={selectedNodeDialog.id}
+          data={selectedNodeDialog.data as NoteNodeData}
           open={nodeDialogOpen}
           onOpenChange={(open) => {
             setNodeDialogOpen(open);

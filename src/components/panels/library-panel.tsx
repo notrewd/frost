@@ -3,20 +3,32 @@ import {
   ChevronsLeftRightEllipsis,
   TableProperties,
   Tag,
+  MessageSquare,
+  Circle,
+  User,
+  Component,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import LibraryItem from "../ui/library-item";
-import SearchInput from "../ui/inputs/search-input";
+import { default as SearchInput } from "../ui/inputs/search-input";
 import { useMemo, useState, type ChangeEvent } from "react";
 import type { DragEventData } from "@neodrag/react";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
+import type { NoteNodeData } from "@/components/nodes/note-node";
+import type { UseCaseNodeData } from "@/components/nodes/use-case-node";
+import type { ActorNodeData } from "@/components/nodes/actor-node";
+import type { ComponentNodeData } from "@/components/nodes/component-node";
 import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
+import { ScrollArea } from "../ui/scroll-area";
 
-export type LibraryNodeTemplate = {
-  type: "object" | "package";
-  data: ObjectNodeData;
-};
+export type LibraryNodeTemplate =
+  | { type: "object"; data: ObjectNodeData }
+  | { type: "package"; data: { name: string } }
+  | { type: "note"; data: NoteNodeData }
+  | { type: "use-case"; data: UseCaseNodeData }
+  | { type: "actor"; data: ActorNodeData }
+  | { type: "component"; data: ComponentNodeData };
 
 export type LibraryPaletteItem = {
   icon: LucideIcon;
@@ -56,6 +68,52 @@ const categories: LibraryPalleteCategory[] = [
           type: "package",
           data: {
             name: "Package",
+          },
+        },
+      },
+      {
+        icon: MessageSquare,
+        label: "Note",
+        template: {
+          type: "note",
+          data: {
+            name: "Note",
+            note: "",
+          },
+        },
+      },
+    ],
+  },
+  {
+    label: "Use Case",
+    items: [
+      {
+        icon: Circle,
+        label: "Use Case",
+        template: {
+          type: "use-case",
+          data: {
+            name: "Use Case",
+          },
+        },
+      },
+      {
+        icon: User,
+        label: "Actor",
+        template: {
+          type: "actor",
+          data: {
+            name: "Actor",
+          },
+        },
+      },
+      {
+        icon: Component,
+        label: "Component",
+        template: {
+          type: "component",
+          data: {
+            name: "Component",
           },
         },
       },
@@ -119,36 +177,38 @@ const LibraryPanel = ({ onItemDropped }: LibraryPanelProps) => {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full min-h-0">
       <SearchInput
         placeholder="Search library..."
-        className="w-full mb-4"
+        className="w-full mb-4 shrink-0"
         value={query}
         onChange={handleSearch}
       />
-      {filteredCategories.map((item, index) => (
-        <>
-          <Separator className="my-2" />
-          <PropertiesSection title={item.label} key={index}>
-            <div className="grid grid-cols-2 gap-4">
-              {item.items.map((paletteItem) => (
-                <LibraryItem
-                  key={`${paletteItem.label}-${resetKey}`}
-                  icon={paletteItem.icon}
-                  draggable
-                  onDragEnd={(drag) => {
-                    onItemDropped?.(paletteItem, drag);
-                    setResetKey((k) => k + 1);
-                  }}
-                >
-                  {paletteItem.label}
-                </LibraryItem>
-              ))}
-            </div>
-          </PropertiesSection>
-        </>
-      ))}
-    </>
+      <ScrollArea className="flex-1 min-h-0 w-[calc(100%+16px)] pr-4">
+        {filteredCategories.map((item, index) => (
+          <div key={index}>
+            <Separator className="my-2" />
+            <PropertiesSection title={item.label}>
+              <div className="grid grid-cols-2 gap-4">
+                {item.items.map((paletteItem) => (
+                  <LibraryItem
+                    key={`${paletteItem.label}-${resetKey}`}
+                    icon={paletteItem.icon}
+                    draggable
+                    onDragEnd={(drag) => {
+                      onItemDropped?.(paletteItem, drag);
+                      setResetKey((k) => k + 1);
+                    }}
+                  >
+                    {paletteItem.label}
+                  </LibraryItem>
+                ))}
+              </div>
+            </PropertiesSection>
+          </div>
+        ))}
+      </ScrollArea>
+    </div>
   );
 };
 

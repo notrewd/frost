@@ -59,6 +59,7 @@ const LibraryItem: FC<LibraryItemProps> = ({
     onDragStart: handleDragStart,
     onDrag: updatePreviewPosition,
     onDragEnd: handleDragEnd,
+    transform: () => "translate3d(0, 0, 0)", // Prevent the original element from moving
   });
 
   const card = useMemo(
@@ -87,7 +88,7 @@ const LibraryItem: FC<LibraryItemProps> = ({
         </div>
       </Card>
     ),
-    [Icon, children, isInteractive, onClick]
+    [Icon, children, isInteractive, onClick],
   );
 
   if (!draggable) return card;
@@ -114,7 +115,7 @@ const LibraryItem: FC<LibraryItemProps> = ({
             >
               {card}
             </div>,
-            document.body
+            document.body,
           )
         : null}
     </>

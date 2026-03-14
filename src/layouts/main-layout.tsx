@@ -5,7 +5,7 @@ const MainLayout = () => {
   return (
     <>
       <Titlebar />
-      <main className="flex flex-col flex-1">
+      <main className="flex flex-col flex-1 overflow-hidden">
         <Outlet />
       </main>
     </>
