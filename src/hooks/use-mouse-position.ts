@@ -1,10 +1,10 @@
 // https://www.joshwcomeau.com/snippets/react-hooks/use-mouse-position/
-// slightly modified for typescript compatibility
+// modified to use ref instead of state to prevent excessive re-renders
 
-import React, { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const useMousePosition = () => {
-  const [mousePosition, setMousePosition] = React.useState<{
+  const mousePosition = useRef<{
     x: number | null;
     y: number | null;
   }>({
@@ -14,10 +14,12 @@ const useMousePosition = () => {
 
   useEffect(() => {
     const updateMousePosition = (ev: MouseEvent) => {
-      setMousePosition({ x: ev.clientX, y: ev.clientY });
+      mousePosition.current = { x: ev.clientX, y: ev.clientY };
     };
 
-    window.addEventListener("mousemove", updateMousePosition);
+    window.addEventListener("mousemove", updateMousePosition, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("mousemove", updateMousePosition);

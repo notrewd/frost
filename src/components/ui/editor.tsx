@@ -64,6 +64,10 @@ const connectionLineStyle = {
   strokeDasharray: "5 5",
 };
 
+const deleteKeyCode = ["Backspace", "Delete"];
+const panOnDrag = [1, 2];
+const proOptions = { hideAttribution: true };
+
 const FlowEditor = () => {
   const mousePosition = useMousePosition();
 
@@ -84,7 +88,6 @@ const FlowEditor = () => {
   const {
     nodes,
     edges,
-    instance,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -156,10 +159,9 @@ const FlowEditor = () => {
   }, [canUndo, canRedo, setCanUndo, setCanRedo]);
 
   const onNodeDragStart = useCallback(() => {
-    // Snapshot current state before drag
-    setNodes((nodes) => [...nodes]);
+    // Pause history recording during drag to avoid excessive states
     pause();
-  }, [setNodes, pause]);
+  }, [pause]);
 
   const onNodeDragStop = useCallback(() => {
     resume();
@@ -373,8 +375,8 @@ const FlowEditor = () => {
     (connection: Connection) => {
       setCurrentConnection(connection);
       setEdgeTypesMenuPosition({
-        x: mousePosition.x || 0,
-        y: mousePosition.y || 0,
+        x: mousePosition.current.x || 0,
+        y: mousePosition.current.y || 0,
       });
     },
     [onConnect, mousePosition],
@@ -389,14 +391,15 @@ const FlowEditor = () => {
   }, []);
 
   const handleSelectionGroup = useCallback(() => {
-    const selectedNodesAll = nodes.filter((node) => node.selected);
+    const { nodes: currentFlowNodes, setNodes } = useFlowStore.getState();
+    const selectedNodesAll = currentFlowNodes.filter((node) => node.selected);
     if (selectedNodesAll.length === 0) return;
 
     const selectedNodes = selectedNodesAll.filter((node) => {
       let current = node.parentId;
       while (current) {
         if (selectedNodesAll.some((n) => n.id === current)) return false;
-        const parent = nodes.find((n) => n.id === current);
+        const parent = currentFlowNodes.find((n) => n.id === current);
         current = parent?.parentId;
       }
       return true;
@@ -472,20 +475,24 @@ const FlowEditor = () => {
       return finalNodes.filter((n) => !groupsToDelete.includes(n.id));
     });
     setSelectionMenuPosition(null);
-  }, [nodes, setNodes]);
+  }, []);
 
   const handleSelectionFocus = useCallback(() => {
+    const { instance, nodes: currentFlowNodes } = useFlowStore.getState();
     instance?.fitView({
-      nodes: nodes.filter((node) => node.selected).map((n) => ({ id: n.id })),
+      nodes: currentFlowNodes
+        .filter((node) => node.selected)
+        .map((n) => ({ id: n.id })),
     });
     setSelectionMenuPosition(null);
-  }, [instance, nodes]);
+  }, []);
 
   const handleSelectionDelete = useCallback(() => {
+    const { setNodes, setEdges } = useFlowStore.getState();
     setNodes((nodes) => nodes.filter((node) => !node.selected));
     setEdges((edges) => edges.filter((edge) => !edge.selected));
     setSelectionMenuPosition(null);
-  }, [setNodes, setEdges]);
+  }, []);
 
   const addEdge = useCallback(
     (edgeType: string, marker: MarkerType) => {
@@ -513,9 +520,9 @@ const FlowEditor = () => {
     [onConnect, currentConnection],
   );
 
-  const mappedEdges = useMemo(
-    () => edges.map((edge) => ({ ...edge }) as Edge),
-    [edges],
+  const snapGrid = useMemo(
+    () => [gridSize, gridSize] as [number, number],
+    [gridSize],
   );
 
   return (
@@ -523,12 +530,12 @@ const FlowEditor = () => {
       <ReactFlow
         className="frost-editor-flow"
         nodes={nodes}
-        edges={mappedEdges}
+        edges={edges}
         colorMode={theme === "system" ? undefined : theme}
         panOnScroll={panOnScroll}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        deleteKeyCode={["Backspace", "Delete"]}
+        deleteKeyCode={deleteKeyCode}
         defaultEdgeOptions={defaultEdgeOptions}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -538,13 +545,11 @@ const FlowEditor = () => {
         onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
         snapToGrid={snapToGrid}
-        snapGrid={[gridSize, gridSize]}
-        proOptions={{
-          hideAttribution: true,
-        }}
+        snapGrid={snapGrid}
+        proOptions={proOptions}
         fitView
         selectionOnDrag={!isLocked}
-        panOnDrag={[1, 2]}
+        panOnDrag={panOnDrag}
         nodesDraggable={!isLocked}
         nodesConnectable={!isLocked}
         elementsSelectable={!isLocked}

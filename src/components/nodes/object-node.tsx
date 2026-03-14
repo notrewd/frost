@@ -73,9 +73,8 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { nodes, setNodes, instance } = useFlowStore(
+  const { setNodes, instance } = useFlowStore(
     useShallow((state) => ({
-      nodes: state.nodes,
       setNodes: state.setNodes,
       instance: state.instance,
     })),
@@ -90,23 +89,26 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   );
 
   const handleFocus = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
     instance?.fitView({
       nodes: nodes
         .filter((node) => node.selected || node.id === id)
         .map((node) => ({ id: node.id })),
     });
-  }, [instance, id, nodes]);
+  }, [instance, id]);
 
   const handleDelete = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
     const nodesToDelete = nodes
       .filter((node) => node.selected || node.id === id)
       .map((node) => node.id);
     setNodes((nodes) =>
       nodes.filter((node) => !nodesToDelete.includes(node.id)),
     );
-  }, [setNodes, id, nodes]);
+  }, [setNodes, id]);
 
   const handleGroup = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
     const selectedNodesAll = nodes.filter(
       (node) => node.selected || node.id === id,
     );
@@ -189,9 +191,10 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 
       return finalNodes.filter((n) => !groupsToDelete.includes(n.id));
     });
-  }, [nodes, setNodes, id]);
+  }, [setNodes, id]);
 
   const handleUngroup = useCallback(() => {
+    const { nodes } = useFlowStore.getState();
     // If part of a group, remove just these from the group
     const targetNodes = nodes.filter((node) => node.selected || node.id === id);
     const nodesToUngroup = targetNodes.filter((n) => n.parentId);
@@ -226,10 +229,10 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
           return node;
         });
     });
-  }, [nodes, setNodes, id]);
+  }, [setNodes, id]);
 
-  const showUngroup = nodes.some(
-    (n) => (n.selected || n.id === id) && n.parentId,
+  const showUngroup = useFlowStore((state) =>
+    state.nodes.some((n) => (n.selected || n.id === id) && n.parentId),
   );
 
   return (
