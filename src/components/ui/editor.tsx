@@ -41,10 +41,12 @@ import ImplementationEdge from "../edges/implementation-edge";
 import CompositionEdge from "../edges/composition-edge";
 
 import GroupNode from "../nodes/group-node";
+import PackageNode from "../nodes/package-node";
 
 const nodeTypes = {
   object: ObjectNode,
   group: GroupNode,
+  package: PackageNode,
 };
 
 const edgeTypes = {

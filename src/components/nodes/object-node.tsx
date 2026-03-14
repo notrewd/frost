@@ -16,6 +16,7 @@ import NodeContextMenu, {
   NodeContextMenuUngroupOption,
 } from "../ui/nodes/node-context-menu";
 import NodeConnectionHandle from "../ui/nodes/node-connection-handle";
+import NodeSelectionRing from "../ui/nodes/node-selection-ring";
 
 export interface ObjectNodeProperty {
   id: string;
@@ -82,10 +83,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
             }}
             onDoubleClick={() => setDialogOpen(true)}
           >
-            {selected && (
-              <div className="absolute inset-0 ring rounded-md react-flow__ring" />
-            )}
-
+            <NodeSelectionRing visible={selected} />
             {data.stereotype && (
               <div
                 className={cn(

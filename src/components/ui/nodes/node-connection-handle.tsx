@@ -22,6 +22,7 @@ const NodeConnectionHandle: FC<NodeConnectionHandleProps> = ({ nodeId }) => {
           position={Position.Right}
           style={{
             position: "absolute",
+            zIndex: "50",
             top: "unset",
             right: "1em",
             bottom: "0",

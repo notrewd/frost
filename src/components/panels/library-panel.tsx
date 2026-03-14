@@ -1,4 +1,9 @@
-import { ChevronsLeftRightEllipsis, TableProperties, Tag } from "lucide-react";
+import {
+  Archive,
+  ChevronsLeftRightEllipsis,
+  TableProperties,
+  Tag,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import LibraryItem from "../ui/library-item";
 import SearchInput from "../ui/inputs/search-input";
@@ -9,7 +14,7 @@ import PropertiesSection from "../ui/properties-section";
 import { Separator } from "../ui/separator";
 
 export type LibraryNodeTemplate = {
-  type: "object";
+  type: "object" | "package";
   data: ObjectNodeData;
 };
 
@@ -41,6 +46,16 @@ const categories: LibraryPalleteCategory[] = [
             name: "Class",
             attributes: [],
             methods: [],
+          },
+        },
+      },
+      {
+        icon: Archive,
+        label: "Package",
+        template: {
+          type: "package",
+          data: {
+            name: "Package",
           },
         },
       },

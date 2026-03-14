@@ -1,4 +1,5 @@
 import {
+  Archive,
   Focus,
   Folder,
   FolderPlus,
@@ -21,6 +22,7 @@ const iconMap = {
   root: <FolderRoot className="size-4" />,
   folder: <Folder className="size-4" />,
   node: <SquareChartGantt className="size-4" />,
+  package: <Archive className="size-4" />,
 };
 
 const ProjectPanel = () => {
@@ -42,7 +44,12 @@ const ProjectPanel = () => {
       return children.map((node) => ({
         id: node.id,
         name: (node.data.name as string) || "Group",
-        type: node.type === "group" ? ("folder" as const) : ("node" as const),
+        type:
+          node.type === "group"
+            ? ("folder" as const)
+            : node.type === "package"
+              ? ("package" as const)
+              : ("node" as const),
         selected: node.selected,
         ...(node.type === "group" ? { children: buildHierarchy(node.id) } : {}),
       }));
@@ -340,6 +347,7 @@ const ProjectPanel = () => {
     return {
       node: commonNodeActions,
       folder: commonNodeActions,
+      package: commonNodeActions,
     };
   }, [handleDelete, handleGroup, handleUngroup, instance]);
 

@@ -22,6 +22,7 @@ import {
   Box,
   Hash,
   SquareDashed,
+  Archive,
 } from "lucide-react";
 import { ObjectNodeData } from "@/components/nodes/object-node";
 import { cn } from "@/lib/utils";
@@ -376,6 +377,42 @@ const PropertiesPanel: FC = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
+              </PropRow>
+            </PropertiesSection>
+          </>
+        )}
+        {selectedNodes.some((node) => node.type === "package") && (
+          <>
+            <Separator className="my-2 first:hidden" />
+            <PropertiesSection
+              title={`Package Properties (${selectedNodes.filter((node) => node.type === "package").length})`}
+              icon={Archive}
+            >
+              <PropRow label="Name">
+                <Input
+                  value={
+                    (selectedNodes.filter((n) => n.type === "package")[0].data
+                      .name as string) || ""
+                  }
+                  placeholder="Package Name"
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setNodes((prevNodes) =>
+                      prevNodes.map((node) =>
+                        node.selected && node.type === "package"
+                          ? {
+                              ...node,
+                              data: {
+                                ...node.data,
+                                name: newName,
+                              },
+                            }
+                          : node,
+                      ),
+                    );
+                  }}
+                  variant="small"
+                />
               </PropRow>
             </PropertiesSection>
           </>
