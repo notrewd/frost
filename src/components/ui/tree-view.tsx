@@ -10,7 +10,15 @@ import {
   ReactNode,
   cloneElement,
   isValidElement,
+  memo,
 } from "react";
+import {
+  DragDropProvider,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  useDragOperation,
+} from "@dnd-kit/react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -94,6 +102,7 @@ export interface TreeViewProps {
   menuItemsByType?: TreeViewMenuItemsByType;
   menuItems?: TreeViewMenuItem[];
   selectedIds?: Set<string>;
+  onDataChange?: (data: TreeViewItem[]) => void;
 }
 
 interface TreeItemProps {
@@ -172,7 +181,7 @@ const defaultIconMap: TreeViewIconMap = {
   folder: <Folder className="h-4 w-4 text-primary/80" />,
 };
 
-function TreeItem({
+const TreeItem = memo(function TreeItem({
   item,
   depth = 0,
   selectedIds,
@@ -195,6 +204,34 @@ function TreeItem({
   const isSelected = selectedIds.has(item.id);
   const itemRef = useRef<HTMLDivElement>(null);
   const [selectionStyle, setSelectionStyle] = useState("");
+
+  const { source } = useDragOperation();
+  const isDraggingGlobal = source != null;
+
+  const { ref: dragRef, isDragging } = useDraggable({
+    id: item.id,
+    data: { item },
+    disabled: item.type === "root",
+  });
+
+  const { ref: droppableTop, isDropTarget: isDropTargetTop } = useDroppable({
+    id: `${item.id}|top`,
+    data: { position: "top", item },
+    disabled: item.type === "root",
+  });
+  const { ref: droppableInside, isDropTarget: isDropTargetInside } =
+    useDroppable({
+      id: `${item.id}|inside`,
+      data: { position: "inside", item },
+      disabled:
+        item.type !== "folder" && item.type !== "root" && !item.children,
+    });
+  const { ref: droppableBottom, isDropTarget: isDropTargetBottom } =
+    useDroppable({
+      id: `${item.id}|bottom`,
+      data: { position: "bottom", item },
+      disabled: item.type === "root",
+    });
 
   // Get all visible items in order
   const getVisibleItems = useCallback(
@@ -423,180 +460,223 @@ function TreeItem({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div className="min-w-0">
-          <div
-            ref={itemRef}
-            data-tree-item
-            data-id={item.id}
-            data-depth={depth}
-            data-folder-closed={item.children && !isOpen}
-            className={`select-none hover:bg-background/50 rounded-md min-w-0 ${
-              isSelected
-                ? `bg-background/50 ${selectionStyle}`
-                : "text-foreground"
-            } px-1`}
-            style={{ paddingLeft: `${depth * 20}px` }}
-            onClick={handleClick}
-          >
-            <div className="flex items-center h-8 min-w-0">
-              {item.children ? (
-                <div className="flex items-center gap-2 flex-1 min-w-0 group">
-                  <Collapsible
-                    open={isOpen}
-                    onOpenChange={(open) => onToggleExpand(item.id, open)}
-                  >
-                    <CollapsibleTrigger
-                      asChild
-                      onClick={(e) => e.stopPropagation()}
+          <div className="relative">
+            {isDraggingGlobal && source?.id !== item.id && (
+              <div className="absolute inset-0 z-10 pointer-events-auto">
+                {item.type !== "root" && (
+                  <div
+                    ref={droppableTop}
+                    className="absolute top-0 left-0 w-full h-[25%]"
+                  />
+                )}
+                {(item.type === "folder" ||
+                  item.type === "root" ||
+                  item.children) && (
+                  <div
+                    ref={droppableInside}
+                    className={`absolute left-0 w-full ${item.type === "root" ? "inset-0" : "top-[25%] h-[50%]"}`}
+                  />
+                )}
+                {item.type !== "root" && (
+                  <div
+                    ref={droppableBottom}
+                    className="absolute bottom-0 left-0 w-full h-[25%]"
+                  />
+                )}
+              </div>
+            )}
+            {isDropTargetTop && (
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-primary z-20 pointer-events-none" />
+            )}
+            {isDropTargetBottom && (
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary z-20 pointer-events-none" />
+            )}
+            {isDropTargetInside && (
+              <div className="absolute inset-0 ring-2 ring-primary bg-primary/10 rounded z-20 pointer-events-none" />
+            )}
+
+            <div
+              ref={(node) => {
+                dragRef(node);
+                // Assign to our local Ref
+                (itemRef as React.RefObject<HTMLDivElement | null>).current =
+                  node;
+              }}
+              data-tree-item
+              data-id={item.id}
+              data-depth={depth}
+              data-folder-closed={item.children && !isOpen}
+              className={`select-none hover:bg-background/50 rounded-md min-w-0 transition-opacity ${
+                isDragging ? "opacity-30" : ""
+              } ${
+                isSelected
+                  ? `bg-background/50 ${selectionStyle}`
+                  : "text-foreground"
+              } px-1`}
+              style={{ paddingLeft: `${depth * 20}px` }}
+              onClick={handleClick}
+            >
+              <div className="flex items-center h-8 min-w-0">
+                {item.children ? (
+                  <div className="flex items-center gap-2 flex-1 min-w-0 group">
+                    <Collapsible
+                      open={isOpen}
+                      onOpenChange={(open) => onToggleExpand(item.id, open)}
                     >
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <motion.div
-                          initial={false}
-                          animate={{ rotate: isOpen ? 90 : 0 }}
-                          transition={{ duration: 0.1 }}
+                      <CollapsibleTrigger
+                        asChild
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <motion.div
+                            initial={false}
+                            animate={{ rotate: isOpen ? 90 : 0 }}
+                            transition={{ duration: 0.1 }}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </motion.div>
+                        </Button>
+                      </CollapsibleTrigger>
+                    </Collapsible>
+                    {showAccessRights && (
+                      <div
+                        className="relative flex items-center justify-center w-4 h-4 hover:opacity-80"
+                        onClick={handleAccessClick}
+                      >
+                        {getCheckState(item, itemMap) === "checked" && (
+                          <div className="w-4 h-4 border rounded bg-primary border-primary flex items-center justify-center">
+                            <svg
+                              className="h-3 w-3 text-primary-foreground"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                        {getCheckState(item, itemMap) === "unchecked" && (
+                          <div className="w-4 h-4 border rounded border-input" />
+                        )}
+                        {getCheckState(item, itemMap) === "indeterminate" && (
+                          <div className="w-4 h-4 border rounded bg-primary border-primary flex items-center justify-center">
+                            <div className="h-0.5 w-2 bg-primary-foreground" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {renderIcon()}
+                    <span className="flex-1 truncate min-w-0">{item.name}</span>
+                    {selectedCount !== null && selectedCount > 0 && (
+                      <Badge variant="outline" className="mr-2">
+                        {selectedCount} selected
+                      </Badge>
+                    )}
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 group-hover:opacity-100 opacity-0 items-center justify-center"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <ChevronRight className="h-4 w-4" />
-                        </motion.div>
-                      </Button>
-                    </CollapsibleTrigger>
-                  </Collapsible>
-                  {showAccessRights && (
-                    <div
-                      className="relative flex items-center justify-center w-4 h-4 hover:opacity-80"
-                      onClick={handleAccessClick}
-                    >
-                      {getCheckState(item, itemMap) === "checked" && (
-                        <div className="w-4 h-4 border rounded bg-primary border-primary flex items-center justify-center">
-                          <svg
-                            className="h-3 w-3 text-primary-foreground"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">{item.name}</h4>
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <div>
+                              <span className="font-medium">Type:</span>{" "}
+                              {item.type.charAt(0).toUpperCase() +
+                                item.type.slice(1).replace("_", " ")}
+                            </div>
+                            <div>
+                              <span className="font-medium">ID:</span> {item.id}
+                            </div>
+                            <div>
+                              <span className="font-medium">Location:</span>{" "}
+                              {getItemPath(item, allItems)}
+                            </div>
+                            <div>
+                              <span className="font-medium">Items:</span>{" "}
+                              {item.children?.length || 0} direct items
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      {getCheckState(item, itemMap) === "unchecked" && (
-                        <div className="w-4 h-4 border rounded border-input" />
-                      )}
-                      {getCheckState(item, itemMap) === "indeterminate" && (
-                        <div className="w-4 h-4 border rounded bg-primary border-primary flex items-center justify-center">
-                          <div className="h-0.5 w-2 bg-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {renderIcon()}
-                  <span className="flex-1 truncate min-w-0">{item.name}</span>
-                  {selectedCount !== null && selectedCount > 0 && (
-                    <Badge variant="outline" className="mr-2">
-                      {selectedCount} selected
-                    </Badge>
-                  )}
-                  <HoverCard>
-                    <HoverCardTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 group-hover:opacity-100 opacity-0 items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 flex-1 pl-8 min-w-0 group">
+                    {showAccessRights && (
+                      <div
+                        className="relative flex items-center justify-center w-4 h-4 hover:opacity-80"
+                        onClick={handleAccessClick}
                       >
-                        <Info className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-80">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">{item.name}</h4>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <div>
-                            <span className="font-medium">Type:</span>{" "}
-                            {item.type.charAt(0).toUpperCase() +
-                              item.type.slice(1).replace("_", " ")}
+                        {item.checked ? (
+                          <div className="w-4 h-4 border rounded bg-primary border-primary flex items-center justify-center">
+                            <svg
+                              className="h-3 w-3 text-primary-foreground"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
                           </div>
-                          <div>
-                            <span className="font-medium">ID:</span> {item.id}
-                          </div>
-                          <div>
-                            <span className="font-medium">Location:</span>{" "}
-                            {getItemPath(item, allItems)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Items:</span>{" "}
-                            {item.children?.length || 0} direct items
-                          </div>
-                        </div>
+                        ) : (
+                          <div className="w-4 h-4 border rounded border-input" />
+                        )}
                       </div>
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 flex-1 pl-8 min-w-0 group">
-                  {showAccessRights && (
-                    <div
-                      className="relative flex items-center justify-center w-4 h-4 hover:opacity-80"
-                      onClick={handleAccessClick}
-                    >
-                      {item.checked ? (
-                        <div className="w-4 h-4 border rounded bg-primary border-primary flex items-center justify-center">
-                          <svg
-                            className="h-3 w-3 text-primary-foreground"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      ) : (
-                        <div className="w-4 h-4 border rounded border-input" />
-                      )}
-                    </div>
-                  )}
-                  {renderIcon()}
-                  <span className="flex-1 truncate min-w-0">{item.name}</span>
-                  <HoverCard>
-                    <HoverCardTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 group-hover:opacity-100 opacity-0 items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Info className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-80">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">{item.name}</h4>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <div>
-                            <span className="font-medium">Type:</span>{" "}
-                            {item.type.charAt(0).toUpperCase() +
-                              item.type.slice(1).replace("_", " ")}
-                          </div>
-                          <div>
-                            <span className="font-medium">ID:</span> {item.id}
-                          </div>
-                          <div>
-                            <span className="font-medium">Location:</span>{" "}
-                            {getItemPath(item, allItems)}
+                    )}
+                    {renderIcon()}
+                    <span className="flex-1 truncate min-w-0">{item.name}</span>
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 group-hover:opacity-100 opacity-0 items-center justify-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">{item.name}</h4>
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <div>
+                              <span className="font-medium">Type:</span>{" "}
+                              {item.type.charAt(0).toUpperCase() +
+                                item.type.slice(1).replace("_", " ")}
+                            </div>
+                            <div>
+                              <span className="font-medium">ID:</span> {item.id}
+                            </div>
+                            <div>
+                              <span className="font-medium">Location:</span>{" "}
+                              {getItemPath(item, allItems)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
-                </div>
-              )}
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -672,7 +752,7 @@ function TreeItem({
       )}
     </ContextMenu>
   );
-}
+});
 
 export default function TreeView({
   className,
@@ -680,7 +760,7 @@ export default function TreeView({
     check: "Check",
     uncheck: "Uncheck",
   },
-  data,
+  data: propData,
   iconMap,
   searchPlaceholder = "Search...",
   selectionText = "selected",
@@ -693,7 +773,14 @@ export default function TreeView({
   menuItemsByType,
   menuItems,
   selectedIds: propSelectedIds,
+  onDataChange,
 }: TreeViewProps) {
+  const [data, setData] = useState<TreeViewItem[]>(propData);
+
+  useEffect(() => {
+    setData(propData);
+  }, [propData]);
+
   const [currentMousePos, setCurrentMousePos] = useState<number>(0);
   const [dragStart, setDragStart] = useState<number | null>(null);
   const [dragStartPosition, setDragStartPosition] = useState<{
@@ -816,6 +903,116 @@ export default function TreeView({
     setExpandedIds(new Set());
   }, []);
 
+  const handleDragEnd = useCallback(
+    (event: any) => {
+      const { operation } = event;
+      const { source, target } = operation;
+      if (!source || !target) return;
+
+      const sourceId = source.id;
+      const targetParts = String(target.id).split("|");
+      const targetId = targetParts[0];
+      const position = targetParts[1]; // 'top', 'inside', 'bottom'
+
+      if (!position || sourceId === targetId) return;
+
+      setData((prev) => {
+        const cloneTree = (nodes: TreeViewItem[]): TreeViewItem[] => {
+          return nodes.map((node) => ({
+            ...node,
+            children: node.children ? cloneTree(node.children) : undefined,
+          }));
+        };
+
+        const newTree = cloneTree(prev);
+        let itemToMove: TreeViewItem | null = null;
+
+        const findNode = (
+          nodes: TreeViewItem[],
+          id: string,
+        ): TreeViewItem | null => {
+          for (const node of nodes) {
+            if (node.id === id) return node;
+            if (node.children) {
+              const found = findNode(node.children, id);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const isDescendant = (
+          nodes: TreeViewItem[],
+          pId: string,
+          cId: string,
+        ): boolean => {
+          const parent = findNode(nodes, pId);
+          if (!parent) return false;
+          const check = (node: TreeViewItem): boolean => {
+            if (node.id === cId) return true;
+            if (node.children) return node.children.some(check);
+            return false;
+          };
+          return check(parent);
+        };
+
+        if (isDescendant(newTree, sourceId, targetId)) return prev;
+
+        const removeNode = (nodes: TreeViewItem[]) => {
+          const result: TreeViewItem[] = [];
+          for (const node of nodes) {
+            if (node.id === sourceId) {
+              itemToMove = node;
+              continue;
+            }
+            if (node.children) {
+              node.children = removeNode(node.children);
+            }
+            result.push(node);
+          }
+          return result;
+        };
+
+        const intermediateTree = removeNode(newTree);
+        if (!itemToMove) return prev;
+
+        const insertNode = (nodes: TreeViewItem[]): TreeViewItem[] => {
+          const result: TreeViewItem[] = [];
+          for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            if (node.id === targetId) {
+              if (position === "top") {
+                result.push(itemToMove!);
+                result.push(node);
+              } else if (position === "bottom") {
+                result.push(node);
+                result.push(itemToMove!);
+              } else if (position === "inside") {
+                if (!node.children) node.children = [];
+                node.children.unshift(itemToMove!);
+                result.push(node);
+              }
+            } else {
+              if (node.children) {
+                node.children = insertNode(node.children);
+              }
+              result.push(node);
+            }
+          }
+          return result;
+        };
+
+        const finalTree = insertNode(intermediateTree);
+
+        setTimeout(() => {
+          onDataChange?.(finalTree);
+        }, 0);
+        return finalTree;
+      });
+    },
+    [onDataChange],
+  );
+
   const handleToggleExpand = useCallback((id: string, isOpen: boolean) => {
     setExpandedIds((prev) => {
       const newExpandedIds = new Set(prev);
@@ -866,6 +1063,10 @@ export default function TreeView({
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Only track on left click and not on buttons
     if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
+
+    // Prevent custom dragging marquee selection if we're clicking on a tree item
+    // This allows dnd-kit logic to handle dragging without triggering 60fps refreshes from the marquee selection state
+    if ((e.target as HTMLElement).closest("[data-tree-item]")) return;
 
     setDragStartPosition({ x: e.clientX, y: e.clientY });
   }, []);
@@ -1070,54 +1271,66 @@ export default function TreeView({
           )}
         </AnimatePresence>
 
-        <div
-          ref={dragRef}
-          className={cn(
-            "rounded-lg bg-card relative select-none h-full min-h-0 min-w-0 pb-12",
-            className,
-          )}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-        >
-          <ScrollArea className="h-full pr-4">
-            {isDragging && (
-              <div
-                className="absolute inset-0 bg-blue-500/0 pointer-events-none"
-                style={{
-                  top: Math.min(
-                    dragStart || 0,
-                    dragStart === null ? 0 : currentMousePos,
-                  ),
-                  height: Math.abs(
-                    (dragStart || 0) -
-                      (dragStart === null ? 0 : currentMousePos),
-                  ),
-                }}
-              />
+        <DragDropProvider onDragEnd={handleDragEnd}>
+          <div
+            ref={dragRef}
+            className={cn(
+              "rounded-lg bg-card relative select-none h-full min-h-0 min-w-0 pb-12",
+              className,
             )}
-            {filteredData.map((item) => (
-              <TreeItem
-                key={item.id}
-                item={item}
-                selectedIds={selectedIds}
-                lastSelectedId={lastSelectedId}
-                onSelect={handleSelection}
-                expandedIds={expandedIds}
-                onToggleExpand={handleToggleExpand}
-                getIcon={getIcon}
-                onAction={onAction}
-                onAccessChange={onCheckChange}
-                allItems={data}
-                showAccessRights={showCheckboxes}
-                itemMap={itemMap}
-                iconMap={iconMap}
-                menuItemsByType={menuItemsByType}
-                menuItems={menuItems}
-                getSelectedItems={getSelectedItems}
-              />
-            ))}
-          </ScrollArea>
-        </div>
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+          >
+            <ScrollArea className="h-full pr-4">
+              {isDragging && (
+                <div
+                  className="absolute inset-0 bg-blue-500/0 pointer-events-none"
+                  style={{
+                    top: Math.min(
+                      dragStart || 0,
+                      dragStart === null ? 0 : currentMousePos,
+                    ),
+                    height: Math.abs(
+                      (dragStart || 0) -
+                        (dragStart === null ? 0 : currentMousePos),
+                    ),
+                  }}
+                />
+              )}
+              {filteredData.map((item) => (
+                <TreeItem
+                  key={item.id}
+                  item={item}
+                  selectedIds={selectedIds}
+                  lastSelectedId={lastSelectedId}
+                  onSelect={handleSelection}
+                  expandedIds={expandedIds}
+                  onToggleExpand={handleToggleExpand}
+                  getIcon={getIcon}
+                  onAction={onAction}
+                  onAccessChange={onCheckChange}
+                  allItems={data}
+                  showAccessRights={showCheckboxes}
+                  itemMap={itemMap}
+                  iconMap={iconMap}
+                  menuItemsByType={menuItemsByType}
+                  menuItems={menuItems}
+                  getSelectedItems={getSelectedItems}
+                />
+              ))}
+            </ScrollArea>
+          </div>
+          <DragOverlay>
+            {(source: any) => {
+              if (!source?.data?.item) return null;
+              return (
+                <div className="bg-background border rounded shadow-md px-3 py-1 flex items-center gap-2 opacity-80 text-sm">
+                  {source.data.item.name}
+                </div>
+              );
+            }}
+          </DragOverlay>
+        </DragDropProvider>
       </div>
     </div>
   );

@@ -190,6 +190,111 @@ const ProjectPanel = () => {
 
   const [data, setData] = useState<TreeViewItem[]>([]);
 
+  const handleDataChange = useCallback(
+    (newData: TreeViewItem[]) => {
+      const newParentMap = new Map<string, string | undefined>();
+
+      const walk = (items: TreeViewItem[], parentId: string | undefined) => {
+        items.forEach((item) => {
+          if (item.id === "root") {
+            if (item.children) {
+              walk(item.children, undefined);
+            }
+          } else {
+            newParentMap.set(item.id, parentId);
+            if (item.children) {
+              walk(item.children, item.id);
+            }
+          }
+        });
+      };
+
+      walk(newData, undefined);
+
+      setNodes((currentNodes) => {
+        let updated = currentNodes.map((node) => {
+          if (!newParentMap.has(node.id)) return node; // Skip if not present (although shouldn't happen)
+
+          const oldParentId = node.parentId;
+          const newParentId = newParentMap.get(node.id);
+
+          if (oldParentId !== newParentId) {
+            let currentAbsX = node.position.x;
+            let currentAbsY = node.position.y;
+
+            let p = oldParentId;
+            while (p) {
+              const parentNode = currentNodes.find((n) => n.id === p);
+              if (parentNode) {
+                currentAbsX += parentNode.position.x;
+                currentAbsY += parentNode.position.y;
+                p = parentNode.parentId;
+              } else {
+                p = undefined;
+              }
+            }
+
+            let newX = currentAbsX;
+            let newY = currentAbsY;
+
+            let np = newParentId;
+            while (np) {
+              const newParentNode = currentNodes.find((n) => n.id === np);
+              if (newParentNode) {
+                newX -= newParentNode.position.x;
+                newY -= newParentNode.position.y;
+                np = newParentNode.parentId;
+              } else {
+                np = undefined;
+              }
+            }
+
+            return {
+              ...node,
+              parentId: newParentId,
+              position: { x: newX, y: newY },
+            };
+          }
+
+          return node;
+        });
+
+        // Remove empty groups iteratively (to handle nested empty groups)
+        let removedGroupIds: string[] = [];
+        let hasEmptyGroups = true;
+        while (hasEmptyGroups) {
+          const usedParentIds = new Set(
+            updated.map((n) => n.parentId).filter(Boolean),
+          );
+          const emptyGroups = updated.filter(
+            (n) => n.type === "group" && !usedParentIds.has(n.id),
+          );
+          if (emptyGroups.length > 0) {
+            const emptyGroupIds = emptyGroups.map((g) => g.id);
+            removedGroupIds.push(...emptyGroupIds);
+            const emptyGroupIdsSet = new Set(emptyGroupIds);
+            updated = updated.filter((n) => !emptyGroupIdsSet.has(n.id));
+          } else {
+            hasEmptyGroups = false;
+          }
+        }
+
+        if (removedGroupIds.length > 0) {
+          setEdges((currentEdges) =>
+            currentEdges.filter(
+              (e) =>
+                !removedGroupIds.includes(e.source) &&
+                !removedGroupIds.includes(e.target),
+            ),
+          );
+        }
+
+        return updated;
+      });
+    },
+    [setNodes, setEdges],
+  );
+
   const menuItems: TreeViewMenuItemsByType = useMemo(() => {
     const commonNodeActions = [
       {
@@ -259,6 +364,7 @@ const ProjectPanel = () => {
       className="bg-transparent"
       selectedIds={treeSelectedIds}
       onSelectionChange={handleSelectionChange}
+      onDataChange={handleDataChange}
     />
   );
 };
