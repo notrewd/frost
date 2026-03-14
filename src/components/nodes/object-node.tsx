@@ -1,29 +1,21 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  Edit2,
-  Focus,
-  FolderPlus,
-  Spline,
-  Trash2,
-  Ungroup,
-} from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Edit2, Spline } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ObjectNodeDialog from "../ui/dialogs/object-node-dialog";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
 import { Handle, Position, useConnection } from "@xyflow/react";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "../ui/context-menu";
-import useFlowStore from "@/stores/flow-store";
+import { ContextMenuItem, ContextMenuSeparator } from "../ui/context-menu";
+import NodeContextMenu, {
+  NodeContextMenuContent,
+  NodeContextMenuDeleteOption,
+  NodeContextMenuFocusOption,
+  NodeContextMenuGroupOption,
+  NodeContextMenuOptions,
+  NodeContextMenuUngroupOption,
+} from "../ui/nodes/node-context-menu";
 
 export interface ObjectNodeProperty {
   id: string;
@@ -73,13 +65,6 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { setNodes, instance } = useFlowStore(
-    useShallow((state) => ({
-      setNodes: state.setNodes,
-      instance: state.instance,
-    })),
-  );
-
   const { coloredNodes, compactNodes, nodeBorderRadius } = useSettingsStore(
     useShallow((state) => ({
       coloredNodes: state.colored_nodes,
@@ -88,157 +73,10 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     })),
   );
 
-  const handleFocus = useCallback(() => {
-    const { nodes } = useFlowStore.getState();
-    instance?.fitView({
-      nodes: nodes
-        .filter((node) => node.selected || node.id === id)
-        .map((node) => ({ id: node.id })),
-    });
-  }, [instance, id]);
-
-  const handleDelete = useCallback(() => {
-    const { nodes } = useFlowStore.getState();
-    const nodesToDelete = nodes
-      .filter((node) => node.selected || node.id === id)
-      .map((node) => node.id);
-    setNodes((nodes) =>
-      nodes.filter((node) => !nodesToDelete.includes(node.id)),
-    );
-  }, [setNodes, id]);
-
-  const handleGroup = useCallback(() => {
-    const { nodes } = useFlowStore.getState();
-    const selectedNodesAll = nodes.filter(
-      (node) => node.selected || node.id === id,
-    );
-    if (selectedNodesAll.length === 0) return;
-
-    const selectedNodes = selectedNodesAll.filter((node) => {
-      let current = node.parentId;
-      while (current) {
-        if (selectedNodesAll.some((n) => n.id === current)) return false;
-        const parent = nodes.find((n) => n.id === current);
-        current = parent?.parentId;
-      }
-      return true;
-    });
-
-    if (selectedNodes.length === 0) return;
-
-    const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
-    const commonParentId = parentIds.length === 1 ? parentIds[0] : undefined;
-
-    const minX = Math.min(...selectedNodes.map((n) => n.position.x));
-    const minY = Math.min(...selectedNodes.map((n) => n.position.y));
-    const maxX = Math.max(
-      ...selectedNodes.map((n) => n.position.x + (n.measured?.width || 200)),
-    );
-    const maxY = Math.max(
-      ...selectedNodes.map((n) => n.position.y + (n.measured?.height || 200)),
-    );
-
-    const padding = 40;
-    const groupX = minX - padding;
-    const groupY = minY - padding;
-    const groupWidth = maxX - minX + padding * 2;
-    const groupHeight = maxY - minY + padding * 2;
-
-    const groupId = `group-${Date.now()}`;
-    const newGroup = {
-      id: groupId,
-      type: "group",
-      position: { x: groupX, y: groupY },
-      style: {
-        width: groupWidth,
-        height: groupHeight,
-        border: "none",
-        background: "transparent",
-      },
-      zIndex: -1,
-      data: { name: "New Group", color: "#18181b50" },
-      ...(commonParentId ? { parentId: commonParentId } : {}),
-    };
-
-    setNodes((currentNodes) => {
-      const selectedIds = selectedNodes.map((n) => n.id);
-      const minIndex = currentNodes.findIndex((n) =>
-        selectedIds.includes(n.id),
-      );
-      const updatedNodes = currentNodes.map((node) => {
-        if (selectedIds.includes(node.id)) {
-          return {
-            ...node,
-            parentId: groupId,
-            position: {
-              x: node.position.x - groupX,
-              y: node.position.y - groupY,
-            },
-            selected: false,
-          };
-        }
-        return node;
-      });
-      const finalNodes = [...updatedNodes];
-      finalNodes.splice(minIndex !== -1 ? minIndex : 0, 0, {
-        ...newGroup,
-        selected: true,
-      } as any);
-
-      const groupsToDelete = parentIds.filter(
-        (pid) => pid && !finalNodes.some((n) => n.parentId === pid),
-      );
-
-      return finalNodes.filter((n) => !groupsToDelete.includes(n.id));
-    });
-  }, [setNodes, id]);
-
-  const handleUngroup = useCallback(() => {
-    const { nodes } = useFlowStore.getState();
-    // If part of a group, remove just these from the group
-    const targetNodes = nodes.filter((node) => node.selected || node.id === id);
-    const nodesToUngroup = targetNodes.filter((n) => n.parentId);
-    if (nodesToUngroup.length === 0) return;
-
-    setNodes((currentNodes) => {
-      const groupIds = [...new Set(nodesToUngroup.map((n) => n.parentId))];
-      const groupsToDelete = groupIds
-        .map((groupId) =>
-          !currentNodes.some(
-            (n) => n.parentId === groupId && !nodesToUngroup.includes(n),
-          )
-            ? groupId
-            : null,
-        )
-        .filter(Boolean);
-
-      return currentNodes
-        .filter((node) => !groupsToDelete.includes(node.id))
-        .map((node) => {
-          if (nodesToUngroup.find((n) => n.id === node.id)) {
-            const parent = currentNodes.find((p) => p.id === node.parentId);
-            return {
-              ...node,
-              parentId: parent?.parentId,
-              position: {
-                x: (parent?.position.x || 0) + node.position.x,
-                y: (parent?.position.y || 0) + node.position.y,
-              },
-            };
-          }
-          return node;
-        });
-    });
-  }, [setNodes, id]);
-
-  const showUngroup = useFlowStore((state) =>
-    state.nodes.some((n) => (n.selected || n.id === id) && n.parentId),
-  );
-
   return (
     <>
-      <ContextMenu>
-        <ContextMenuTrigger>
+      <NodeContextMenu>
+        <NodeContextMenuContent>
           <Card
             className={cn(
               "flex flex-col relative",
@@ -458,33 +296,20 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               />
             )}
           </Card>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
+        </NodeContextMenuContent>
+        <NodeContextMenuOptions>
           <ContextMenuItem onClick={() => setDialogOpen(true)}>
             <Edit2 className="size-4" />
             Edit Data
           </ContextMenuItem>
-          <ContextMenuItem onClick={handleFocus}>
-            <Focus className="size-4" />
-            Focus
-          </ContextMenuItem>
-          <ContextMenuItem onClick={handleGroup}>
-            <FolderPlus className="size-4" />
-            Group
-          </ContextMenuItem>
-          {showUngroup && (
-            <ContextMenuItem onClick={handleUngroup}>
-              <Ungroup className="size-4" />
-              Ungroup (from parent)
-            </ContextMenuItem>
-          )}
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive" onClick={handleDelete}>
-            <Trash2 className="size-4" />
-            Delete
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+          <NodeContextMenuFocusOption nodeId={id} />
+          <NodeContextMenuGroupOption nodeId={id} />
+          <NodeContextMenuUngroupOption nodeId={id} />
+          <ContextMenuSeparator />
+          <NodeContextMenuDeleteOption nodeId={id} />
+        </NodeContextMenuOptions>
+      </NodeContextMenu>
       <ObjectNodeDialog
         id={id}
         open={dialogOpen}

@@ -282,23 +282,22 @@ const PropertiesPanel: FC = () => {
                   ? (selectedNodes[0].data.name as string)
                   : "Multiple selected"}
               </div>
-              {!(
-                selectedNodes.length === 1 && selectedNodes[0].type === "group"
-              ) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  disabled={selectedNodes.length > 1}
-                  onClick={() =>
-                    selectedNodes.length === 1 &&
-                    handleNodeEditClick(selectedNodes[0].id)
-                  }
-                >
-                  <Edit2 className="size-3" />
-                  Edit Data
-                </Button>
-              )}
+              {selectedNodes.length === 1 &&
+                selectedNodes[0].type === "object" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={selectedNodes.length > 1}
+                    onClick={() =>
+                      selectedNodes.length === 1 &&
+                      handleNodeEditClick(selectedNodes[0].id)
+                    }
+                  >
+                    <Edit2 className="size-3" />
+                    Edit Data
+                  </Button>
+                )}
             </div>
             <PropRow label="Position X">
               <NumberInput
