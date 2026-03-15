@@ -1,5 +1,7 @@
 import { FC } from "react";
 import { cn } from "@/lib/utils";
+import { useSettingsStore } from "@/stores/settings-store";
+import { useShallow } from "zustand/react/shallow";
 import NodeContextMenu, {
   NodeContextMenuContent,
   NodeContextMenuDeleteOption,
@@ -23,18 +25,30 @@ interface UseCaseNodeProps {
 }
 
 const UseCaseNode: FC<UseCaseNodeProps> = ({ id, data, selected }) => {
+  const { compactNodes } = useSettingsStore(
+    useShallow((state) => ({
+      compactNodes: state.compact_nodes,
+    })),
+  );
+
   return (
     <>
       <NodeContextMenu>
         <NodeContextMenuContent>
           <div
             className={cn(
-              "relative flex items-center justify-center p-4 min-w-30 min-h-15 bg-background border-2 border-foreground shadow-sm",
+              "relative flex items-center justify-center bg-background border-2 border-foreground shadow-sm",
+              compactNodes ? "p-2 min-w-22 min-h-10" : "p-4 min-w-30 min-h-15",
             )}
             style={{ borderRadius: "50%" }}
           >
             <NodeSelectionRing visible={selected} />
-            <p className="text-center font-semibold text-sm wrap-break-word px-2 outline-hidden">
+            <p
+              className={cn(
+                "text-center font-semibold wrap-break-word px-2 outline-hidden",
+                compactNodes ? "text-xs" : "text-sm",
+              )}
+            >
               {data.name || "Use Case"}
             </p>
           </div>

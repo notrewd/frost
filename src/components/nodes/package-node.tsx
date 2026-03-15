@@ -40,10 +40,10 @@ const PackageNode: FC<PackageNodeProps> = ({ id, data, selected }) => {
       <NodeContextMenuContent>
         <Card
           className={cn(
-            "flex flex-col relative px-4 size-32",
+            "flex flex-col relative",
             compactNodes
-              ? "gap-0.5 py-2 font-mono text-xs"
-              : "gap-2 py-4 font-mono pb-6 text-lg",
+              ? "gap-0.5 py-2 px-2 size-24 font-mono text-sm leading-tight"
+              : "gap-2 py-4 px-4 pb-6 size-32 font-mono text-lg",
           )}
           style={{
             borderRadius: `${nodeBorderRadius}px`,

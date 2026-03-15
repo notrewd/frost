@@ -1,5 +1,8 @@
 import { FC } from "react";
 import { User } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useSettingsStore } from "@/stores/settings-store";
+import { useShallow } from "zustand/react/shallow";
 import NodeContextMenu, {
   NodeContextMenuContent,
   NodeContextMenuDeleteOption,
@@ -24,14 +27,32 @@ interface ActorNodeProps {
 }
 
 const ActorNode: FC<ActorNodeProps> = ({ id, data, selected }) => {
+  const { compactNodes } = useSettingsStore(
+    useShallow((state) => ({
+      compactNodes: state.compact_nodes,
+    })),
+  );
+
   return (
     <>
       <NodeContextMenu>
         <NodeContextMenuContent>
-          <div className="relative flex flex-col items-center justify-center min-w-15 gap-1 p-2 pb-6 bg-transparent text-foreground">
+          <div
+            className={cn(
+              "relative flex flex-col items-center justify-center min-w-15 gap-1 bg-transparent text-foreground",
+              compactNodes ? "p-1 pb-4" : "p-2 pb-6",
+            )}
+          >
             <NodeSelectionRing visible={selected} />
-            <User className="w-10 h-10 stroke-1" />
-            <p className="text-center font-medium text-sm wrap-break-word outline-hidden max-w-30">
+            <User
+              className={cn("stroke-1", compactNodes ? "w-6 h-6" : "w-10 h-10")}
+            />
+            <p
+              className={cn(
+                "text-center font-medium wrap-break-word outline-hidden max-w-30",
+                compactNodes ? "text-xs" : "text-sm",
+              )}
+            >
               {data.name || "Actor"}
             </p>
             <NodeConnectionHandle nodeId={id} />

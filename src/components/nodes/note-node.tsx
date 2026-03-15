@@ -30,8 +30,9 @@ interface NoteNodeProps {
 const NoteNode: FC<NoteNodeProps> = ({ id, data, selected }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { nodeBorderRadius } = useSettingsStore(
+  const { compactNodes, nodeBorderRadius } = useSettingsStore(
     useShallow((state) => ({
+      compactNodes: state.compact_nodes,
       nodeBorderRadius: state.node_border_radius,
     })),
   );
@@ -42,8 +43,11 @@ const NoteNode: FC<NoteNodeProps> = ({ id, data, selected }) => {
         <NodeContextMenuContent>
           <div
             className={cn(
-              "relative flex flex-col min-w-37.5 min-h-25 p-4 bg-[#fef08a] dark:bg-[#ca8a04] text-foreground shadow-md",
+              "relative flex flex-col bg-[#fef08a] dark:bg-[#ca8a04] text-foreground shadow-md",
               "border border-border",
+              compactNodes
+                ? "min-w-28 min-h-16 p-2"
+                : "min-w-37.5 min-h-25 p-4",
             )}
             style={{
               borderRadius: `${nodeBorderRadius}px`,
@@ -51,7 +55,12 @@ const NoteNode: FC<NoteNodeProps> = ({ id, data, selected }) => {
             onDoubleClick={() => setDialogOpen(true)}
           >
             <NodeSelectionRing visible={selected} />
-            <p className="w-full h-full whitespace-pre-wrap font-sans text-sm outline-hidden wrap-break-word">
+            <p
+              className={cn(
+                "w-full h-full whitespace-pre-wrap font-sans outline-hidden wrap-break-word",
+                compactNodes ? "text-xs" : "text-sm",
+              )}
+            >
               {data.note || "Double click to edit note"}
             </p>
           </div>
