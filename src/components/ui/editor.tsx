@@ -213,20 +213,30 @@ const FlowEditor = () => {
   );
 
   // Undo/Redo hooks
-  const { undo, redo, pause, resume, canUndo, canRedo, pastLen, futureLen } =
-    useStore(
-      (useFlowStore as any).temporal,
-      useShallow((state: any) => ({
-        undo: state.undo,
-        redo: state.redo,
-        pause: state.pause,
-        resume: state.resume,
-        canUndo: state.pastStates.length > 0,
-        canRedo: state.futureStates.length > 0,
-        pastLen: state.pastStates.length,
-        futureLen: state.futureStates.length,
-      })),
-    );
+  const {
+    undo,
+    redo,
+    pause,
+    resume,
+    clear,
+    canUndo,
+    canRedo,
+    pastLen,
+    futureLen,
+  } = useStore(
+    (useFlowStore as any).temporal,
+    useShallow((state: any) => ({
+      undo: state.undo,
+      redo: state.redo,
+      pause: state.pause,
+      resume: state.resume,
+      clear: state.clear,
+      canUndo: state.pastStates.length > 0,
+      canRedo: state.futureStates.length > 0,
+      pastLen: state.pastStates.length,
+      futureLen: state.futureStates.length,
+    })),
+  );
 
   useEffect(() => {
     // Broadcast history whenever it changes
@@ -319,8 +329,16 @@ const FlowEditor = () => {
 
         const flowData = JSON.parse(data);
         if (!flowData) return;
+
+        pause();
         setNodes(() => flowData.nodes || []);
         setEdges(() => flowData.edges || []);
+
+        // Wait a tick for state to update, then clear history and resume
+        setTimeout(() => {
+          clear();
+          resume();
+        }, 0);
       } catch (error) {
         console.error("Failed to fetch project data:", error);
       }
@@ -335,20 +353,41 @@ const FlowEditor = () => {
 
         console.log("Received project data:", data);
 
+        pause();
+
         if (!data) {
           setNodes(() => []);
           setEdges(() => []);
+          setTimeout(() => {
+            clear();
+            resume();
+          }, 0);
           return;
         }
 
         try {
           const flowData = JSON.parse(data);
-          if (!flowData) return;
+          if (!flowData) {
+            setTimeout(() => {
+              clear();
+              resume();
+            }, 0);
+            return;
+          }
 
           setNodes(() => flowData.nodes || []);
           setEdges(() => flowData.edges || []);
+
+          setTimeout(() => {
+            clear();
+            resume();
+          }, 0);
         } catch (error) {
           console.error("Failed to load project data:", error);
+          setTimeout(() => {
+            clear();
+            resume();
+          }, 0);
         }
       },
     );
@@ -766,12 +805,12 @@ const FlowEditor = () => {
   }, []);
 
   useEffect(() => {
-    let lastEdges = '';
+    let lastEdges = "";
     const unsub = useFlowStore.subscribe((state) => {
       const currentEdges = JSON.stringify(state.edges);
       if (currentEdges !== lastEdges) {
         lastEdges = currentEdges;
-        emit('edges-data', state.edges);
+        emit("edges-data", state.edges);
       }
     });
     return unsub;

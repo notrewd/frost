@@ -11,7 +11,10 @@ const useFlowStore = create<FlowState>()(
       instance: null,
       onNodesChange: (changes) => {
         const isOnlyVisual = changes.every(
-          (c) => c.type === "dimensions" || c.type === "select",
+          (c) =>
+            c.type === "dimensions" ||
+            c.type === "select" ||
+            (c.type === "position" && c.dragging),
         );
 
         if (isOnlyVisual) {
