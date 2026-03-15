@@ -65,21 +65,24 @@ const getLayoutedElements = (nodes: any[], edges: any[], options: any = {}) => {
   const rootNodes: any[] = [];
 
   nodes.forEach((node) => {
-    const elkNode = {
+    const elkNode: any = {
       ...node,
       // Adjust the target and source handle positions based on the layout
       // direction.
       targetPosition: isHorizontal ? "left" : "top",
       sourcePosition: isHorizontal ? "right" : "bottom",
-      // Hardcode a width and height for elk to use when layouting, if measured is missing.
-      width: node.type !== "group" ? (node.measured?.width ?? 150) : undefined,
-      height: node.type !== "group" ? (node.measured?.height ?? 50) : undefined,
-      layoutOptions:
-        node.type === "group"
-          ? { "elk.padding": "[top=50,left=50,bottom=50,right=50]" }
-          : {},
       children: [],
     };
+
+    if (node.type !== "group") {
+      elkNode.width = node.measured?.width ?? 150;
+      elkNode.height = node.measured?.height ?? 50;
+    } else {
+      elkNode.layoutOptions = {
+        "elk.padding": "[top=50,left=50,bottom=50,right=50]",
+      };
+    }
+
     nodeMap.set(node.id, elkNode);
   });
 
@@ -93,9 +96,16 @@ const getLayoutedElements = (nodes: any[], edges: any[], options: any = {}) => {
 
   const graph = {
     id: "root",
-    layoutOptions: options,
+    layoutOptions: {
+      ...options,
+      "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+    },
     children: rootNodes,
-    edges: edges,
+    edges: edges.map((edge) => ({
+      id: edge.id,
+      sources: [edge.source],
+      targets: [edge.target],
+    })),
   };
 
   return elk
@@ -135,7 +145,7 @@ const getLayoutedElements = (nodes: any[], edges: any[], options: any = {}) => {
 
       return {
         nodes: finalNodes,
-        edges: layoutedGraph.edges,
+        edges: edges, // Return original edges for react flow
       };
     })
     .catch(console.error);
