@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo } from "react";
 import { FC, useState } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
@@ -230,20 +230,24 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                     </>
                   ))}
                   )
-                  <span
-                    className={cn(
-                      coloredNodes && "text-red-600 dark:text-red-400",
-                    )}
-                  >
-                    :
-                  </span>{" "}
-                  <span
-                    className={cn(
-                      coloredNodes && "text-blue-600 dark:text-blue-400",
-                    )}
-                  >
-                    {method.returnType}
-                  </span>
+                  {method.returnType && (
+                    <>
+                      <span
+                        className={cn(
+                          coloredNodes && "text-red-600 dark:text-red-400",
+                        )}
+                      >
+                        :
+                      </span>{" "}
+                      <span
+                        className={cn(
+                          coloredNodes && "text-blue-600 dark:text-blue-400",
+                        )}
+                      >
+                        {method.returnType}
+                      </span>
+                    </>
+                  )}
                 </span>
               </p>
             ))}
@@ -281,4 +285,3 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 };
 
 export default memo(ObjectNode);
-
