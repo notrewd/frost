@@ -716,8 +716,8 @@ pub fn run() {
                     &about_menu,
                     &file_menu,
                     &edit_menu,
-                    &view_menu,
                     &arrange_menu,
+                    &view_menu,
                     &window_menu,
                 ])
                 .build()?;

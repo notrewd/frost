@@ -411,6 +411,19 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                   </MenubarContent>
                 </MenubarMenu>
                 <MenubarMenu>
+                  <MenubarTrigger>Arrange</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={handleArrangeVertically}>
+                      <AlignVerticalDistributeCenter className="size-4" />
+                      Make Vertical
+                    </MenubarItem>
+                    <MenubarItem onClick={handleArrangeHorizontally}>
+                      <AlignHorizontalDistributeCenter className="size-4" />
+                      Make Horizontal
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
                   <MenubarTrigger>View</MenubarTrigger>
                   <MenubarContent>
                     <MenubarItem onClick={showHistoryWindow}>
@@ -421,19 +434,6 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     <MenubarItem onClick={showEdgesOutlinerWindow}>
                       <ListTree className="size-4" />
                       Edges Outliner
-                    </MenubarItem>
-                  </MenubarContent>
-                </MenubarMenu>
-                <MenubarMenu>
-                  <MenubarTrigger>Arrange</MenubarTrigger>
-                  <MenubarContent>
-                    <MenubarItem onClick={handleArrangeVertically}>
-                      <AlignVerticalDistributeCenter className="size-4" />
-                      Make Vertical
-                    </MenubarItem>
-                    <MenubarItem onClick={handleArrangeHorizontally}>
-                      <AlignHorizontalDistributeCenter className="size-4" />
-                      Make Horizontal
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>

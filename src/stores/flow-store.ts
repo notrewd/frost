@@ -1,15 +1,13 @@
 import { create } from "zustand";
 import { FlowState } from "./types";
-import { initialNodes } from "@/templates/initial-nodes";
-import { initialEdges } from "@/templates/initial-edges";
 import { addEdge, applyEdgeChanges, applyNodeChanges } from "@xyflow/react";
 import { temporal } from "zundo";
 
 const useFlowStore = create<FlowState>()(
   temporal(
     (set, get) => ({
-      nodes: initialNodes,
-      edges: initialEdges,
+      nodes: [],
+      edges: [],
       instance: null,
       onNodesChange: (changes) => {
         const isOnlyVisual = changes.every(
