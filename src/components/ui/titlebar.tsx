@@ -240,6 +240,26 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
           event.preventDefault();
           showExportWindow();
           break;
+        case "h":
+          event.preventDefault();
+          if (event.shiftKey) {
+            handleArrangeHorizontally();
+          } else {
+            showHistoryWindow();
+          }
+          break;
+        case "l":
+          if (!event.shiftKey) {
+            event.preventDefault();
+            showEdgesOutlinerWindow();
+          }
+          break;
+        case "v":
+          if (event.shiftKey) {
+            event.preventDefault();
+            handleArrangeVertically();
+          }
+          break;
         default:
           break;
       }
@@ -416,10 +436,12 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     <MenubarItem onClick={handleArrangeVertically}>
                       <AlignVerticalDistributeCenter className="size-4" />
                       Make Vertical
+                      <MenubarShortcut>Ctrl+Shift+V</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem onClick={handleArrangeHorizontally}>
                       <AlignHorizontalDistributeCenter className="size-4" />
                       Make Horizontal
+                      <MenubarShortcut>Ctrl+Shift+H</MenubarShortcut>
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
@@ -429,11 +451,13 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     <MenubarItem onClick={showHistoryWindow}>
                       <History className="size-4" />
                       History
+                      <MenubarShortcut>Ctrl+H</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem onClick={showEdgesOutlinerWindow}>
                       <ListTree className="size-4" />
                       Edges Outliner
+                      <MenubarShortcut>Ctrl+L</MenubarShortcut>
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>

@@ -680,8 +680,8 @@ pub fn run() {
                 .build()?;
 
             let edges_outliner_item =
-                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", true, None::<&str>)?;
-            let history_item = MenuItem::with_id(app, "history", "History", true, None::<&str>)?;
+                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", true, Some("CMD+L"))?;
+            let history_item = MenuItem::with_id(app, "history", "History", true, Some("CMD+H"))?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&history_item)
@@ -694,14 +694,14 @@ pub fn run() {
                 "arrange_vertically",
                 "Make Vertical",
                 true,
-                None::<&str>,
+                Some("CMD+SHIFT+V"),
             )?;
             let arrange_horizontally_item = MenuItem::with_id(
                 app,
                 "arrange_horizontally",
                 "Make Horizontal",
                 true,
-                None::<&str>,
+                Some("CMD+SHIFT+H"),
             )?;
 
             let arrange_menu = SubmenuBuilder::new(app, "Arrange")
