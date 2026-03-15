@@ -1,5 +1,5 @@
-import { memo } from 'react';
 import { FC, useCallback, useEffect } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { Focus, Trash2, Ungroup, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -27,6 +27,11 @@ interface GroupNodeProps {
 }
 
 const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data, id, updateNodeInternals]);
+
   const { setNodes, instance } = useFlowStore(
     useShallow((state) => ({
       setNodes: state.setNodes,
@@ -279,5 +284,4 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default memo(GroupNode);
-
+export default GroupNode;

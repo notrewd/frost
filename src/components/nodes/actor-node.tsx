@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { FC } from "react";
+import { FC, useEffect } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -28,6 +28,11 @@ interface ActorNodeProps {
 }
 
 const ActorNode: FC<ActorNodeProps> = ({ id, data, selected }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data, id, updateNodeInternals]);
+
   const { compactNodes } = useSettingsStore(
     useShallow((state) => ({
       compactNodes: state.compact_nodes,
@@ -73,5 +78,4 @@ const ActorNode: FC<ActorNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default memo(ActorNode);
-
+export default ActorNode;

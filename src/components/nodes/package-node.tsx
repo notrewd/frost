@@ -1,4 +1,5 @@
-import { memo } from 'react';
+import { FC, useEffect } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
 import NodeContextMenu, {
@@ -12,7 +13,6 @@ import NodeContextMenu, {
 } from "../ui/nodes/node-context-menu";
 import { Card } from "../ui/card";
 import { cn } from "@/lib/utils";
-import { FC } from "react";
 import { ContextMenuSeparator } from "../ui/context-menu";
 import NodeSelectionRing from "../ui/nodes/node-selection-ring";
 import NodeConnectionHandle from "../ui/nodes/node-connection-handle";
@@ -29,6 +29,11 @@ interface PackageNodeProps {
 }
 
 const PackageNode: FC<PackageNodeProps> = ({ id, data, selected }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data, id, updateNodeInternals]);
+
   const { compactNodes, nodeBorderRadius } = useSettingsStore(
     useShallow((state) => ({
       compactNodes: state.compact_nodes,
@@ -73,5 +78,4 @@ const PackageNode: FC<PackageNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default memo(PackageNode);
-
+export default PackageNode;

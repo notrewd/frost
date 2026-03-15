@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { FC } from "react";
+import { FC, useEffect } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
@@ -26,6 +26,11 @@ interface UseCaseNodeProps {
 }
 
 const UseCaseNode: FC<UseCaseNodeProps> = ({ id, data, selected }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data, id, updateNodeInternals]);
+
   const { compactNodes } = useSettingsStore(
     useShallow((state) => ({
       compactNodes: state.compact_nodes,
@@ -68,5 +73,4 @@ const UseCaseNode: FC<UseCaseNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default memo(UseCaseNode);
-
+export default UseCaseNode;

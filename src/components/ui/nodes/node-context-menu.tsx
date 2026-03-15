@@ -25,7 +25,7 @@ const NodeContextMenu: FC<NodeContextMenuProps> = ({ children }) => {
           React.isValidElement(child) && child.type === NodeContextMenuContent,
       ),
     [children],
-  );
+  ) as React.ReactElement<{ children?: React.ReactNode }>;
 
   const optionsContent = useMemo(
     () =>
@@ -34,12 +34,14 @@ const NodeContextMenu: FC<NodeContextMenuProps> = ({ children }) => {
           React.isValidElement(child) && child.type === NodeContextMenuOptions,
       ),
     [children],
-  );
+  ) as React.ReactElement<{ children?: React.ReactNode }>;
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger>{triggerContent}</ContextMenuTrigger>
-      <ContextMenuContent>{optionsContent}</ContextMenuContent>
+      <ContextMenuTrigger asChild>
+        {triggerContent?.props?.children}
+      </ContextMenuTrigger>
+      <ContextMenuContent>{optionsContent?.props?.children}</ContextMenuContent>
     </ContextMenu>
   );
 };

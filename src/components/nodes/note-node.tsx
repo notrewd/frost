@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
@@ -29,6 +29,11 @@ interface NoteNodeProps {
 }
 
 const NoteNode: FC<NoteNodeProps> = ({ id, data, selected }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data, id, updateNodeInternals]);
+
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { compactNodes, nodeBorderRadius } = useSettingsStore(
@@ -91,5 +96,4 @@ const NoteNode: FC<NoteNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default memo(NoteNode);
-
+export default NoteNode;

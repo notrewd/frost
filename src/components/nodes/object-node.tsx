@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
+import { useUpdateNodeInternals } from "@xyflow/react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
 import { ChevronsLeft, ChevronsRight, Edit2 } from "lucide-react";
@@ -59,6 +59,11 @@ interface ObjectNodeProps {
 }
 
 const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
+  const updateNodeInternals = useUpdateNodeInternals();
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data, id, updateNodeInternals]);
+
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { coloredNodes, compactNodes, nodeBorderRadius } = useSettingsStore(
@@ -284,4 +289,4 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default memo(ObjectNode);
+export default ObjectNode;

@@ -42,8 +42,19 @@ const useFlowStore = create<FlowState>()(
           edges: addEdge(edge, get().edges),
         });
       },
-      setNodes: (nodes) => {
-        set((state) => ({ nodes: nodes(state.nodes) }));
+      setNodes: (nodesListOrUpdater) => {
+        set((state) => {
+          const rawNodes =
+            typeof nodesListOrUpdater === "function"
+              ? nodesListOrUpdater(state.nodes)
+              : nodesListOrUpdater;
+          return {
+            nodes: rawNodes.map((n: any) => {
+              const { width, height, ...rest } = n;
+              return rest;
+            }),
+          };
+        });
       },
       setEdges: (edges) => {
         set((state) => ({ edges: edges(state.edges) }));
