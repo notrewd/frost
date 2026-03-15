@@ -46,6 +46,100 @@ import NoteNode from "../nodes/note-node";
 import UseCaseNode from "../nodes/use-case-node";
 import ActorNode from "../nodes/actor-node";
 import ComponentNode from "../nodes/component-node";
+import ELK from "elkjs/lib/elk.bundled.js";
+
+const elk = new ELK();
+
+const elkOptions = {
+  "elk.algorithm": "layered",
+  "elk.layered.spacing.nodeNodeBetweenLayers": "100",
+  "elk.spacing.nodeNode": "80",
+};
+
+const getLayoutedElements = (nodes: any[], edges: any[], options: any = {}) => {
+  const isHorizontal = options?.["elk.direction"] === "RIGHT";
+
+  // We need to handle hierarchy for ELK
+  // First, map nodes to an object for fast lookup
+  const nodeMap = new Map();
+  const rootNodes: any[] = [];
+
+  nodes.forEach((node) => {
+    const elkNode = {
+      ...node,
+      // Adjust the target and source handle positions based on the layout
+      // direction.
+      targetPosition: isHorizontal ? "left" : "top",
+      sourcePosition: isHorizontal ? "right" : "bottom",
+      // Hardcode a width and height for elk to use when layouting, if measured is missing.
+      width: node.type !== "group" ? (node.measured?.width ?? 150) : undefined,
+      height: node.type !== "group" ? (node.measured?.height ?? 50) : undefined,
+      layoutOptions:
+        node.type === "group"
+          ? { "elk.padding": "[top=50,left=50,bottom=50,right=50]" }
+          : {},
+      children: [],
+    };
+    nodeMap.set(node.id, elkNode);
+  });
+
+  nodes.forEach((node) => {
+    if (node.parentId && nodeMap.has(node.parentId)) {
+      nodeMap.get(node.parentId).children.push(nodeMap.get(node.id));
+    } else {
+      rootNodes.push(nodeMap.get(node.id));
+    }
+  });
+
+  const graph = {
+    id: "root",
+    layoutOptions: options,
+    children: rootNodes,
+    edges: edges,
+  };
+
+  return elk
+    .layout(graph)
+    .then((layoutedGraph) => {
+      // Flatten the returned graph nodes
+      const extractNodes = (elkNodes: any[], result: any[] = []) => {
+        elkNodes.forEach((node) => {
+          const style =
+            node.type === "group"
+              ? {
+                  ...node.style,
+                  width: node.width,
+                  height: node.height,
+                }
+              : node.style;
+
+          result.push({
+            ...node,
+            position: { x: node.x, y: node.y },
+            style,
+          });
+          if (node.children && node.children.length > 0) {
+            extractNodes(node.children, result);
+          }
+        });
+        return result;
+      };
+
+      const flatNodes = extractNodes(layoutedGraph.children || []);
+
+      // Clean up children property we added for elk
+      const finalNodes = flatNodes.map((n) => {
+        const { children, ...rest } = n;
+        return rest;
+      });
+
+      return {
+        nodes: finalNodes,
+        edges: layoutedGraph.edges,
+      };
+    })
+    .catch(console.error);
+};
 
 const nodeTypes = {
   object: ObjectNode,
@@ -626,6 +720,35 @@ const FlowEditor = () => {
       },
     );
 
+    const arrangeUnlisten = listen<{ direction: string }>(
+      "arrange-nodes",
+      async (event) => {
+        const { direction } = event.payload;
+        const opts = { "elk.direction": direction, ...elkOptions };
+
+        const currentNodes = useFlowStore.getState().nodes;
+        const currentEdges = useFlowStore.getState().edges;
+        const reactFlowInstance = useFlowStore.getState().instance;
+
+        const layouted = await getLayoutedElements(
+          currentNodes,
+          currentEdges,
+          opts,
+        );
+
+        if (layouted) {
+          useFlowStore.getState().setNodes(() => layouted.nodes);
+          useFlowStore.getState().setEdges(() => layouted.edges);
+
+          if (reactFlowInstance) {
+            setTimeout(() => {
+              reactFlowInstance.fitView({ duration: 500 });
+            }, 50);
+          }
+        }
+      },
+    );
+
     return () => {
       projectOpenedUnlisten.then((f) => f());
       undoUnlisten.then((f) => f());
@@ -638,6 +761,7 @@ const FlowEditor = () => {
       updateEdgeUnlisten.then((f) => f());
       deleteEdgeUnlisten.then((f) => f());
       focusEdgeUnlisten.then((f) => f());
+      arrangeUnlisten.then((f) => f());
     };
   }, []);
 

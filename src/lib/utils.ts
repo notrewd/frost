@@ -50,18 +50,28 @@ function getNodeIntersection(
   targetNode: InternalNode,
 ) {
   // https://math.stackexchange.com/questions/1724792/an-algorithm-for-finding-the-intersection-point-between-a-center-of-vision-and-a
-  const { width: intersectionNodeWidth, height: intersectionNodeHeight } =
-    intersectionNode.measured ?? { width: 0, height: 0 };
-  const intersectionNodePosition = intersectionNode.internals.positionAbsolute;
-  const targetPosition = targetNode.internals.positionAbsolute;
+  const w =
+    (intersectionNode.measured?.width ?? intersectionNode.width ?? 150) / 2;
+  const h =
+    (intersectionNode.measured?.height ?? intersectionNode.height ?? 50) / 2;
 
-  const w = (intersectionNodeWidth ?? 0) / 2;
-  const h = (intersectionNodeHeight ?? 0) / 2;
+  const intersectionNodePosition =
+    intersectionNode.internals?.positionAbsolute ||
+    (intersectionNode as any).positionAbsolute ||
+    intersectionNode.position;
+  const targetPosition =
+    targetNode.internals?.positionAbsolute ||
+    (targetNode as any).positionAbsolute ||
+    targetNode.position;
 
   const x2 = intersectionNodePosition.x + w;
   const y2 = intersectionNodePosition.y + h;
-  const x1 = targetPosition.x + (targetNode.measured?.width ?? 0) / 2;
-  const y1 = targetPosition.y + (targetNode.measured?.height ?? 0) / 2;
+  const x1 =
+    targetPosition.x +
+    (targetNode.measured?.width ?? targetNode.width ?? 150) / 2;
+  const y1 =
+    targetPosition.y +
+    (targetNode.measured?.height ?? targetNode.height ?? 50) / 2;
 
   const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
   const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
@@ -76,22 +86,28 @@ function getNodeIntersection(
 
 // returns the position (top,right,bottom or right) passed node compared to the intersection point
 function getEdgePosition(node: InternalNode, intersectionPoint: XYPosition) {
-  const n = { ...node.internals.positionAbsolute, ...node };
-  const nx = Math.round(n.x);
-  const ny = Math.round(n.y);
+  const nPos =
+    node.internals?.positionAbsolute ||
+    (node as any).positionAbsolute ||
+    node.position;
+  const nx = Math.round(nPos.x);
+  const ny = Math.round(nPos.y);
   const px = Math.round(intersectionPoint.x);
   const py = Math.round(intersectionPoint.y);
+
+  const width = Math.round(node.measured?.width ?? node.width ?? 150);
+  const height = Math.round(node.measured?.height ?? node.height ?? 50);
 
   if (px <= nx + 1) {
     return Position.Left;
   }
-  if (px >= nx + (n.measured?.width ?? 0) - 1) {
+  if (px >= nx + width - 1) {
     return Position.Right;
   }
   if (py <= ny + 1) {
     return Position.Top;
   }
-  if (py >= n.y + (n.measured?.height ?? 0) - 1) {
+  if (py >= ny + height - 1) {
     return Position.Bottom;
   }
 

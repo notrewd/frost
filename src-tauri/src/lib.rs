@@ -689,6 +689,26 @@ pub fn run() {
                 .item(&edges_outliner_item)
                 .build()?;
 
+            let arrange_vertically_item = MenuItem::with_id(
+                app,
+                "arrange_vertically",
+                "Make Vertical",
+                true,
+                None::<&str>,
+            )?;
+            let arrange_horizontally_item = MenuItem::with_id(
+                app,
+                "arrange_horizontally",
+                "Make Horizontal",
+                true,
+                None::<&str>,
+            )?;
+
+            let arrange_menu = SubmenuBuilder::new(app, "Arrange")
+                .item(&arrange_vertically_item)
+                .item(&arrange_horizontally_item)
+                .build()?;
+
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
 
             let menu = MenuBuilder::new(app)
@@ -697,6 +717,7 @@ pub fn run() {
                     &file_menu,
                     &edit_menu,
                     &view_menu,
+                    &arrange_menu,
                     &window_menu,
                 ])
                 .build()?;
@@ -749,6 +770,14 @@ pub fn run() {
                     }
                     "undo" | "redo" => {
                         app.emit(event.id().0.as_str(), ()).unwrap();
+                    }
+                    "arrange_vertically" => {
+                        app.emit("arrange-nodes", serde_json::json!({ "direction": "DOWN" }))
+                            .unwrap();
+                    }
+                    "arrange_horizontally" => {
+                        app.emit("arrange-nodes", serde_json::json!({ "direction": "RIGHT" }))
+                            .unwrap();
                     }
                     "cut" | "copy" | "paste" | "select_all" => {
                         app.emit(format!("editor-{}", event.id().0).as_str(), ())

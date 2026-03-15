@@ -21,6 +21,8 @@ import {
   Download,
   ListTree,
   History,
+  AlignVerticalDistributeCenter,
+  AlignHorizontalDistributeCenter,
 } from "lucide-react";
 import {
   Menubar,
@@ -180,6 +182,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
 
   const handleRedo = useCallback(() => {
     emit("redo");
+  }, []);
+
+  const handleArrangeVertically = useCallback(() => {
+    emit("arrange-nodes", { direction: "DOWN" });
+  }, []);
+
+  const handleArrangeHorizontally = useCallback(() => {
+    emit("arrange-nodes", { direction: "RIGHT" });
   }, []);
 
   useEffect(() => {
@@ -411,6 +421,19 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                     <MenubarItem onClick={showEdgesOutlinerWindow}>
                       <ListTree className="size-4" />
                       Edges Outliner
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>Arrange</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={handleArrangeVertically}>
+                      <AlignVerticalDistributeCenter className="size-4" />
+                      Make Vertical
+                    </MenubarItem>
+                    <MenubarItem onClick={handleArrangeHorizontally}>
+                      <AlignHorizontalDistributeCenter className="size-4" />
+                      Make Horizontal
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
