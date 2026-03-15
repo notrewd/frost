@@ -109,7 +109,9 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
             >
               {data.name}
             </p>
-            <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
+            {data.attributes && data.attributes.length > 0 && (
+              <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
+            )}
             {data.attributes?.map((attr, index) => (
               <p key={index} className="px-4">
                 <span
