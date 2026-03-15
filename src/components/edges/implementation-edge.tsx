@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   useInternalNode,
   type EdgeProps,
@@ -84,7 +85,8 @@ function ImplementationEdge({ id, source, target, style, data }: EdgeProps) {
   );
 }
 
-export default ImplementationEdge;
+export default memo(ImplementationEdge);
+
 
 
 

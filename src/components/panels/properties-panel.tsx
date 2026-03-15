@@ -70,9 +70,13 @@ const PropertiesPanel: FC = () => {
     })),
   );
 
-  const nodes = useFlowStore(useShallow((state: FlowState) => state.nodes));
+  const selectedNodes = useFlowStore(
+    useShallow((state: FlowState) => state.nodes.filter((node) => node.selected)),
+  );
 
-  const edges = useFlowStore(useShallow((state: FlowState) => state.edges));
+  const selectedEdges = useFlowStore(
+    useShallow((state: FlowState) => state.edges.filter((edge) => edge.selected)),
+  );
 
   const [nodeDialogOpen, setNodeDialogOpen] = useState(false);
   const [selectedNodeForDialog, setSelectedNodeForDialog] = useState<
@@ -81,8 +85,8 @@ const PropertiesPanel: FC = () => {
 
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
-  const selectedNodes = nodes.filter((node) => node.selected);
-  const selectedEdges = edges.filter((edge) => edge.selected);
+  
+  
 
   const bulkNodeX = useMemo(() => {
     if (selectedNodes.length === 0) return "";
@@ -273,7 +277,7 @@ const PropertiesPanel: FC = () => {
 
   const getSelectedNodeForDialog = () => {
     if (!selectedNodeForDialog) return null;
-    return nodes.find((node) => node.id === selectedNodeForDialog);
+    return (selectedNodes.find(n => n.id === selectedNodeForDialog) || useFlowStore.getState().nodes.find(n => n.id === selectedNodeForDialog));
   };
 
   const selectedNodeDialog = getSelectedNodeForDialog();

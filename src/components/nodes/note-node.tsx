@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FC, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -90,4 +91,5 @@ const NoteNode: FC<NoteNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default NoteNode;
+export default memo(NoteNode);
+

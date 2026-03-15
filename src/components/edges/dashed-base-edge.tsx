@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { BaseEdge, type BaseEdgeProps } from "@xyflow/react";
 
 export function DashedBaseEdge({
@@ -33,4 +34,5 @@ export function DashedBaseEdge({
   );
 }
 
-export default DashedBaseEdge;
+export default memo(DashedBaseEdge);
+

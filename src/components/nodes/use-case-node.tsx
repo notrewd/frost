@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FC } from "react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -67,4 +68,5 @@ const UseCaseNode: FC<UseCaseNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default UseCaseNode;
+export default memo(UseCaseNode);
+

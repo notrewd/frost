@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useSettingsStore } from "@/stores/settings-store";
 import { useShallow } from "zustand/react/shallow";
 import NodeContextMenu, {
@@ -72,4 +73,5 @@ const PackageNode: FC<PackageNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default PackageNode;
+export default memo(PackageNode);
+

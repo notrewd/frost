@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FC } from "react";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -93,4 +94,5 @@ const ComponentNode: FC<ComponentNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default ComponentNode;
+export default memo(ComponentNode);
+

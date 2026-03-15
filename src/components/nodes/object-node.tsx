@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FC, useState } from "react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
@@ -279,4 +280,5 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default ObjectNode;
+export default memo(ObjectNode);
+

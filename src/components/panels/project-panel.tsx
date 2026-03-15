@@ -46,40 +46,69 @@ const ProjectPanel = () => {
     })),
   );
 
-  const nodes = useFlowStore(useShallow((state: FlowState) => state.nodes));
+  const [treeData, setTreeData] = useState<TreeViewItem[]>([]);
+  const [treeSelectedIds, setTreeSelectedIds] = useState<Set<string>>(new Set());
 
-  const treeData = useMemo(() => {
-    const buildHierarchy = (parentId: string | undefined): TreeViewItem[] => {
-      const children = nodes.filter((node) => node.parentId === parentId);
-      return children.map((node) => ({
-        id: node.id,
-        name: (node.data.name as string) || "Group",
-        type:
-          node.type === "group"
-            ? ("folder" as const)
-            : node.type === "package"
-              ? ("package" as const)
-              : node.type === "note"
-                ? ("note" as const)
-                : node.type === "use-case"
-                  ? ("use-case" as const)
-                  : node.type === "actor"
-                    ? ("actor" as const)
-                    : node.type === "component"
-                      ? ("component" as const)
-                      : ("node" as const),
-        selected: node.selected,
-        ...(node.type === "group" ? { children: buildHierarchy(node.id) } : {}),
-      }));
+  useEffect(() => {
+    let lastHash = '';
+    let lastSelectedHash = '';
+
+    const updateTree = (nodes: any[]) => {
+      const currentHash = JSON.stringify(
+        nodes.map((n: any) => ({
+          id: n.id,
+          name: n.data.name,
+          type: n.type,
+          parentId: n.parentId,
+        }))
+      );
+      if (currentHash !== lastHash) {
+        lastHash = currentHash;
+        const buildHierarchy = (parentId: string | undefined): TreeViewItem[] => {
+          const children = nodes.filter((node) => node.parentId === parentId);
+          return children.map((node) => ({
+            id: node.id,
+            name: (node.data.name as string) || 'Group',
+            type:
+              node.type === 'group'
+                ? ('folder' as const)
+                : node.type === 'package'
+                ? ('package' as const)
+                : node.type === 'note'
+                ? ('note' as const)
+                : node.type === 'use-case'
+                ? ('use-case' as const)
+                : node.type === 'actor'
+                ? ('actor' as const)
+                : node.type === 'component'
+                ? ('component' as const)
+                : ('node' as const),
+            selected: node.selected,
+            ...(node.type === 'group' ? { children: buildHierarchy(node.id) } : {}),
+          }));
+        };
+        setTreeData(buildHierarchy(undefined));
+      }
+
+      const currentSelectedHash = JSON.stringify(
+        nodes.filter((n: any) => n.selected).map((n: any) => n.id)
+      );
+      if (currentSelectedHash !== lastSelectedHash) {
+        lastSelectedHash = currentSelectedHash;
+        setTreeSelectedIds(
+          new Set(nodes.filter((node: any) => node.selected).map((node: any) => node.id))
+        );
+      }
     };
-    return buildHierarchy(undefined);
-  }, [nodes]);
 
-  const treeSelectedIds = useMemo(() => {
-    return new Set(
-      nodes.filter((node) => node.selected).map((node) => node.id),
-    );
-  }, [nodes]);
+    const unsub = useFlowStore.subscribe((state) => {
+      updateTree(state.nodes);
+    });
+
+    updateTree(useFlowStore.getState().nodes);
+
+    return unsub;
+  }, []);
 
   const handleSelectionChange = useCallback(
     (selectedItems: TreeViewItem[]) => {
@@ -107,7 +136,7 @@ const ProjectPanel = () => {
   const handleGroup = useCallback(
     (items: TreeViewItem[]) => {
       const itemIds = items.map((item) => item.id);
-      const selectedNodes = nodes.filter((n) => itemIds.includes(n.id));
+      const selectedNodes = useFlowStore.getState().nodes.filter((n) => itemIds.includes(n.id));
       if (selectedNodes.length === 0) return;
 
       const parentIds = [...new Set(selectedNodes.map((n) => n.parentId))];
@@ -168,7 +197,7 @@ const ProjectPanel = () => {
         return finalNodes;
       });
     },
-    [nodes, setNodes],
+    [setNodes],
   );
 
   const handleUngroup = useCallback(
@@ -345,7 +374,7 @@ const ProjectPanel = () => {
         action: handleUngroup,
         show: (items: TreeViewItem[]) => {
           const itemIds = items.map((item) => item.id);
-          const selectedNodes = nodes.filter((n) => itemIds.includes(n.id));
+          const selectedNodes = useFlowStore.getState().nodes.filter((n) => itemIds.includes(n.id));
           return selectedNodes.some((n) => n.parentId || n.type === "group");
         },
       },

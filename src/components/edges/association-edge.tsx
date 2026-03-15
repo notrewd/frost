@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   BaseEdge,
   useInternalNode,
@@ -85,7 +86,8 @@ function AssociationEdge({ id, source, target, style, data }: EdgeProps) {
   );
 }
 
-export default AssociationEdge;
+export default memo(AssociationEdge);
+
 
 
 

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   BaseEdge,
   useInternalNode,
@@ -84,7 +85,8 @@ function GeneralizationEdge({ id, source, target, style, data }: EdgeProps) {
   );
 }
 
-export default GeneralizationEdge;
+export default memo(GeneralizationEdge);
+
 
 
 

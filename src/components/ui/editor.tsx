@@ -766,8 +766,13 @@ const FlowEditor = () => {
   }, []);
 
   useEffect(() => {
+    let lastEdges = '';
     const unsub = useFlowStore.subscribe((state) => {
-      emit("edges-data", state.edges);
+      const currentEdges = JSON.stringify(state.edges);
+      if (currentEdges !== lastEdges) {
+        lastEdges = currentEdges;
+        emit('edges-data', state.edges);
+      }
     });
     return unsub;
   }, []);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FC, useCallback, useEffect } from "react";
 import { Focus, Trash2, Ungroup, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -278,4 +279,5 @@ const GroupNode: FC<GroupNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default GroupNode;
+export default memo(GroupNode);
+

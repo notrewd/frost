@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FC } from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -72,4 +73,5 @@ const ActorNode: FC<ActorNodeProps> = ({ id, data, selected }) => {
   );
 };
 
-export default ActorNode;
+export default memo(ActorNode);
+
