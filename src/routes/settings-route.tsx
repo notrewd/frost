@@ -309,9 +309,10 @@ const SettingsRoute = () => {
                               <SidebarMenuSubItem key={sub.id}>
                                 <SidebarMenuSubButton
                                   onClick={() => setSelectedCategory(sub)}
-                                  className={
-                                    selectedCategory === sub ? "bg-muted" : ""
-                                  }
+                                  className={cn(
+                                    "cursor-default",
+                                    selectedCategory === sub && "bg-muted",
+                                  )}
                                 >
                                   {sub.title}
                                 </SidebarMenuSubButton>
