@@ -12,6 +12,7 @@ import { Button } from "../button";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Switch } from "../switch";
 import { SortableItem, SortableItemHandle } from "../sortable";
+import { useObjectNodeColors } from "@/hooks/use-object-node-colors";
 
 interface ObjectNodeAttributeItemProps {
   attr: ObjectNodeAttribute;
@@ -29,6 +30,8 @@ const ObjectNodeAttributeItem: FC<ObjectNodeAttributeItemProps> = ({
   updateAttribute,
   removeAttribute,
 }) => {
+  const { aColor, sColor, tColor, dColor } = useObjectNodeColors();
+
   return (
     <SortableItem key={attr.id} value={attr.id} asChild>
       <div className="flex flex-col gap-2 p-2 border rounded-md bg-muted/20">
@@ -48,7 +51,7 @@ const ObjectNodeAttributeItem: FC<ObjectNodeAttributeItemProps> = ({
               updateAttribute(index, { accessModifier: val })
             }
           >
-            <SelectTrigger className="h-8!">
+            <SelectTrigger className="h-8!" style={{ color: aColor }}>
               <SelectValue placeholder="Access" />
             </SelectTrigger>
             <SelectContent>
@@ -63,12 +66,15 @@ const ObjectNodeAttributeItem: FC<ObjectNodeAttributeItemProps> = ({
             onChange={(e) => updateAttribute(index, { name: e.target.value })}
             placeholder="Name"
           />
-          <span className="text-muted-foreground">:</span>
+          <span className="text-muted-foreground" style={{ color: sColor }}>
+            :
+          </span>
           <Input
             className="h-8 font-mono w-32"
             value={attr.type || ""}
             onChange={(e) => updateAttribute(index, { type: e.target.value })}
             placeholder="Type"
+            style={{ color: tColor }}
           />
           <Button
             variant="ghost"
@@ -96,6 +102,7 @@ const ObjectNodeAttributeItem: FC<ObjectNodeAttributeItemProps> = ({
               updateAttribute(index, { defaultValue: e.target.value })
             }
             placeholder="Default Value"
+            style={{ color: dColor }}
           />
           <Input
             className="h-7 text-xs font-mono flex-1"

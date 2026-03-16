@@ -21,6 +21,7 @@ import {
   CollapsibleTrigger,
 } from "../collapsible";
 import { SortableItem, SortableItemHandle } from "../sortable";
+import { useObjectNodeColors } from "@/hooks/use-object-node-colors";
 
 interface ObjectNodeMethodItemProps {
   method: ObjectNodeMethod;
@@ -46,6 +47,7 @@ const ObjectNodeMethodItem: FC<ObjectNodeMethodItemProps> = ({
   onRemoveParameter,
 }) => {
   const [collapsed, setCollapsed] = useState(true);
+  const { aColor, sColor, tColor } = useObjectNodeColors();
 
   return (
     <SortableItem key={method.id} value={method.id} asChild>
@@ -76,7 +78,7 @@ const ObjectNodeMethodItem: FC<ObjectNodeMethodItemProps> = ({
                 onUpdateMethod(index, { accessModifier: val })
               }
             >
-              <SelectTrigger className="h-8!">
+              <SelectTrigger className="h-8!" style={{ color: aColor }}>
                 <SelectValue placeholder="Access" />
               </SelectTrigger>
               <SelectContent>
@@ -91,7 +93,9 @@ const ObjectNodeMethodItem: FC<ObjectNodeMethodItemProps> = ({
               onChange={(e) => onUpdateMethod(index, { name: e.target.value })}
               placeholder="Name"
             />
-            <span className="text-muted-foreground">:</span>
+            <span className="text-muted-foreground" style={{ color: sColor }}>
+              :
+            </span>
             <Input
               className="h-8 font-mono w-25"
               value={method.returnType || ""}
@@ -99,6 +103,7 @@ const ObjectNodeMethodItem: FC<ObjectNodeMethodItemProps> = ({
                 onUpdateMethod(index, { returnType: e.target.value })
               }
               placeholder="Return Type"
+              style={{ color: tColor }}
             />
             <Button
               variant="ghost"

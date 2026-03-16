@@ -3,6 +3,7 @@ import { Input } from "../input";
 import { ObjectNodeProperty } from "@/components/nodes/object-node";
 import { Button } from "../button";
 import { Trash2 } from "lucide-react";
+import { useObjectNodeColors } from "@/hooks/use-object-node-colors";
 
 interface ObjectNodeParameterItemProps {
   param: ObjectNodeProperty;
@@ -23,6 +24,8 @@ const ObjectNodeParameterItem: FC<ObjectNodeParameterItemProps> = ({
   onUpdateParameter,
   onRemoveParameter,
 }) => {
+  const { pColor, sColor, tColor, dColor } = useObjectNodeColors();
+
   return (
     <div className="flex flex-col gap-2 p-2 border rounded-md bg-muted/20">
       <div key={pIndex} className="flex gap-2 items-center">
@@ -35,8 +38,14 @@ const ObjectNodeParameterItem: FC<ObjectNodeParameterItemProps> = ({
             })
           }
           placeholder="Name"
+          style={{ color: pColor }}
         />
-        <span className="text-muted-foreground text-xs">:</span>
+        <span
+          className="text-muted-foreground text-xs"
+          style={{ color: sColor }}
+        >
+          :
+        </span>
         <Input
           className="h-7 text-xs font-mono w-25"
           value={param.type || ""}
@@ -46,6 +55,7 @@ const ObjectNodeParameterItem: FC<ObjectNodeParameterItemProps> = ({
             })
           }
           placeholder="Type"
+          style={{ color: tColor }}
         />
         <Button
           variant="ghost"
@@ -65,6 +75,7 @@ const ObjectNodeParameterItem: FC<ObjectNodeParameterItemProps> = ({
           })
         }
         placeholder="Default Value"
+        style={{ color: dColor }}
       />
     </div>
   );
