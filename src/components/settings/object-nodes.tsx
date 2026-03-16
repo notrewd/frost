@@ -7,6 +7,7 @@ import { getThemeColorCounterpart } from "@/lib/utils";
 import { HexColorPicker } from "react-colorful";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Input } from "../ui/input";
+import { Separator } from "../ui/separator";
 
 interface ObjectNodesSettingsProps {
   onChange?: () => void;
@@ -145,7 +146,7 @@ const ObjectNodesSettings: FC<ObjectNodesSettingsProps> = ({
           />
         </SettingsField>
       )}
-
+      <Separator className="my-2" />
       <ColorPickerField
         label="Access Modifier Color"
         description="Color for access modifiers like +, -, #"
