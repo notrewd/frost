@@ -304,9 +304,12 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               </p>
             ))}
             {!data.attributes?.length && !data.methods?.length && (
-              <p className="px-4 italic text-muted-foreground">
-                No attributes or methods
-              </p>
+              <>
+                <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
+                <p className="px-4 italic text-muted-foreground">
+                  No attributes or methods
+                </p>
+              </>
             )}
             <NodeConnectionHandle nodeId={id} />
           </Card>
