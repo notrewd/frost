@@ -187,6 +187,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               className={cn(
                 "px-4 w-full text-center font-semibold",
                 compactNodes ? "text-sm" : "text-base",
+                data.abstract && "italic",
               )}
             >
               {data.name}
