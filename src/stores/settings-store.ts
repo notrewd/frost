@@ -9,6 +9,16 @@ export const useSettingsStore = create<SettingsState>(() => ({
   pan_on_scroll: false,
   show_minimap: true,
   colored_nodes: true,
+  object_node_access_modifier_color_light: "#16a34a",
+  object_node_access_modifier_color_dark: "#16a34a",
+  object_node_type_separator_color_light: "#dc2626",
+  object_node_type_separator_color_dark: "#dc2626",
+  object_node_type_color_light: "#2563eb",
+  object_node_type_color_dark: "#2563eb",
+  object_node_default_value_color_light: "#9333ea",
+  object_node_default_value_color_dark: "#9333ea",
+  object_node_parameter_name_color_light: "#ea580c",
+  object_node_parameter_name_color_dark: "#ea580c",
   show_controls: true,
   edge_style: "bezier",
   auto_save: false,
@@ -29,6 +39,31 @@ export const useSettingsStore = create<SettingsState>(() => ({
     invoke("set_settings_state", { showMinimap: enabled }),
   setColoredNodes: (enabled: boolean) =>
     invoke("set_settings_state", { coloredNodes: enabled }),
+  setObjectNodeAccessModifierColor: (light: string, dark: string) =>
+    invoke("set_settings_state", {
+      objectNodeAccessModifierColorLight: light,
+      objectNodeAccessModifierColorDark: dark,
+    }),
+  setObjectNodeTypeSeparatorColor: (light: string, dark: string) =>
+    invoke("set_settings_state", {
+      objectNodeTypeSeparatorColorLight: light,
+      objectNodeTypeSeparatorColorDark: dark,
+    }),
+  setObjectNodeTypeColor: (light: string, dark: string) =>
+    invoke("set_settings_state", {
+      objectNodeTypeColorLight: light,
+      objectNodeTypeColorDark: dark,
+    }),
+  setObjectNodeDefaultValueColor: (light: string, dark: string) =>
+    invoke("set_settings_state", {
+      objectNodeDefaultValueColorLight: light,
+      objectNodeDefaultValueColorDark: dark,
+    }),
+  setObjectNodeParameterNameColor: (light: string, dark: string) =>
+    invoke("set_settings_state", {
+      objectNodeParameterNameColorLight: light,
+      objectNodeParameterNameColorDark: dark,
+    }),
   setShowControls: (enabled: boolean) =>
     invoke("set_settings_state", { showControls: enabled }),
   setEdgeStyle: (style: "straight" | "smoothstep" | "bezier") =>
@@ -59,6 +94,24 @@ const fetchSettings = async () => {
     pan_on_scroll: settings.pan_on_scroll,
     show_minimap: settings.show_minimap,
     colored_nodes: settings.colored_nodes,
+    object_node_access_modifier_color_light:
+      settings.object_node_access_modifier_color_light,
+    object_node_access_modifier_color_dark:
+      settings.object_node_access_modifier_color_dark,
+    object_node_type_separator_color_light:
+      settings.object_node_type_separator_color_light,
+    object_node_type_separator_color_dark:
+      settings.object_node_type_separator_color_dark,
+    object_node_type_color_light: settings.object_node_type_color_light,
+    object_node_type_color_dark: settings.object_node_type_color_dark,
+    object_node_default_value_color_light:
+      settings.object_node_default_value_color_light,
+    object_node_default_value_color_dark:
+      settings.object_node_default_value_color_dark,
+    object_node_parameter_name_color_light:
+      settings.object_node_parameter_name_color_light,
+    object_node_parameter_name_color_dark:
+      settings.object_node_parameter_name_color_dark,
     show_controls: settings.show_controls,
     edge_style: settings.edge_style,
     auto_save: settings.auto_save,
@@ -83,6 +136,24 @@ const subscribeToSettingsUpdates = () => {
       pan_on_scroll: settings.panOnScroll,
       show_minimap: settings.showMinimap,
       colored_nodes: settings.coloredNodes,
+      object_node_access_modifier_color_light:
+        settings.objectNodeAccessModifierColorLight,
+      object_node_access_modifier_color_dark:
+        settings.objectNodeAccessModifierColorDark,
+      object_node_type_separator_color_light:
+        settings.objectNodeTypeSeparatorColorLight,
+      object_node_type_separator_color_dark:
+        settings.objectNodeTypeSeparatorColorDark,
+      object_node_type_color_light: settings.objectNodeTypeColorLight,
+      object_node_type_color_dark: settings.objectNodeTypeColorDark,
+      object_node_default_value_color_light:
+        settings.objectNodeDefaultValueColorLight,
+      object_node_default_value_color_dark:
+        settings.objectNodeDefaultValueColorDark,
+      object_node_parameter_name_color_light:
+        settings.objectNodeParameterNameColorLight,
+      object_node_parameter_name_color_dark:
+        settings.objectNodeParameterNameColorDark,
       edge_style: settings.edgeStyle,
       show_controls: settings.showControls,
       auto_save: settings.autoSave,

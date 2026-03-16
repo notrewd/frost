@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useMemo } from "react";
 import { useUpdateNodeInternals } from "@xyflow/react";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
@@ -66,12 +66,88 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { coloredNodes, compactNodes, nodeBorderRadius } = useSettingsStore(
+  const {
+    coloredNodes,
+    compactNodes,
+    nodeBorderRadius,
+    theme,
+    accessColorLight,
+    accessColorDark,
+    separatorColorLight,
+    separatorColorDark,
+    typeColorLight,
+    typeColorDark,
+    defaultValueColorLight,
+    defaultValueColorDark,
+    parameterColorLight,
+    parameterColorDark,
+  } = useSettingsStore(
     useShallow((state) => ({
       coloredNodes: state.colored_nodes,
       compactNodes: state.compact_nodes,
       nodeBorderRadius: state.node_border_radius,
+      theme: state.theme,
+      accessColorLight: state.object_node_access_modifier_color_light,
+      accessColorDark: state.object_node_access_modifier_color_dark,
+      separatorColorLight: state.object_node_type_separator_color_light,
+      separatorColorDark: state.object_node_type_separator_color_dark,
+      typeColorLight: state.object_node_type_color_light,
+      typeColorDark: state.object_node_type_color_dark,
+      defaultValueColorLight: state.object_node_default_value_color_light,
+      defaultValueColorDark: state.object_node_default_value_color_dark,
+      parameterColorLight: state.object_node_parameter_name_color_light,
+      parameterColorDark: state.object_node_parameter_name_color_dark,
     })),
+  );
+
+  const isDark = useMemo(
+    () =>
+      theme === "system"
+        ? document.documentElement.classList.contains("dark")
+        : theme === "dark",
+    [theme],
+  );
+
+  const aColor = useMemo(
+    () =>
+      coloredNodes ? (isDark ? accessColorDark : accessColorLight) : undefined,
+    [coloredNodes, isDark, accessColorDark, accessColorLight],
+  );
+
+  const sColor = useMemo(
+    () =>
+      coloredNodes
+        ? isDark
+          ? separatorColorDark
+          : separatorColorLight
+        : undefined,
+    [coloredNodes, isDark, separatorColorDark, separatorColorLight],
+  );
+
+  const tColor = useMemo(
+    () =>
+      coloredNodes ? (isDark ? typeColorDark : typeColorLight) : undefined,
+    [coloredNodes, isDark, typeColorDark, typeColorLight],
+  );
+
+  const dColor = useMemo(
+    () =>
+      coloredNodes
+        ? isDark
+          ? defaultValueColorDark
+          : defaultValueColorLight
+        : undefined,
+    [coloredNodes, isDark, defaultValueColorDark, defaultValueColorLight],
+  );
+
+  const pColor = useMemo(
+    () =>
+      coloredNodes
+        ? isDark
+          ? parameterColorDark
+          : parameterColorLight
+        : undefined,
+    [coloredNodes, isDark, parameterColorDark, parameterColorLight],
   );
 
   return (
@@ -120,11 +196,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
             )}
             {data.attributes?.map((attr, index) => (
               <p key={index} className="px-4">
-                <span
-                  className={cn(
-                    coloredNodes && "text-green-600 dark:text-green-400",
-                  )}
-                >
+                <span style={coloredNodes ? { color: aColor } : undefined}>
                   {attr.accessModifier === "public"
                     ? "+"
                     : attr.accessModifier === "private"
@@ -140,16 +212,12 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   {attr.type && (
                     <>
                       <span
-                        className={cn(
-                          coloredNodes && "text-red-600 dark:text-red-400",
-                        )}
+                        style={coloredNodes ? { color: sColor } : undefined}
                       >
                         :
                       </span>{" "}
                       <span
-                        className={cn(
-                          coloredNodes && "text-blue-600 dark:text-blue-400",
-                        )}
+                        style={coloredNodes ? { color: tColor } : undefined}
                       >
                         {attr.type}
                       </span>
@@ -159,10 +227,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                     <>
                       {" = "}
                       <span
-                        className={cn(
-                          coloredNodes &&
-                            "text-purple-600 dark:text-purple-400",
-                        )}
+                        style={coloredNodes ? { color: dColor } : undefined}
                       >
                         {attr.defaultValue}
                       </span>
@@ -176,11 +241,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
             )}
             {data.methods?.map((method, index) => (
               <p key={index} className="px-4">
-                <span
-                  className={cn(
-                    coloredNodes && "text-green-600 dark:text-green-400",
-                  )}
-                >
+                <span style={coloredNodes ? { color: aColor } : undefined}>
                   {method.accessModifier === "public"
                     ? "+"
                     : method.accessModifier === "private"
@@ -197,24 +258,17 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   {method.parameters.map((param, index) => (
                     <>
                       <span
-                        className={cn(
-                          coloredNodes &&
-                            "text-orange-600 dark:text-orange-400",
-                        )}
+                        style={coloredNodes ? { color: pColor } : undefined}
                       >
                         {param.name}
                       </span>
                       <span
-                        className={cn(
-                          coloredNodes && "text-red-600 dark:text-red-400",
-                        )}
+                        style={coloredNodes ? { color: sColor } : undefined}
                       >
                         :
                       </span>{" "}
                       <span
-                        className={cn(
-                          coloredNodes && "text-blue-600 dark:text-blue-400",
-                        )}
+                        style={coloredNodes ? { color: tColor } : undefined}
                       >
                         {param.type}
                       </span>
@@ -222,10 +276,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                         <>
                           {" = "}
                           <span
-                            className={cn(
-                              coloredNodes &&
-                                "text-purple-600 dark:text-purple-400",
-                            )}
+                            style={coloredNodes ? { color: dColor } : undefined}
                           >
                             {param.defaultValue}
                           </span>
@@ -238,16 +289,12 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                   {method.returnType && (
                     <>
                       <span
-                        className={cn(
-                          coloredNodes && "text-red-600 dark:text-red-400",
-                        )}
+                        style={coloredNodes ? { color: sColor } : undefined}
                       >
                         :
                       </span>{" "}
                       <span
-                        className={cn(
-                          coloredNodes && "text-blue-600 dark:text-blue-400",
-                        )}
+                        style={coloredNodes ? { color: tColor } : undefined}
                       >
                         {method.returnType}
                       </span>

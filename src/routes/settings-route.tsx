@@ -14,8 +14,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+import ObjectNodesSettings from "@/components/settings/object-nodes";
 import { cn } from "@/lib/utils";
 import { invoke } from "@tauri-apps/api/core";
 import { type } from "@tauri-apps/plugin-os";
@@ -37,8 +41,9 @@ interface Category {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   keywords?: string[];
+  parentId?: string;
 }
 
 const categories: Category[] = [
@@ -74,7 +79,19 @@ const categories: Category[] = [
     title: "Nodes",
     description: "Manage visual appearance of nodes.",
     icon: Workflow,
-    keywords: ["Colored Nodes", "Enable or disable colored nodes"],
+    keywords: [],
+  },
+  {
+    id: "object-nodes",
+    title: "Object Nodes",
+    description: "Custom settings for Object nodes.",
+    parentId: "nodes",
+    keywords: [
+      "Colored Nodes",
+      "Enable or disable colored nodes",
+      "Colors",
+      "Color Scheme",
+    ],
   },
   {
     id: "edges",
@@ -179,6 +196,25 @@ const SettingsRoute = () => {
           snapToGrid: initialSettings.snap_to_grid,
           gridSize: initialSettings.grid_size,
           compactNodes: initialSettings.compact_nodes,
+          objectNodeAccessModifierColorLight:
+            initialSettings.object_node_access_modifier_color_light,
+          objectNodeAccessModifierColorDark:
+            initialSettings.object_node_access_modifier_color_dark,
+          objectNodeTypeSeparatorColorLight:
+            initialSettings.object_node_type_separator_color_light,
+          objectNodeTypeSeparatorColorDark:
+            initialSettings.object_node_type_separator_color_dark,
+          objectNodeTypeColorLight:
+            initialSettings.object_node_type_color_light,
+          objectNodeTypeColorDark: initialSettings.object_node_type_color_dark,
+          objectNodeDefaultValueColorLight:
+            initialSettings.object_node_default_value_color_light,
+          objectNodeDefaultValueColorDark:
+            initialSettings.object_node_default_value_color_dark,
+          objectNodeParameterNameColorLight:
+            initialSettings.object_node_parameter_name_color_light,
+          objectNodeParameterNameColorDark:
+            initialSettings.object_node_parameter_name_color_dark,
           nodeBorderRadius: initialSettings.node_border_radius,
 
           showEdgeLabels: initialSettings.show_edge_labels,
@@ -249,21 +285,43 @@ const SettingsRoute = () => {
               />
             </div>
             <div className="flex flex-col gap-1">
-              {filteredCategories.map((category) => (
-                <SidebarMenu key={category.id}>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setSelectedCategory(category)}
-                      className={
-                        selectedCategory === category ? "bg-muted" : ""
-                      }
-                    >
-                      <category.icon className="size-4" />
-                      {category.title}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              ))}
+              {filteredCategories
+                .filter((c) => !c.parentId)
+                .map((category) => (
+                  <SidebarMenu key={category.id}>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => setSelectedCategory(category)}
+                        className={
+                          selectedCategory === category ? "bg-muted" : ""
+                        }
+                      >
+                        {category.icon && <category.icon className="size-4" />}
+                        {category.title}
+                      </SidebarMenuButton>
+                      {filteredCategories.some(
+                        (c) => c.parentId === category.id,
+                      ) && (
+                        <SidebarMenuSub>
+                          {filteredCategories
+                            .filter((c) => c.parentId === category.id)
+                            .map((sub) => (
+                              <SidebarMenuSubItem key={sub.id}>
+                                <SidebarMenuSubButton
+                                  onClick={() => setSelectedCategory(sub)}
+                                  className={
+                                    selectedCategory === sub ? "bg-muted" : ""
+                                  }
+                                >
+                                  {sub.title}
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                        </SidebarMenuSub>
+                      )}
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                ))}
             </div>
           </SidebarGroup>
         </SidebarContent>
@@ -296,6 +354,12 @@ const SettingsRoute = () => {
             )}
             {selectedCategory.id === "nodes" && (
               <NodesSettings
+                onChange={() => setChanged(true)}
+                searchQuery={searchQuery}
+              />
+            )}
+            {selectedCategory.id === "object-nodes" && (
+              <ObjectNodesSettings
                 onChange={() => setChanged(true)}
                 searchQuery={searchQuery}
               />

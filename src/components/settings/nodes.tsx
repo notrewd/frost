@@ -15,16 +15,12 @@ const NodesSettings: FC<NodesSettingsProps> = ({
   searchQuery = "",
 }) => {
   const {
-    coloredNodes,
-    setColoredNodes,
     compactNodes,
     setCompactNodes,
     nodeBorderRadius,
     setNodeBorderRadius,
   } = useSettingsStore(
     useShallow((state) => ({
-      coloredNodes: state.colored_nodes,
-      setColoredNodes: state.setColoredNodes,
       compactNodes: state.compact_nodes,
       setCompactNodes: state.setCompactNodes,
       nodeBorderRadius: state.node_border_radius,
@@ -37,22 +33,6 @@ const NodesSettings: FC<NodesSettingsProps> = ({
 
   return (
     <>
-      {(isMatch("Colored Nodes") ||
-        isMatch("Enable or disable colored nodes")) && (
-        <SettingsField
-          label="Colored Nodes"
-          description="Enable or disable colored nodes"
-        >
-          <Switch
-            checked={coloredNodes}
-            onCheckedChange={(checked) => {
-              setColoredNodes(checked);
-              onChange?.();
-            }}
-          />
-        </SettingsField>
-      )}
-
       {(isMatch("Compact Nodes") ||
         isMatch("Use a more compact visual style for nodes")) && (
         <SettingsField

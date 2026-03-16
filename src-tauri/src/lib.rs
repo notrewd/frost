@@ -38,6 +38,16 @@ struct SettingsState {
 
     // Nodes
     compact_nodes: bool,
+    object_node_access_modifier_color_light: String,
+    object_node_access_modifier_color_dark: String,
+    object_node_type_separator_color_light: String,
+    object_node_type_separator_color_dark: String,
+    object_node_type_color_light: String,
+    object_node_type_color_dark: String,
+    object_node_default_value_color_light: String,
+    object_node_default_value_color_dark: String,
+    object_node_parameter_name_color_light: String,
+    object_node_parameter_name_color_dark: String,
     node_border_radius: u32,
 
     // Edges
@@ -59,6 +69,16 @@ impl Default for SettingsState {
             snap_to_grid: false,
             grid_size: 15,
             compact_nodes: false,
+            object_node_access_modifier_color_light: "#16a34a".to_string(),
+            object_node_access_modifier_color_dark: "#4ade80".to_string(),
+            object_node_type_separator_color_light: "#dc2626".to_string(),
+            object_node_type_separator_color_dark: "#f87171".to_string(),
+            object_node_type_color_light: "#2563eb".to_string(),
+            object_node_type_color_dark: "#60a5fa".to_string(),
+            object_node_default_value_color_light: "#9333ea".to_string(),
+            object_node_default_value_color_dark: "#c084fc".to_string(),
+            object_node_parameter_name_color_light: "#ea580c".to_string(),
+            object_node_parameter_name_color_dark: "#fb923c".to_string(),
             node_border_radius: 8,
             show_edge_labels: true,
         }
@@ -520,6 +540,16 @@ async fn set_settings_state(
     snap_to_grid: Option<bool>,
     grid_size: Option<u32>,
     compact_nodes: Option<bool>,
+    object_node_access_modifier_color_light: Option<String>,
+    object_node_access_modifier_color_dark: Option<String>,
+    object_node_type_separator_color_light: Option<String>,
+    object_node_type_separator_color_dark: Option<String>,
+    object_node_type_color_light: Option<String>,
+    object_node_type_color_dark: Option<String>,
+    object_node_default_value_color_light: Option<String>,
+    object_node_default_value_color_dark: Option<String>,
+    object_node_parameter_name_color_light: Option<String>,
+    object_node_parameter_name_color_dark: Option<String>,
     node_border_radius: Option<u32>,
     show_edge_labels: Option<bool>,
 ) -> tauri::Result<()> {
@@ -540,6 +570,46 @@ async fn set_settings_state(
     state.settings.grid_size = grid_size.unwrap_or(state.settings.grid_size);
 
     state.settings.compact_nodes = compact_nodes.unwrap_or(state.settings.compact_nodes);
+    state.settings.object_node_access_modifier_color_light =
+        object_node_access_modifier_color_light.unwrap_or(
+            state
+                .settings
+                .object_node_access_modifier_color_light
+                .clone(),
+        );
+    state.settings.object_node_access_modifier_color_dark = object_node_access_modifier_color_dark
+        .unwrap_or(
+            state
+                .settings
+                .object_node_access_modifier_color_dark
+                .clone(),
+        );
+    state.settings.object_node_type_separator_color_light = object_node_type_separator_color_light
+        .unwrap_or(
+            state
+                .settings
+                .object_node_type_separator_color_light
+                .clone(),
+        );
+    state.settings.object_node_type_separator_color_dark = object_node_type_separator_color_dark
+        .unwrap_or(state.settings.object_node_type_separator_color_dark.clone());
+    state.settings.object_node_type_color_light =
+        object_node_type_color_light.unwrap_or(state.settings.object_node_type_color_light.clone());
+    state.settings.object_node_type_color_dark =
+        object_node_type_color_dark.unwrap_or(state.settings.object_node_type_color_dark.clone());
+    state.settings.object_node_default_value_color_light = object_node_default_value_color_light
+        .unwrap_or(state.settings.object_node_default_value_color_light.clone());
+    state.settings.object_node_default_value_color_dark = object_node_default_value_color_dark
+        .unwrap_or(state.settings.object_node_default_value_color_dark.clone());
+    state.settings.object_node_parameter_name_color_light = object_node_parameter_name_color_light
+        .unwrap_or(
+            state
+                .settings
+                .object_node_parameter_name_color_light
+                .clone(),
+        );
+    state.settings.object_node_parameter_name_color_dark = object_node_parameter_name_color_dark
+        .unwrap_or(state.settings.object_node_parameter_name_color_dark.clone());
     state.settings.node_border_radius =
         node_border_radius.unwrap_or(state.settings.node_border_radius);
 
@@ -559,7 +629,17 @@ async fn set_settings_state(
             "showGrid": state.settings.show_grid,
             "snapToGrid": state.settings.snap_to_grid,
             "gridSize": state.settings.grid_size,
-            "compactNodes": state.settings.compact_nodes,
+            "compactNodes": state.settings.compact_nodes,              
+            "objectNodeAccessModifierColorLight": state.settings.object_node_access_modifier_color_light,
+            "objectNodeAccessModifierColorDark": state.settings.object_node_access_modifier_color_dark,
+            "objectNodeTypeSeparatorColorLight": state.settings.object_node_type_separator_color_light,
+            "objectNodeTypeSeparatorColorDark": state.settings.object_node_type_separator_color_dark,
+            "objectNodeTypeColorLight": state.settings.object_node_type_color_light,
+            "objectNodeTypeColorDark": state.settings.object_node_type_color_dark,
+            "objectNodeDefaultValueColorLight": state.settings.object_node_default_value_color_light,
+            "objectNodeDefaultValueColorDark": state.settings.object_node_default_value_color_dark,
+            "objectNodeParameterNameColorLight": state.settings.object_node_parameter_name_color_light,
+            "objectNodeParameterNameColorDark": state.settings.object_node_parameter_name_color_dark,            
             "nodeBorderRadius": state.settings.node_border_radius,
             "showEdgeLabels": state.settings.show_edge_labels,
         }),

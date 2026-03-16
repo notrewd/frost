@@ -43,6 +43,16 @@ export interface SettingsState {
   pan_on_scroll: boolean;
   show_minimap: boolean;
   colored_nodes: boolean;
+  object_node_access_modifier_color_light: string;
+  object_node_access_modifier_color_dark: string;
+  object_node_type_separator_color_light: string;
+  object_node_type_separator_color_dark: string;
+  object_node_type_color_light: string;
+  object_node_type_color_dark: string;
+  object_node_default_value_color_light: string;
+  object_node_default_value_color_dark: string;
+  object_node_parameter_name_color_light: string;
+  object_node_parameter_name_color_dark: string;
   show_controls: boolean;
   edge_style: "straight" | "smoothstep" | "bezier";
   auto_save: boolean;
@@ -58,6 +68,11 @@ export interface SettingsState {
   setPanOnScroll: (enabled: boolean) => void;
   setShowMinimap: (enabled: boolean) => void;
   setColoredNodes: (enabled: boolean) => void;
+  setObjectNodeAccessModifierColor: (light: string, dark: string) => void;
+  setObjectNodeTypeSeparatorColor: (light: string, dark: string) => void;
+  setObjectNodeTypeColor: (light: string, dark: string) => void;
+  setObjectNodeDefaultValueColor: (light: string, dark: string) => void;
+  setObjectNodeParameterNameColor: (light: string, dark: string) => void;
   setShowControls: (enabled: boolean) => void;
   setEdgeStyle: (edgeStyle: "straight" | "smoothstep" | "bezier") => void;
   setAutoSave: (enabled: boolean) => void;
