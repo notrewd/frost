@@ -7,10 +7,40 @@ import { Switch } from "@/components/ui/switch";
 import { Download, Loader2 } from "lucide-react";
 import { NumberInput } from "@/components/ui/number-input";
 import { invoke } from "@tauri-apps/api/core";
+import { HexColorPicker } from "react-colorful";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { useSettingsStore } from "@/stores/settings-store";
+import { useShallow } from "zustand/react/shallow";
 
 const ExportRoute = () => {
+  const { theme } = useSettingsStore(
+    useShallow((state) => ({ theme: state.theme })),
+  );
+  const isDark =
+    theme === "system"
+      ? document.documentElement.classList.contains("dark")
+      : theme === "dark";
+
   const [transparentBackground, setTransparentBackground] = useState(true);
   const [padding, setPadding] = useState(10);
+  const [backgroundColor, setBackgroundColor] = useState(
+    isDark ? "#121212" : "#ffffff",
+  );
+  const [debouncedBackgroundColor, setDebouncedBackgroundColor] =
+    useState(backgroundColor);
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setDebouncedBackgroundColor(backgroundColor),
+      200,
+    );
+    return () => clearTimeout(timer);
+  }, [backgroundColor]);
 
   const [imageData, setImageData] = useState<string | null>(null);
 
@@ -20,12 +50,16 @@ const ExportRoute = () => {
       setImageData(event.payload);
     });
 
-    emit("request-export-image", { transparentBackground, padding });
+    emit("request-export-image", {
+      transparentBackground,
+      padding,
+      backgroundColor: debouncedBackgroundColor,
+    });
 
     return () => {
       unlisten.then((f) => f());
     };
-  }, [transparentBackground, padding]);
+  }, [transparentBackground, padding, debouncedBackgroundColor]);
 
   const downloadImage = useCallback(() => {
     if (!imageData) return;
@@ -51,6 +85,32 @@ const ExportRoute = () => {
                   }}
                 />
               </SettingsField>
+              {!transparentBackground && (
+                <SettingsField label="Background Color">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <div
+                        className="w-16! h-6! rounded-md border shadow-sm cursor-pointer"
+                        style={{ backgroundColor }}
+                      />
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto p-3 flex flex-col gap-2"
+                      align="start"
+                    >
+                      <HexColorPicker
+                        color={backgroundColor}
+                        onChange={setBackgroundColor}
+                      />
+                      <Input
+                        variant="small"
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </SettingsField>
+              )}
               <SettingsField label="Padding">
                 <NumberInput
                   value={padding}

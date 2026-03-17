@@ -412,10 +412,14 @@ const FlowEditor = () => {
 
     const exportUnlisten = listen<{
       transparentBackground?: boolean;
+      backgroundColor?: string;
       padding?: number;
     }>("request-export-image", async (event) => {
-      const { transparentBackground = true, padding = 10 } =
-        event.payload || {};
+      const {
+        transparentBackground = true,
+        backgroundColor = "#1a365d",
+        padding = 10,
+      } = event.payload || {};
 
       const nodes = useFlowStore.getState().nodes;
       if (!nodes || nodes.length === 0) {
@@ -492,7 +496,9 @@ const FlowEditor = () => {
 
       try {
         const dataUrl = await toPng(viewportElement, {
-          backgroundColor: transparentBackground ? "transparent" : "#1a365d",
+          backgroundColor: transparentBackground
+            ? "transparent"
+            : backgroundColor,
           width: imageWidth,
           height: imageHeight,
           style: {
