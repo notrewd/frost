@@ -1,0 +1,154 @@
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { open } from "@tauri-apps/plugin-dialog";
+
+const appWindow = getCurrentWindow();
+
+export default function GenerateRoute() {
+  const [language, setLanguage] = useState("Java");
+  const [paths, setPaths] = useState<string[]>([]);
+  const [recursive, setRecursive] = useState(false);
+  const [generateGroups, setGenerateGroups] = useState(true);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get("lang");
+    if (lang) {
+      setLanguage(lang);
+    }
+  }, []);
+
+  const handleSelectFiles = async () => {
+    const selected = await open({
+      multiple: true,
+      directory: false,
+    });
+    if (Array.isArray(selected)) {
+      setPaths(selected);
+    } else if (selected) {
+      setPaths([selected]);
+    }
+  };
+
+  const handleSelectDirectories = async () => {
+    const selected = await open({
+      multiple: true,
+      directory: true,
+    });
+    if (Array.isArray(selected)) {
+      setPaths(selected);
+    } else if (selected) {
+      setPaths([selected]);
+    }
+  };
+
+  const handleGenerate = async () => {
+    try {
+      const result = await invoke("generate_diagram", {
+        language,
+        paths,
+        recursive,
+        generateGroups,
+      });
+      console.log("Generation result:", result);
+      // Here we would typically emit this to the editor or update the store,
+      // but for this implementation we'll just close the window
+      await appWindow.close();
+    } catch (error) {
+      console.error("Error generating diagram:", error);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex flex-col gap-6 overflow-auto">
+      <div>
+        <h2 className="text-lg font-bold tracking-tight">Generate Diagram</h2>
+        <p className="text-sm text-muted-foreground">
+          Import your source code to auto-generate a diagram.
+        </p>
+      </div>
+
+      <div className="grid gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="language">Language</Label>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger id="language">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Java">Java</SelectItem>
+              <SelectItem value="Python">Python</SelectItem>
+              <SelectItem value="C++">C++</SelectItem>
+              <SelectItem value="C#">C#</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Source Files or Directories</Label>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSelectFiles}
+              className="flex-1"
+            >
+              Select Files
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSelectDirectories}
+              className="flex-1"
+            >
+              Select Directories
+            </Button>
+          </div>
+          {paths.length > 0 && (
+            <p className="text-sm mt-2 text-muted-foreground break-all">
+              {paths.length} file/folder(s) selected
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2 mt-2">
+          <Checkbox
+            id="recursive"
+            checked={recursive}
+            onCheckedChange={(c) => setRecursive(!!c)}
+          />
+          <Label htmlFor="recursive">Import directories recursively</Label>
+        </div>
+
+        <div className="flex items-center space-x-2 mt-2">
+          <Checkbox
+            id="generateGroups"
+            checked={generateGroups}
+            onCheckedChange={(c) => setGenerateGroups(!!c)}
+          />
+          <Label htmlFor="generateGroups">
+            Generate groups from directories
+          </Label>
+        </div>
+      </div>
+
+      <div className="mt-auto flex justify-end gap-2 pt-4 border-t">
+        <Button variant="outline" onClick={() => appWindow.close()}>
+          Cancel
+        </Button>
+        <Button onClick={handleGenerate} disabled={paths.length === 0}>
+          Generate
+        </Button>
+      </div>
+    </div>
+  );
+}

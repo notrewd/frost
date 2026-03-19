@@ -268,6 +268,38 @@ async fn open_edges_outliner_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+async fn open_generate_window(app: AppHandle, language: String) -> tauri::Result<()> {
+    let encoded_language = language.replace("+", "%2B").replace("#", "%23");
+    match app.webview_windows().get("generate") {
+        None => {
+            WebviewWindowBuilder::new(
+                &app,
+                "generate",
+                WebviewUrl::App(format!("/generate?lang={}", encoded_language).into()),
+            )
+            .title("Generate Diagram")
+            .inner_size(400.0, 500.0)
+            .min_inner_size(400.0, 500.0)
+            .maximizable(false)
+            .decorations(if cfg!(windows) { false } else { true })
+            .theme(Some(tauri::Theme::Dark))
+            .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+            window
+                .eval(&format!(
+                    "window.location.href = '/generate?lang={}';",
+                    encoded_language
+                ))
+                .ok();
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
     match app.webview_windows().get("history") {
         None => {
@@ -286,6 +318,83 @@ async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
     }
 
     Ok(())
+}
+
+use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
+
+#[derive(serde::Serialize)]
+struct GenerateResult {
+    nodes: Vec<serde_json::Value>,
+    edges: Vec<serde_json::Value>,
+}
+
+fn walk_directory(
+    path: &Path,
+    groups: &mut HashMap<String, serde_json::Value>,
+    parent_group: Option<String>,
+    generate_groups: bool,
+) {
+    if let Ok(entries) = fs::read_dir(path) {
+        for entry in entries.into_iter().flatten() {
+            let entry_path = entry.path();
+            if entry_path.is_dir() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                let group_id = format!("group_{}", name);
+
+                let next_parent = if generate_groups {
+                    groups.insert(
+                        group_id.clone(),
+                        serde_json::json!({
+                            "id": group_id,
+                            "type": "groupNode",
+                            "data": { "label": name },
+                            "parentId": parent_group
+                        }),
+                    );
+                    Some(group_id)
+                } else {
+                    parent_group.clone()
+                };
+
+                walk_directory(&entry_path, groups, next_parent, generate_groups);
+            }
+        }
+    }
+}
+
+#[tauri::command]
+async fn generate_diagram(
+    language: String,
+    paths: Vec<String>,
+    recursive: bool,
+    generate_groups: bool,
+) -> Result<GenerateResult, String> {
+    // Advanced algorithm implementation placeholder for calculating relationships (implementation, generalization, association and composition)
+    println!(
+        "Generating diagram for language: {}, paths: {:?}, recursive: {}, generate_groups: {}",
+        language, paths, recursive, generate_groups
+    );
+
+    let mut groups = HashMap::new();
+    let mut nodes = vec![];
+    let edges = vec![];
+
+    if recursive {
+        for path_str in paths {
+            let path = Path::new(&path_str);
+            if path.is_dir() {
+                walk_directory(path, &mut groups, None, generate_groups);
+            }
+        }
+    }
+
+    for (_, group) in groups {
+        nodes.push(group);
+    }
+
+    Ok(GenerateResult { nodes, edges })
 }
 
 #[tauri::command]
@@ -675,6 +784,8 @@ pub fn run() {
             open_export_window,
             open_edges_outliner_window,
             open_history_window,
+            open_generate_window,
+            generate_diagram,
             close_window,
             request_project_details,
             request_project_data,

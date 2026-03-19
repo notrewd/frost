@@ -13,6 +13,7 @@ import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import ExportRoute from "./routes/export-route.tsx";
 import EdgesOutlinerRoute from "./routes/edges-outliner-route.tsx";
 import HistoryRoute from "./routes/history-route.tsx";
+import GenerateRoute from "./routes/generate-route.tsx";
 
 document.addEventListener("contextmenu", (e) => e.preventDefault());
 
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
                   element={<EdgesOutlinerRoute />}
                 />
                 <Route path="/history" element={<HistoryRoute />} />
+                <Route path="/generate" element={<GenerateRoute />} />
               </Route>
               <Route element={<MainLayout />}>
                 <Route path="/editor" element={<EditorRoute />} />

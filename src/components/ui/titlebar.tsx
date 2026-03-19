@@ -17,6 +17,7 @@ import {
   Scissors,
   Copy,
   ClipboardPaste,
+  Code,
   BoxSelect,
   Download,
   ListTree,
@@ -107,6 +108,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
       await invoke("open_new_project_window");
     } catch (error) {
       console.error("Failed to open new project window:", error);
+    }
+  }, []);
+
+  const showGenerateWindow = useCallback(async (lang: string) => {
+    try {
+      await invoke("open_generate_window", { language: lang });
+    } catch (error) {
+      console.error("Failed to open generate window:", error);
     }
   }, []);
 
@@ -442,6 +451,27 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                       <AlignHorizontalDistributeCenter className="size-4" />
                       Make Horizontal
                       <MenubarShortcut>Ctrl+Shift+H</MenubarShortcut>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>Generate</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={() => showGenerateWindow("Java")}>
+                      <Code className="size-4" />
+                      From Java...
+                    </MenubarItem>
+                    <MenubarItem onClick={() => showGenerateWindow("Python")}>
+                      <Code className="size-4" />
+                      From Python...
+                    </MenubarItem>
+                    <MenubarItem onClick={() => showGenerateWindow("C++")}>
+                      <Code className="size-4" />
+                      From C++...
+                    </MenubarItem>
+                    <MenubarItem onClick={() => showGenerateWindow("C#")}>
+                      <Code className="size-4" />
+                      From C#...
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
