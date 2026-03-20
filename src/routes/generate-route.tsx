@@ -64,122 +64,12 @@ export default function GenerateRoute() {
       });
 
       const nodes = generated.nodes || [];
-
-      const customEdges: any[] = [];
-      const getNodeId = (name: string) =>
-        nodes.find((n: any) => n.data?.name === name)?.id;
-
-      nodes.forEach((node: any) => {
-        const sourceId = node.id;
-        const data = node.data || {};
-
-        // Generalization
-        if (Array.isArray(data.extends)) {
-          data.extends.forEach((ext: string) => {
-            const targetId = getNodeId(ext);
-            if (targetId && targetId !== sourceId) {
-              customEdges.push({
-                id: crypto.randomUUID(),
-                source: sourceId,
-                target: targetId,
-                sourceHandle: "top",
-                targetHandle: "bottom",
-                type: "generalization",
-              });
-            }
-          });
-        }
-
-        // Implementation
-        if (Array.isArray(data.implements)) {
-          data.implements.forEach((imp: string) => {
-            const targetId = getNodeId(imp);
-            if (targetId && targetId !== sourceId) {
-              customEdges.push({
-                id: crypto.randomUUID(),
-                source: sourceId,
-                target: targetId,
-                sourceHandle: "top",
-                targetHandle: "bottom",
-                type: "implementation",
-              });
-            }
-          });
-        }
-
-        // Association and Composition
-        if (Array.isArray(data.attributes)) {
-          data.attributes.forEach((attr: any) => {
-            const typeStr = attr.type || "";
-            const isCollection =
-              typeStr.includes("[]") ||
-              /(?:List|Set|Collection|Array|Vector)[<\[]/.test(typeStr);
-
-            let cleanType = typeStr.replace(/\[]/g, "");
-
-            // Java/C++ generics
-            const genericMatch = cleanType.match(
-              /^(?:List|Set|Collection)<([^>]+)>$/,
-            );
-            if (genericMatch && genericMatch[1]) {
-              cleanType = genericMatch[1];
-            } else {
-              const mapMatch = cleanType.match(
-                /^(?:Map|HashMap)<[^,]+,\s*([^>]+)>$/,
-              );
-              if (mapMatch && mapMatch[1]) {
-                cleanType = mapMatch[1];
-              }
-            }
-
-            // Python type hints like List[User] or Dict[str, User]
-            const pyGenericMatch = cleanType.match(
-              /^(?:List|Set|Collection|Optional|Sequence)\[([^\]]+)]$/,
-            );
-            if (pyGenericMatch && pyGenericMatch[1]) {
-              cleanType = pyGenericMatch[1];
-            } else {
-              const pyMapMatch = cleanType.match(
-                /^(?:Dict|Mapping)\[[^,]+,\s*([^\]]+)]$/,
-              );
-              if (pyMapMatch && pyMapMatch[1]) {
-                cleanType = pyMapMatch[1];
-              }
-            }
-
-            cleanType = cleanType.trim();
-
-            const targetId = getNodeId(cleanType);
-            if (targetId && targetId !== sourceId) {
-              const edgeType = isCollection ? "association" : "composition";
-
-              const isDupe = customEdges.some(
-                (e) =>
-                  e.source === sourceId &&
-                  e.target === targetId &&
-                  e.type === edgeType,
-              );
-              if (!isDupe) {
-                customEdges.push({
-                  id: crypto.randomUUID(),
-                  source: sourceId,
-                  target: targetId,
-                  sourceHandle: "top",
-                  targetHandle: "bottom",
-                  type: edgeType,
-                });
-              }
-            }
-          });
-        }
-      });
+      const edges = generated.edges || [];
 
       const finalResult = {
         nodes,
-        edges: customEdges,
+        edges,
       };
-
-      console.log("Generation result with custom edges:", finalResult);
 
       await emit("diagram-generated", finalResult);
       await appWindow.close();

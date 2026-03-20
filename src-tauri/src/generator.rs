@@ -156,8 +156,6 @@ pub fn generate_diagram_impl(
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
                     "target": im,
-                    "sourceHandle": "top",
-                    "targetHandle": "bottom",
                     "type": "implementation"
                 }));
             }
@@ -170,8 +168,6 @@ pub fn generate_diagram_impl(
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
                     "target": ex,
-                    "sourceHandle": "top",
-                    "targetHandle": "bottom",
                     "type": "generalization"
                 }));
             }
@@ -190,8 +186,6 @@ pub fn generate_diagram_impl(
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
                     "target": t,
-                    "sourceHandle": "top",
-                    "targetHandle": "bottom",
                     "type": "association"
                 }));
             }
@@ -266,6 +260,22 @@ fn parse_uml_info(path: &Path, source: &[u8]) -> Option<Vec<UmlClass>> {
     Some(classes)
 }
 
+/// Recursively extract text from an AST node.
+/// Leaf nodes have TextValue set directly; compound nodes (e.g. array_type, generic_type)
+/// may have empty TextValue, so we concatenate children text instead.
+fn get_node_text(node: &serde_json::Value) -> String {
+    if let Some(text) = node["TextValue"].as_str() {
+        if !text.is_empty() {
+            return text.to_string();
+        }
+    }
+    if let Some(children) = node["Children"].as_array() {
+        let parts: Vec<String> = children.iter().map(|c| get_node_text(c)).collect();
+        return parts.join("");
+    }
+    String::new()
+}
+
 fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
     let t = node["Type"].as_str().unwrap_or("");
     if t == "class_declaration" || t == "interface_declaration" {
@@ -326,10 +336,7 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                                 }
                                             }
                                         } else if pt.ends_with("type") || pt == "type_identifier" {
-                                            field_type = part["TextValue"]
-                                                .as_str()
-                                                .unwrap_or("")
-                                                .to_string();
+                                            field_type = get_node_text(part);
                                         } else if pt == "variable_declarator" {
                                             if let Some(vd_children) = part["Children"].as_array() {
                                                 for decl_part in vd_children {
@@ -372,11 +379,8 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                                         .to_string();
                                                 }
                                             }
-                                        } else if pt.ends_with("type") {
-                                            method.return_type = part["TextValue"]
-                                                .as_str()
-                                                .unwrap_or("")
-                                                .to_string();
+                                        } else if pt.ends_with("type") || pt == "type_identifier" {
+                                            method.return_type = get_node_text(part);
                                         } else if pt == "identifier" {
                                             method.name = part["TextValue"]
                                                 .as_str()
@@ -397,11 +401,8 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                                                 let ppt = p["Type"]
                                                                     .as_str()
                                                                     .unwrap_or("");
-                                                                if ppt.ends_with("type") {
-                                                                    p_type = p["TextValue"]
-                                                                        .as_str()
-                                                                        .unwrap_or("")
-                                                                        .to_string();
+                                                                if ppt.ends_with("type") || ppt == "type_identifier" {
+                                                                    p_type = get_node_text(p);
                                                                 }
                                                                 if ppt == "identifier" {
                                                                     p_name = p["TextValue"]
