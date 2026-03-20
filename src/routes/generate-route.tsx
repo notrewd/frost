@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { emit } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -55,15 +56,132 @@ export default function GenerateRoute() {
 
   const handleGenerate = async () => {
     try {
-      const result = await invoke("generate_diagram", {
+      const generated: any = await invoke("generate_diagram", {
         language,
         paths,
         recursive,
         generateGroups,
       });
-      console.log("Generation result:", result);
-      // Here we would typically emit this to the editor or update the store,
-      // but for this implementation we'll just close the window
+
+      const nodes = generated.nodes || [];
+
+      const customEdges: any[] = [];
+      const getNodeId = (name: string) =>
+        nodes.find((n: any) => n.data?.name === name)?.id;
+
+      nodes.forEach((node: any) => {
+        const sourceId = node.id;
+        const data = node.data || {};
+
+        // Generalization
+        if (Array.isArray(data.extends)) {
+          data.extends.forEach((ext: string) => {
+            const targetId = getNodeId(ext);
+            if (targetId && targetId !== sourceId) {
+              customEdges.push({
+                id: crypto.randomUUID(),
+                source: sourceId,
+                target: targetId,
+                sourceHandle: "top",
+                targetHandle: "bottom",
+                type: "generalization",
+              });
+            }
+          });
+        }
+
+        // Implementation
+        if (Array.isArray(data.implements)) {
+          data.implements.forEach((imp: string) => {
+            const targetId = getNodeId(imp);
+            if (targetId && targetId !== sourceId) {
+              customEdges.push({
+                id: crypto.randomUUID(),
+                source: sourceId,
+                target: targetId,
+                sourceHandle: "top",
+                targetHandle: "bottom",
+                type: "implementation",
+              });
+            }
+          });
+        }
+
+        // Association and Composition
+        if (Array.isArray(data.attributes)) {
+          data.attributes.forEach((attr: any) => {
+            const typeStr = attr.type || "";
+            const isCollection =
+              typeStr.includes("[]") ||
+              /(?:List|Set|Collection|Array|Vector)[<\[]/.test(typeStr);
+
+            let cleanType = typeStr.replace(/\[\]/g, "");
+
+            // Java/C++ generics
+            const genericMatch = cleanType.match(
+              /^(?:List|Set|Collection)<([^>]+)>$/,
+            );
+            if (genericMatch && genericMatch[1]) {
+              cleanType = genericMatch[1];
+            } else {
+              const mapMatch = cleanType.match(
+                /^(?:Map|HashMap)<(?:[^,]+),\s*([^>]+)>$/,
+              );
+              if (mapMatch && mapMatch[1]) {
+                cleanType = mapMatch[1];
+              }
+            }
+
+            // Python type hints like List[User] or Dict[str, User]
+            const pyGenericMatch = cleanType.match(
+              /^(?:List|Set|Collection|Optional|Sequence)\[([^\]]+)\]$/,
+            );
+            if (pyGenericMatch && pyGenericMatch[1]) {
+              cleanType = pyGenericMatch[1];
+            } else {
+              const pyMapMatch = cleanType.match(
+                /^(?:Dict|Mapping)\[(?:[^,]+),\s*([^\]]+)\]$/,
+              );
+              if (pyMapMatch && pyMapMatch[1]) {
+                cleanType = pyMapMatch[1];
+              }
+            }
+
+            cleanType = cleanType.trim();
+
+            const targetId = getNodeId(cleanType);
+            if (targetId && targetId !== sourceId) {
+              const edgeType = isCollection ? "association" : "composition";
+
+              const isDupe = customEdges.some(
+                (e) =>
+                  e.source === sourceId &&
+                  e.target === targetId &&
+                  e.type === edgeType,
+              );
+              if (!isDupe) {
+                customEdges.push({
+                  id: crypto.randomUUID(),
+                  source: sourceId,
+                  target: targetId,
+                  sourceHandle: "top",
+                  targetHandle: "bottom",
+                  type: edgeType,
+                });
+              }
+            }
+          });
+        }
+      });
+
+      const finalResult = {
+        nodes,
+        edges: customEdges,
+      };
+
+      console.log("Generation result with custom edges:", finalResult);
+
+      await emit("diagram-generated", finalResult);
       await appWindow.close();
     } catch (error) {
       console.error("Error generating diagram:", error);

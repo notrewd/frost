@@ -9,6 +9,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use crate::util::RecentProject;
 
+mod generator;
 mod util;
 
 struct AppState {
@@ -320,81 +321,14 @@ async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
-
-#[derive(serde::Serialize)]
-struct GenerateResult {
-    nodes: Vec<serde_json::Value>,
-    edges: Vec<serde_json::Value>,
-}
-
-fn walk_directory(
-    path: &Path,
-    groups: &mut HashMap<String, serde_json::Value>,
-    parent_group: Option<String>,
-    generate_groups: bool,
-) {
-    if let Ok(entries) = fs::read_dir(path) {
-        for entry in entries.into_iter().flatten() {
-            let entry_path = entry.path();
-            if entry_path.is_dir() {
-                let name = entry.file_name().to_string_lossy().to_string();
-                let group_id = format!("group_{}", name);
-
-                let next_parent = if generate_groups {
-                    groups.insert(
-                        group_id.clone(),
-                        serde_json::json!({
-                            "id": group_id,
-                            "type": "groupNode",
-                            "data": { "label": name },
-                            "parentId": parent_group
-                        }),
-                    );
-                    Some(group_id)
-                } else {
-                    parent_group.clone()
-                };
-
-                walk_directory(&entry_path, groups, next_parent, generate_groups);
-            }
-        }
-    }
-}
-
 #[tauri::command]
 async fn generate_diagram(
     language: String,
     paths: Vec<String>,
     recursive: bool,
     generate_groups: bool,
-) -> Result<GenerateResult, String> {
-    // Advanced algorithm implementation placeholder for calculating relationships (implementation, generalization, association and composition)
-    println!(
-        "Generating diagram for language: {}, paths: {:?}, recursive: {}, generate_groups: {}",
-        language, paths, recursive, generate_groups
-    );
-
-    let mut groups = HashMap::new();
-    let mut nodes = vec![];
-    let edges = vec![];
-
-    if recursive {
-        for path_str in paths {
-            let path = Path::new(&path_str);
-            if path.is_dir() {
-                walk_directory(path, &mut groups, None, generate_groups);
-            }
-        }
-    }
-
-    for (_, group) in groups {
-        nodes.push(group);
-    }
-
-    Ok(GenerateResult { nodes, edges })
+) -> Result<generator::GenerateResult, String> {
+    generator::generate_diagram_impl(language, paths, recursive, generate_groups)
 }
 
 #[tauri::command]
