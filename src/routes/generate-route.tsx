@@ -115,7 +115,7 @@ export default function GenerateRoute() {
               typeStr.includes("[]") ||
               /(?:List|Set|Collection|Array|Vector)[<\[]/.test(typeStr);
 
-            let cleanType = typeStr.replace(/\[\]/g, "");
+            let cleanType = typeStr.replace(/\[]/g, "");
 
             // Java/C++ generics
             const genericMatch = cleanType.match(
@@ -125,7 +125,7 @@ export default function GenerateRoute() {
               cleanType = genericMatch[1];
             } else {
               const mapMatch = cleanType.match(
-                /^(?:Map|HashMap)<(?:[^,]+),\s*([^>]+)>$/,
+                /^(?:Map|HashMap)<[^,]+,\s*([^>]+)>$/,
               );
               if (mapMatch && mapMatch[1]) {
                 cleanType = mapMatch[1];
@@ -134,13 +134,13 @@ export default function GenerateRoute() {
 
             // Python type hints like List[User] or Dict[str, User]
             const pyGenericMatch = cleanType.match(
-              /^(?:List|Set|Collection|Optional|Sequence)\[([^\]]+)\]$/,
+              /^(?:List|Set|Collection|Optional|Sequence)\[([^\]]+)]$/,
             );
             if (pyGenericMatch && pyGenericMatch[1]) {
               cleanType = pyGenericMatch[1];
             } else {
               const pyMapMatch = cleanType.match(
-                /^(?:Dict|Mapping)\[(?:[^,]+),\s*([^\]]+)\]$/,
+                /^(?:Dict|Mapping)\[[^,]+,\s*([^\]]+)]$/,
               );
               if (pyMapMatch && pyMapMatch[1]) {
                 cleanType = pyMapMatch[1];
@@ -205,10 +205,10 @@ export default function GenerateRoute() {
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Java">Java</SelectItem>
-              <SelectItem value="Python">Python</SelectItem>
-              <SelectItem value="C++">C++</SelectItem>
-              <SelectItem value="C#">C#</SelectItem>
+              <SelectItem value="java">Java</SelectItem>
+              <SelectItem value="python">Python</SelectItem>
+              <SelectItem value="cpp">C++</SelectItem>
+              <SelectItem value="csharp">C#</SelectItem>
             </SelectContent>
           </Select>
         </div>

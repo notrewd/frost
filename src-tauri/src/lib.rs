@@ -270,13 +270,12 @@ async fn open_edges_outliner_window(app: AppHandle) -> tauri::Result<()> {
 
 #[tauri::command]
 async fn open_generate_window(app: AppHandle, language: String) -> tauri::Result<()> {
-    let encoded_language = language.replace("+", "%2B").replace("#", "%23");
     match app.webview_windows().get("generate") {
         None => {
             WebviewWindowBuilder::new(
                 &app,
                 "generate",
-                WebviewUrl::App(format!("/generate?lang={}", encoded_language).into()),
+                WebviewUrl::App(format!("/generate?lang={}", language).into()),
             )
             .title("Generate Diagram")
             .inner_size(400.0, 500.0)
@@ -291,7 +290,7 @@ async fn open_generate_window(app: AppHandle, language: String) -> tauri::Result
             window
                 .eval(&format!(
                     "window.location.href = '/generate?lang={}';",
-                    encoded_language
+                    language
                 ))
                 .ok();
         }
@@ -452,8 +451,7 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
                     project_data.path,
                     Some(project_data.content),
                 )
-                .await
-                .unwrap();
+                .await?;
             }
             Err(e) => {
                 println!("Failed to save file: {}", e);
@@ -520,7 +518,7 @@ async fn open_project_file(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_recent_projects() -> Vec<util::RecentProject> {
+async fn get_recent_projects() -> Vec<RecentProject> {
     util::get_recent_projects()
 }
 
@@ -821,6 +819,7 @@ pub fn run() {
                 true,
                 Some("CMD+SHIFT+V"),
             )?;
+
             let arrange_horizontally_item = MenuItem::with_id(
                 app,
                 "arrange_horizontally",
@@ -834,6 +833,45 @@ pub fn run() {
                 .item(&arrange_horizontally_item)
                 .build()?;
 
+            let generate_from_java_item = MenuItem::with_id(
+                app,
+                "generate_from_java",
+                "From Java...",
+                true,
+                None::<String>,
+            )?;
+
+            let generate_from_python_item = MenuItem::with_id(
+                app,
+                "generate_from_python",
+                "From Python...",
+                true,
+                None::<String>,
+            )?;
+
+            let generate_from_csharp_item = MenuItem::with_id(
+                app,
+                "generate_from_csharp",
+                "From C#...",
+                true,
+                None::<String>,
+            )?;
+
+            let generate_from_cplusplus_item = MenuItem::with_id(
+                app,
+                "generate_from_cplusplus",
+                "From C++...",
+                true,
+                None::<String>,
+            )?;
+
+            let generate_menu = SubmenuBuilder::new(app, "Generate")
+                .item(&generate_from_java_item)
+                .item(&generate_from_python_item)
+                .item(&generate_from_csharp_item)
+                .item(&generate_from_cplusplus_item)
+                .build()?;
+
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
 
             let menu = MenuBuilder::new(app)
@@ -842,6 +880,7 @@ pub fn run() {
                     &file_menu,
                     &edit_menu,
                     &arrange_menu,
+                    &generate_menu,
                     &view_menu,
                     &window_menu,
                 ])
@@ -907,6 +946,18 @@ pub fn run() {
                     "cut" | "copy" | "paste" | "select_all" => {
                         app.emit(format!("editor-{}", event.id().0).as_str(), ())
                             .unwrap();
+                    }
+                    "generate_from_java" => {
+                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "java".to_string()));
+                    }
+                    "generate_from_python" => {
+                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "python".to_string()));
+                    }
+                    "generate_from_csharp" => {
+                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "csharp".to_string()));
+                    }
+                    "generate_from_cplusplus" => {
+                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "cpp".to_string()));
                     }
                     _ => {
                         println!("Unhandled menu item: {}", event.id().0);

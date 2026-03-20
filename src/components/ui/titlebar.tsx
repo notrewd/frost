@@ -457,19 +457,19 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                 <MenubarMenu>
                   <MenubarTrigger>Generate</MenubarTrigger>
                   <MenubarContent>
-                    <MenubarItem onClick={() => showGenerateWindow("Java")}>
+                    <MenubarItem onClick={() => showGenerateWindow("java")}>
                       <Code className="size-4" />
                       From Java...
                     </MenubarItem>
-                    <MenubarItem onClick={() => showGenerateWindow("Python")}>
+                    <MenubarItem onClick={() => showGenerateWindow("python")}>
                       <Code className="size-4" />
                       From Python...
                     </MenubarItem>
-                    <MenubarItem onClick={() => showGenerateWindow("C++")}>
+                    <MenubarItem onClick={() => showGenerateWindow("cpp")}>
                       <Code className="size-4" />
                       From C++...
                     </MenubarItem>
-                    <MenubarItem onClick={() => showGenerateWindow("C#")}>
+                    <MenubarItem onClick={() => showGenerateWindow("csharp")}>
                       <Code className="size-4" />
                       From C#...
                     </MenubarItem>
