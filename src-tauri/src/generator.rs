@@ -156,7 +156,9 @@ pub fn generate_diagram_impl(
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
                     "target": im,
-                    "type": "implementation"
+                    "type": "implementation",
+                    "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
+                    "markerEnd": { "color": "var(--foreground)", "type": "arrowclosed" }
                 }));
             }
         }
@@ -168,7 +170,9 @@ pub fn generate_diagram_impl(
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
                     "target": ex,
-                    "type": "generalization"
+                    "type": "generalization",
+                    "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
+                    "markerEnd": { "color": "var(--foreground)", "type": "arrowclosed" }
                 }));
             }
         }
@@ -186,7 +190,9 @@ pub fn generate_diagram_impl(
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
                     "target": t,
-                    "type": "association"
+                    "type": "association",
+                    "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
+                    "markerEnd": { "color": "var(--foreground)", "type": "arrow" }
                 }));
             }
         }
@@ -261,7 +267,7 @@ fn parse_uml_info(path: &Path, source: &[u8]) -> Option<Vec<UmlClass>> {
 }
 
 /// Recursively extract text from an AST node.
-/// Leaf nodes have TextValue set directly; compound nodes (e.g. array_type, generic_type)
+/// Leaf nodes have TextValue set directly; compound nodes (e.g., array_type, generic_type)
 /// may have empty TextValue, so we concatenate children text instead.
 fn get_node_text(node: &serde_json::Value) -> String {
     if let Some(text) = node["TextValue"].as_str() {
