@@ -17,9 +17,9 @@ import { open } from "@tauri-apps/plugin-dialog";
 const appWindow = getCurrentWindow();
 
 export default function GenerateRoute() {
-  const [language, setLanguage] = useState("Java");
+  const [language, setLanguage] = useState("java");
   const [paths, setPaths] = useState<string[]>([]);
-  const [recursive, setRecursive] = useState(false);
+  const [recursive, setRecursive] = useState(true);
   const [generateGroups, setGenerateGroups] = useState(true);
 
   useEffect(() => {
