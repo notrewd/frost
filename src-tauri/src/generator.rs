@@ -307,7 +307,7 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                     if let Some(si_children) = child["Children"].as_array() {
                         for tl in si_children {
                             let tl_type = tl["Type"].as_str().unwrap_or("");
-                            if tl_type == "type_list" {
+                            if tl_type == "type_list" || tl_type == "interface_type_list" {
                                 if let Some(tl_children) = tl["Children"].as_array() {
                                     for c in tl_children {
                                         if c["Type"].as_str().unwrap_or("") == "type_identifier" {
@@ -325,7 +325,7 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                     if let Some(ei_children) = child["Children"].as_array() {
                         for tl in ei_children {
                             let tl_type = tl["Type"].as_str().unwrap_or("");
-                            if tl_type == "type_list" {
+                            if tl_type == "type_list" || tl_type == "interface_type_list" {
                                 if let Some(tl_children) = tl["Children"].as_array() {
                                     for c in tl_children {
                                         if c["Type"].as_str().unwrap_or("") == "type_identifier" {
