@@ -299,25 +299,42 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                     if let Some(sc_children) = child["Children"].as_array() {
                         for c in sc_children {
                             if c["Type"].as_str().unwrap_or("") == "type_identifier" {
-                                class
-                                    .extends
-                                    .push(c["TextValue"].as_str().unwrap_or("").to_string());
+                                class.extends.push(get_node_text(c));
                             }
                         }
                     }
                 } else if ct == "super_interfaces" {
                     if let Some(si_children) = child["Children"].as_array() {
                         for tl in si_children {
-                            if tl["Type"].as_str().unwrap_or("") == "type_list" {
+                            let tl_type = tl["Type"].as_str().unwrap_or("");
+                            if tl_type == "type_list" {
                                 if let Some(tl_children) = tl["Children"].as_array() {
                                     for c in tl_children {
                                         if c["Type"].as_str().unwrap_or("") == "type_identifier" {
-                                            class.implements.push(
-                                                c["TextValue"].as_str().unwrap_or("").to_string(),
-                                            );
+                                            class.implements.push(get_node_text(c));
                                         }
                                     }
                                 }
+                            } else if tl_type == "type_identifier" {
+                                class.implements.push(get_node_text(tl));
+                            }
+                        }
+                    }
+                } else if ct == "extends_interfaces" {
+                    // For interface declarations: interface A extends B, C
+                    if let Some(ei_children) = child["Children"].as_array() {
+                        for tl in ei_children {
+                            let tl_type = tl["Type"].as_str().unwrap_or("");
+                            if tl_type == "type_list" {
+                                if let Some(tl_children) = tl["Children"].as_array() {
+                                    for c in tl_children {
+                                        if c["Type"].as_str().unwrap_or("") == "type_identifier" {
+                                            class.extends.push(get_node_text(c));
+                                        }
+                                    }
+                                }
+                            } else if tl_type == "type_identifier" {
+                                class.extends.push(get_node_text(tl));
                             }
                         }
                     }
@@ -334,11 +351,12 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                         let pt = part["Type"].as_str().unwrap_or("");
                                         if pt == "modifiers" {
                                             if let Some(m_children) = part["Children"].as_array() {
-                                                if let Some(m) = m_children.first() {
-                                                    access = m["TextValue"]
-                                                        .as_str()
-                                                        .unwrap_or("")
-                                                        .to_string();
+                                                for m in m_children {
+                                                    let text = m["TextValue"].as_str().unwrap_or("").to_string();
+                                                    if text == "public" || text == "private" || text == "protected" {
+                                                        access = text;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         } else if pt.ends_with("type") || pt == "type_identifier" {
@@ -378,11 +396,12 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                         let pt = part["Type"].as_str().unwrap_or("");
                                         if pt == "modifiers" {
                                             if let Some(m_children) = part["Children"].as_array() {
-                                                if let Some(m) = m_children.first() {
-                                                    method.access_modifier = m["TextValue"]
-                                                        .as_str()
-                                                        .unwrap_or("")
-                                                        .to_string();
+                                                for m in m_children {
+                                                    let text = m["TextValue"].as_str().unwrap_or("").to_string();
+                                                    if text == "public" || text == "private" || text == "protected" {
+                                                        method.access_modifier = text;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         } else if pt.ends_with("type") || pt == "type_identifier" {
