@@ -1,37 +1,32 @@
-import { FlowState } from "@/stores";
+import {FlowState} from "@/stores";
 import useFlowStore from "@/stores/flow-store";
 import {
   Background,
   Connection,
   Edge,
+  getViewportForBounds,
   MarkerType,
   MiniMap,
   Panel,
   ReactFlow,
-  getViewportForBounds,
 } from "@xyflow/react";
-import { useShallow } from "zustand/react/shallow";
+import {useShallow} from "zustand/react/shallow";
 import ObjectNode from "../nodes/object-node";
-import { ProjectOpenedEvent } from "@/types/events";
-import { emit, listen } from "@tauri-apps/api/event";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { toPng } from "html-to-image";
-import { useStore } from "zustand";
-import { Button } from "./button";
-import { Undo, Redo, Focus, Trash2, FolderPlus, Download } from "lucide-react";
-import { useProjectStore } from "@/stores/project-store";
+import {ProjectOpenedEvent} from "@/types/events";
+import {emit, listen} from "@tauri-apps/api/event";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {invoke} from "@tauri-apps/api/core";
+import {toPng} from "html-to-image";
+import {useStore} from "zustand";
+import {Button} from "./button";
+import {Download, Focus, FolderPlus, Redo, Trash2, Undo} from "lucide-react";
+import {useProjectStore} from "@/stores/project-store";
 import EditorControls from "./editor-controls";
-import { useSettingsStore } from "@/stores/settings-store";
+import {useSettingsStore} from "@/stores/settings-store";
 import GeneralizationEdge from "../edges/generalization-edge";
 import CustomConnectionLine from "../connection-lines/custom-connection-line";
 import useMousePosition from "@/hooks/use-mouse-position";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "./dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,} from "./dropdown-menu";
 import AssociationEdge from "../edges/association-edge";
 import AssociationArrow from "@/components/ui/icons/arrows/association-arrow";
 import CompositionArrow from "./icons/arrows/composition-arrow";
@@ -822,14 +817,14 @@ const FlowEditor = () => {
 
   useEffect(() => {
     let lastEdges = "";
-    const unsub = useFlowStore.subscribe((state) => {
+
+    return useFlowStore.subscribe((state) => {
       const currentEdges = JSON.stringify(state.edges);
       if (currentEdges !== lastEdges) {
         lastEdges = currentEdges;
         emit("edges-data", state.edges);
       }
     });
-    return unsub;
   }, []);
 
   const handleOnConnect = useCallback(
@@ -1024,6 +1019,8 @@ const FlowEditor = () => {
         elementsSelectable={!isLocked}
         connectionLineComponent={CustomConnectionLine}
         connectionLineStyle={connectionLineStyle}
+        elevateNodesOnSelect={false}
+        elevateEdgesOnSelect={false}
       >
         {showControls && (
           <>
