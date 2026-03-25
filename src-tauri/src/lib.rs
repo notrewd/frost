@@ -88,12 +88,18 @@ impl Default for SettingsState {
 
 #[derive(Clone)]
 struct MenuItems {
+    export: MenuItem<Wry>,
     save: MenuItem<Wry>,
     save_as: MenuItem<Wry>,
     cut_node: MenuItem<Wry>,
     copy_node: MenuItem<Wry>,
     paste_node: MenuItem<Wry>,
     select_all_nodes: MenuItem<Wry>,
+    arrange_vertically: MenuItem<Wry>,
+    arrange_horizontally: MenuItem<Wry>,
+    generate_from_code: MenuItem<Wry>,
+    edges_outliner: MenuItem<Wry>,
+    history: MenuItem<Wry>,
 }
 
 struct ProjectDetails {
@@ -183,8 +189,14 @@ async fn open_editor_window(
                 .theme(Some(tauri::Theme::Dark))
                 .build()?;
 
+            state.menu_items.export.set_enabled(true)?;
             state.menu_items.save.set_enabled(true)?;
             state.menu_items.save_as.set_enabled(true)?;
+            state.menu_items.arrange_vertically.set_enabled(true)?;
+            state.menu_items.arrange_horizontally.set_enabled(true)?;
+            state.menu_items.generate_from_code.set_enabled(true)?;
+            state.menu_items.edges_outliner.set_enabled(true)?;
+            state.menu_items.history.set_enabled(true)?;
         }
         Some(window) => {
             window.set_title(&format!("{} – Frost Editor", project_name))?;
@@ -758,7 +770,7 @@ pub fn run() {
                 MenuItem::with_id(app, "save_as", "Save As...", false, Some("CMD+SHIFT+S"))?;
 
             let export_item =
-                MenuItem::with_id(app, "export", "Export...", true, Some("CMD+E")).unwrap();
+                MenuItem::with_id(app, "export", "Export...", false, Some("CMD+E")).unwrap();
 
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_project_item)
@@ -796,8 +808,8 @@ pub fn run() {
                 .build()?;
 
             let edges_outliner_item =
-                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", true, Some("CMD+L"))?;
-            let history_item = MenuItem::with_id(app, "history", "History", true, Some("CMD+H"))?;
+                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", false, Some("CMD+L"))?;
+            let history_item = MenuItem::with_id(app, "history", "History", false, Some("CMD+H"))?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&history_item)
@@ -809,7 +821,7 @@ pub fn run() {
                 app,
                 "arrange_vertically",
                 "Make Vertical",
-                true,
+                false,
                 Some("CMD+SHIFT+V"),
             )?;
 
@@ -817,7 +829,7 @@ pub fn run() {
                 app,
                 "arrange_horizontally",
                 "Make Horizontal",
-                true,
+                false,
                 Some("CMD+SHIFT+H"),
             )?;
 
@@ -830,7 +842,7 @@ pub fn run() {
                 app,
                 "generate_from_code",
                 "From Source Code...",
-                true,
+                false,
                 None::<String>,
             )?;
 
@@ -856,12 +868,18 @@ pub fn run() {
 
             app.manage(Mutex::new(AppState {
                 menu_items: MenuItems {
+                    export: export_item.clone(),
                     save: save_item.clone(),
                     save_as: save_as_item.clone(),
                     cut_node: cut_node_item.clone(),
                     copy_node: copy_node_item.clone(),
                     paste_node: paste_node_item.clone(),
                     select_all_nodes: select_all_nodes_item.clone(),
+                    arrange_vertically: arrange_vertically_item.clone(),
+                    arrange_horizontally: arrange_horizontally_item.clone(),
+                    generate_from_code: generate_from_code_item.clone(),
+                    edges_outliner: edges_outliner_item.clone(),
+                    history: history_item.clone(),
                 },
                 project_details: ProjectDetails {
                     name: None,
