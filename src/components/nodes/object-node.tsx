@@ -196,7 +196,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
             )}
             {data.attributes?.map((attr, index) => (
-              <p key={index} className="px-4">
+              <p key={index} className="px-4 flex gap-2 items-center text-nowrap">
                 <span style={coloredNodes ? { color: aColor } : undefined}>
                   {attr.accessModifier === "public"
                     ? "+"
@@ -204,6 +204,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                       ? "-"
                       : "#"}{" "}
                 </span>
+                {attr.stereotype && <span className="flex items-center text-muted-foreground">
+                  <ChevronsLeft className={cn(compactNodes ? "size-3" : "size-4")} />
+                  <span>{attr.stereotype}</span>
+                  <ChevronsRight className={cn(compactNodes ? "size-3" : "size-4")} />
+                </span>}
                 <span
                   className={cn({
                     underline: attr.static,
@@ -241,7 +246,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
             )}
             {data.methods?.map((method, index) => (
-              <p key={index} className="px-4">
+              <p key={index} className="px-4 flex gap-2 items-center text-nowrap">
                 <span style={coloredNodes ? { color: aColor } : undefined}>
                   {method.accessModifier === "public"
                     ? "+"

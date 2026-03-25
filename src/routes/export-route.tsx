@@ -34,6 +34,14 @@ const ExportRoute = () => {
   const [debouncedBackgroundColor, setDebouncedBackgroundColor] =
     useState(backgroundColor);
 
+  const handleChangePadding = useCallback((value: string) => {
+    const num = Number(value);
+
+    if (!isNaN(num)) {
+      setPadding(num);
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(
       () => setDebouncedBackgroundColor(backgroundColor),
@@ -114,7 +122,7 @@ const ExportRoute = () => {
               <SettingsField label="Padding">
                 <NumberInput
                   value={padding}
-                  onChange={(value) => setPadding(Number(value))}
+                  onChange={handleChangePadding}
                   variant="small"
                 />
               </SettingsField>
