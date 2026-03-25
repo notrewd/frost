@@ -1,6 +1,6 @@
 use rust_code_analysis::{action, get_language_for_file, AstCallback, AstCfg, AstResponse, LANG};
 use serde_json::json;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
@@ -83,14 +83,18 @@ pub fn generate_diagram_impl(
     }
 
     let mut edges = vec![];
-    let class_names: HashSet<String> = classes.iter().map(|c| c.name.clone()).collect();
+
+    let mut class_id_map: HashMap<String, String> = HashMap::new();
+    for class in &classes {
+        class_id_map.insert(class.name.clone(), "generated-".to_string() + &Uuid::new_v4().to_string());
+    }
 
     // Position tracking (simple grid layout)
     let mut x = 0;
     let mut y = 0;
 
     for class in &classes {
-        let node_id = class.name.clone(); // In real app use exact unique ID, maybe Path+Name
+        let node_id = class_id_map.get(&class.name).unwrap().clone();
 
         let mut attributes = vec![];
         for field in &class.fields {
@@ -150,11 +154,11 @@ pub fn generate_diagram_impl(
 
         // Implementation edges
         for im in &class.implements {
-            if class_names.contains(im) {
+            if let Some(target_id) = class_id_map.get(im) {
                 edges.push(json!({
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
-                    "target": im,
+                    "target": target_id,
                     "type": "implementation",
                     "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
                     "markerEnd": { "color": "var(--foreground)", "type": "arrowclosed" }
@@ -164,11 +168,11 @@ pub fn generate_diagram_impl(
 
         // Generalization edges
         for ex in &class.extends {
-            if class_names.contains(ex) {
+            if let Some(target_id) = class_id_map.get(ex) {
                 edges.push(json!({
                     "id": Uuid::new_v4().to_string(),
                     "source": node_id,
-                    "target": ex,
+                    "target": target_id,
                     "type": "generalization",
                     "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
                     "markerEnd": { "color": "var(--foreground)", "type": "arrowclosed" }
@@ -183,16 +187,17 @@ pub fn generate_diagram_impl(
                 .replace("[]", "")
                 .replace("List<", "")
                 .replace(">", "");
-            if class_names.contains(&t) && t != class.name {
-                // Avoid self associations for clarity
-                edges.push(json!({
-                    "id": Uuid::new_v4().to_string(),
-                    "source": node_id,
-                    "target": t,
-                    "type": "association",
-                    "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
-                    "markerEnd": { "color": "var(--foreground)", "type": "arrow" }
-                }));
+            if let Some(target_id) = class_id_map.get(&t) {
+                if t != class.name {
+                    edges.push(json!({
+                        "id": Uuid::new_v4().to_string(),
+                        "source": node_id,
+                        "target": target_id,
+                        "type": "association",
+                        "style": { "stroke": "var(--foreground)", "strokeWidth": 2 },
+                        "markerEnd": { "color": "var(--foreground)", "type": "arrow" }
+                    }));
+                }
             }
         }
     }
