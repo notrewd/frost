@@ -196,7 +196,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
             )}
             {data.attributes?.map((attr, index) => (
-              <p key={index} className="px-4 flex gap-2 items-center">
+              <p key={index} className="px-4 flex gap-2 items-center text-nowrap">
                 <span style={coloredNodes ? { color: aColor } : undefined}>
                   {attr.accessModifier === "public"
                     ? "+"
@@ -246,7 +246,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
               <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
             )}
             {data.methods?.map((method, index) => (
-              <p key={index} className="px-4">
+              <p key={index} className="px-4 flex gap-2 items-center text-nowrap">
                 <span style={coloredNodes ? { color: aColor } : undefined}>
                   {method.accessModifier === "public"
                     ? "+"
