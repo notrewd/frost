@@ -39,7 +39,6 @@ struct UmlMethod {
 }
 
 pub fn generate_diagram_impl(
-    _language: String, // Kept to match your signature
     paths: Vec<String>,
     recursive: bool,
     generate_groups: bool,

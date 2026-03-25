@@ -111,9 +111,9 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     }
   }, []);
 
-  const showGenerateWindow = useCallback(async (lang: string) => {
+  const showGenerateWindow = useCallback(async () => {
     try {
-      await invoke("open_generate_window", { language: lang });
+      await invoke("open_generate_window");
     } catch (error) {
       console.error("Failed to open generate window:", error);
     }
@@ -457,21 +457,9 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                 <MenubarMenu>
                   <MenubarTrigger>Generate</MenubarTrigger>
                   <MenubarContent>
-                    <MenubarItem onClick={() => showGenerateWindow("java")}>
+                    <MenubarItem onClick={showGenerateWindow}>
                       <Code className="size-4" />
-                      From Java...
-                    </MenubarItem>
-                    <MenubarItem onClick={() => showGenerateWindow("python")}>
-                      <Code className="size-4" />
-                      From Python...
-                    </MenubarItem>
-                    <MenubarItem onClick={() => showGenerateWindow("cpp")}>
-                      <Code className="size-4" />
-                      From C++...
-                    </MenubarItem>
-                    <MenubarItem onClick={() => showGenerateWindow("csharp")}>
-                      <Code className="size-4" />
-                      From C#...
+                      From Source Code...
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>

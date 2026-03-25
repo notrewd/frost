@@ -1,34 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { emit } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { open } from "@tauri-apps/plugin-dialog";
 
 const appWindow = getCurrentWindow();
 
 export default function GenerateRoute() {
-  const [language, setLanguage] = useState("java");
   const [paths, setPaths] = useState<string[]>([]);
   const [recursive, setRecursive] = useState(true);
   const [generateGroups, setGenerateGroups] = useState(true);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const lang = params.get("lang");
-    if (lang) {
-      setLanguage(lang);
-    }
-  }, []);
 
   const handleSelectFiles = async () => {
     const selected = await open({
@@ -57,7 +41,6 @@ export default function GenerateRoute() {
   const handleGenerate = async () => {
     try {
       const generated: any = await invoke("generate_diagram", {
-        language,
         paths,
         recursive,
         generateGroups,
@@ -87,22 +70,7 @@ export default function GenerateRoute() {
         </p>
       </div>
 
-      <div className="grid gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="language">Language</Label>
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger id="language">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="java">Java</SelectItem>
-              <SelectItem value="python">Python</SelectItem>
-              <SelectItem value="cpp">C++</SelectItem>
-              <SelectItem value="csharp">C#</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="flex flex-col gap-4">
         <div className="space-y-2">
           <Label>Source Files or Directories</Label>
           <div className="flex gap-2">

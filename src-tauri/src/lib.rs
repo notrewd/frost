@@ -269,13 +269,13 @@ async fn open_edges_outliner_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-async fn open_generate_window(app: AppHandle, language: String) -> tauri::Result<()> {
+async fn open_generate_window(app: AppHandle) -> tauri::Result<()> {
     match app.webview_windows().get("generate") {
         None => {
             WebviewWindowBuilder::new(
                 &app,
                 "generate",
-                WebviewUrl::App(format!("/generate?lang={}", language).into()),
+                WebviewUrl::App("/generate".into()),
             )
             .title("Generate Diagram")
             .inner_size(400.0, 500.0)
@@ -287,12 +287,6 @@ async fn open_generate_window(app: AppHandle, language: String) -> tauri::Result
         }
         Some(window) => {
             window.set_focus()?;
-            window
-                .eval(&format!(
-                    "window.location.href = '/generate?lang={}';",
-                    language
-                ))
-                .ok();
         }
     }
 
@@ -322,12 +316,11 @@ async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
 
 #[tauri::command]
 async fn generate_diagram(
-    language: String,
     paths: Vec<String>,
     recursive: bool,
     generate_groups: bool,
 ) -> Result<generator::GenerateResult, String> {
-    generator::generate_diagram_impl(language, paths, recursive, generate_groups)
+    generator::generate_diagram_impl(paths, recursive, generate_groups)
 }
 
 #[tauri::command]
@@ -833,43 +826,16 @@ pub fn run() {
                 .item(&arrange_horizontally_item)
                 .build()?;
 
-            let generate_from_java_item = MenuItem::with_id(
+            let generate_from_code_item = MenuItem::with_id(
                 app,
-                "generate_from_java",
-                "From Java...",
-                true,
-                None::<String>,
-            )?;
-
-            let generate_from_python_item = MenuItem::with_id(
-                app,
-                "generate_from_python",
-                "From Python...",
-                true,
-                None::<String>,
-            )?;
-
-            let generate_from_csharp_item = MenuItem::with_id(
-                app,
-                "generate_from_csharp",
-                "From C#...",
-                true,
-                None::<String>,
-            )?;
-
-            let generate_from_cplusplus_item = MenuItem::with_id(
-                app,
-                "generate_from_cplusplus",
-                "From C++...",
+                "generate_from_code",
+                "From Source Code...",
                 true,
                 None::<String>,
             )?;
 
             let generate_menu = SubmenuBuilder::new(app, "Generate")
-                .item(&generate_from_java_item)
-                .item(&generate_from_python_item)
-                .item(&generate_from_csharp_item)
-                .item(&generate_from_cplusplus_item)
+                .item(&generate_from_code_item)
                 .build()?;
 
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
@@ -947,17 +913,8 @@ pub fn run() {
                         app.emit(format!("editor-{}", event.id().0).as_str(), ())
                             .unwrap();
                     }
-                    "generate_from_java" => {
-                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "java".to_string()));
-                    }
-                    "generate_from_python" => {
-                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "python".to_string()));
-                    }
-                    "generate_from_csharp" => {
-                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "csharp".to_string()));
-                    }
-                    "generate_from_cplusplus" => {
-                        tauri::async_runtime::spawn(open_generate_window(app.clone(), "cpp".to_string()));
+                    "generate_from_code" => {
+                        tauri::async_runtime::spawn(open_generate_window(app.clone()));
                     }
                     _ => {
                         println!("Unhandled menu item: {}", event.id().0);
