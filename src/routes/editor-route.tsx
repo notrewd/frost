@@ -14,6 +14,7 @@ import ProjectPanel from "@/components/panels/project-panel";
 import type { ObjectNodeData } from "@/components/nodes/object-node";
 import type { DragEventData } from "@neodrag/react";
 import type { LibraryPaletteItem } from "@/components/panels/library-panel";
+import type { DiagramGeneratedEvent } from "@/types/events";
 import { useEditorActions } from "@/components/providers/editor-actions-provider";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -105,11 +106,24 @@ const EditorRoute = () => {
       }
     });
 
+    const diagramGeneratedUnlisten = listen<DiagramGeneratedEvent>(
+      "diagram-generated",
+      (event) => {
+        if (event.payload.nodes) {
+          setNodes((prev) => [...prev, ...event.payload.nodes]);
+        }
+        if (event.payload.edges) {
+          setEdges((prev) => [...prev, ...event.payload.edges]);
+        }
+      },
+    );
+
     return () => {
       saveUnlisten.then((f) => f());
       saveAsUnlisten.then((f) => f());
+      diagramGeneratedUnlisten.then((f) => f());
     };
-  }, [reactFlowInstance]);
+  }, [reactFlowInstance, setNodes, setEdges]);
 
   useEffect(() => {
     if (!autoSave || !reactFlowInstance || !projectPath) return;

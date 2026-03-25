@@ -9,6 +9,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use crate::util::RecentProject;
 
+mod generator;
 mod util;
 
 struct AppState {
@@ -87,12 +88,18 @@ impl Default for SettingsState {
 
 #[derive(Clone)]
 struct MenuItems {
+    export: MenuItem<Wry>,
     save: MenuItem<Wry>,
     save_as: MenuItem<Wry>,
     cut_node: MenuItem<Wry>,
     copy_node: MenuItem<Wry>,
     paste_node: MenuItem<Wry>,
     select_all_nodes: MenuItem<Wry>,
+    arrange_vertically: MenuItem<Wry>,
+    arrange_horizontally: MenuItem<Wry>,
+    generate_from_code: MenuItem<Wry>,
+    edges_outliner: MenuItem<Wry>,
+    history: MenuItem<Wry>,
 }
 
 struct ProjectDetails {
@@ -182,8 +189,14 @@ async fn open_editor_window(
                 .theme(Some(tauri::Theme::Dark))
                 .build()?;
 
+            state.menu_items.export.set_enabled(true)?;
             state.menu_items.save.set_enabled(true)?;
             state.menu_items.save_as.set_enabled(true)?;
+            state.menu_items.arrange_vertically.set_enabled(true)?;
+            state.menu_items.arrange_horizontally.set_enabled(true)?;
+            state.menu_items.generate_from_code.set_enabled(true)?;
+            state.menu_items.edges_outliner.set_enabled(true)?;
+            state.menu_items.history.set_enabled(true)?;
         }
         Some(window) => {
             window.set_title(&format!("{} – Frost Editor", project_name))?;
@@ -268,6 +281,31 @@ async fn open_edges_outliner_window(app: AppHandle) -> tauri::Result<()> {
 }
 
 #[tauri::command]
+async fn open_generate_window(app: AppHandle) -> tauri::Result<()> {
+    match app.webview_windows().get("generate") {
+        None => {
+            WebviewWindowBuilder::new(
+                &app,
+                "generate",
+                WebviewUrl::App("/generate".into()),
+            )
+            .title("Generate Diagram")
+            .inner_size(400.0, 500.0)
+            .min_inner_size(400.0, 500.0)
+            .maximizable(false)
+            .decorations(if cfg!(windows) { false } else { true })
+            .theme(Some(tauri::Theme::Dark))
+            .build()?;
+        }
+        Some(window) => {
+            window.set_focus()?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
     match app.webview_windows().get("history") {
         None => {
@@ -286,6 +324,15 @@ async fn open_history_window(app: AppHandle) -> tauri::Result<()> {
     }
 
     Ok(())
+}
+
+#[tauri::command]
+async fn generate_diagram(
+    paths: Vec<String>,
+    recursive: bool,
+    generate_groups: bool,
+) -> Result<generator::GenerateResult, String> {
+    generator::generate_diagram_impl(paths, recursive, generate_groups)
 }
 
 #[tauri::command]
@@ -409,8 +456,7 @@ async fn save_file_as(app: AppHandle, data: String) -> tauri::Result<()> {
                     project_data.path,
                     Some(project_data.content),
                 )
-                .await
-                .unwrap();
+                .await?;
             }
             Err(e) => {
                 println!("Failed to save file: {}", e);
@@ -477,7 +523,7 @@ async fn open_project_file(app: AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn get_recent_projects() -> Vec<util::RecentProject> {
+async fn get_recent_projects() -> Vec<RecentProject> {
     util::get_recent_projects()
 }
 
@@ -675,6 +721,8 @@ pub fn run() {
             open_export_window,
             open_edges_outliner_window,
             open_history_window,
+            open_generate_window,
+            generate_diagram,
             close_window,
             request_project_details,
             request_project_data,
@@ -722,7 +770,7 @@ pub fn run() {
                 MenuItem::with_id(app, "save_as", "Save As...", false, Some("CMD+SHIFT+S"))?;
 
             let export_item =
-                MenuItem::with_id(app, "export", "Export...", true, Some("CMD+E")).unwrap();
+                MenuItem::with_id(app, "export", "Export...", false, Some("CMD+E")).unwrap();
 
             let file_menu = SubmenuBuilder::new(app, "File")
                 .item(&new_project_item)
@@ -760,8 +808,8 @@ pub fn run() {
                 .build()?;
 
             let edges_outliner_item =
-                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", true, Some("CMD+L"))?;
-            let history_item = MenuItem::with_id(app, "history", "History", true, Some("CMD+H"))?;
+                MenuItem::with_id(app, "edges_outliner", "Edges Outliner", false, Some("CMD+L"))?;
+            let history_item = MenuItem::with_id(app, "history", "History", false, Some("CMD+H"))?;
 
             let view_menu = SubmenuBuilder::new(app, "View")
                 .item(&history_item)
@@ -773,20 +821,33 @@ pub fn run() {
                 app,
                 "arrange_vertically",
                 "Make Vertical",
-                true,
+                false,
                 Some("CMD+SHIFT+V"),
             )?;
+
             let arrange_horizontally_item = MenuItem::with_id(
                 app,
                 "arrange_horizontally",
                 "Make Horizontal",
-                true,
+                false,
                 Some("CMD+SHIFT+H"),
             )?;
 
             let arrange_menu = SubmenuBuilder::new(app, "Arrange")
                 .item(&arrange_vertically_item)
                 .item(&arrange_horizontally_item)
+                .build()?;
+
+            let generate_from_code_item = MenuItem::with_id(
+                app,
+                "generate_from_code",
+                "From Source Code...",
+                false,
+                None::<String>,
+            )?;
+
+            let generate_menu = SubmenuBuilder::new(app, "Generate")
+                .item(&generate_from_code_item)
                 .build()?;
 
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
@@ -797,6 +858,7 @@ pub fn run() {
                     &file_menu,
                     &edit_menu,
                     &arrange_menu,
+                    &generate_menu,
                     &view_menu,
                     &window_menu,
                 ])
@@ -806,12 +868,18 @@ pub fn run() {
 
             app.manage(Mutex::new(AppState {
                 menu_items: MenuItems {
+                    export: export_item.clone(),
                     save: save_item.clone(),
                     save_as: save_as_item.clone(),
                     cut_node: cut_node_item.clone(),
                     copy_node: copy_node_item.clone(),
                     paste_node: paste_node_item.clone(),
                     select_all_nodes: select_all_nodes_item.clone(),
+                    arrange_vertically: arrange_vertically_item.clone(),
+                    arrange_horizontally: arrange_horizontally_item.clone(),
+                    generate_from_code: generate_from_code_item.clone(),
+                    edges_outliner: edges_outliner_item.clone(),
+                    history: history_item.clone(),
                 },
                 project_details: ProjectDetails {
                     name: None,
@@ -862,6 +930,9 @@ pub fn run() {
                     "cut" | "copy" | "paste" | "select_all" => {
                         app.emit(format!("editor-{}", event.id().0).as_str(), ())
                             .unwrap();
+                    }
+                    "generate_from_code" => {
+                        tauri::async_runtime::spawn(open_generate_window(app.clone()));
                     }
                     _ => {
                         println!("Unhandled menu item: {}", event.id().0);

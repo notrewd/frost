@@ -8,7 +8,8 @@
     "settings",
     "export",
     "edges-outliner",
-    "history"
+    "history",
+    "generate"
   ],
   "permissions": [
     "core:default",
@@ -19,6 +20,7 @@
     "core:window:allow-toggle-maximize",
     "core:window:allow-minimize",
     "core:window:allow-destroy",
-    "os:default"
+    "os:default",
+    "dialog:default"
   ]
 }

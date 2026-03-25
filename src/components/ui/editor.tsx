@@ -1019,6 +1019,7 @@ const FlowEditor = () => {
         elementsSelectable={!isLocked}
         connectionLineComponent={CustomConnectionLine}
         connectionLineStyle={connectionLineStyle}
+        minZoom={0.02}
         elevateNodesOnSelect={false}
         elevateEdgesOnSelect={false}
       >

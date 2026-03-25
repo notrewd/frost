@@ -65,7 +65,7 @@ const ProjectPanel = () => {
       if (currentHash !== lastHash) {
         lastHash = currentHash;
         const buildHierarchy = (parentId: string | undefined): TreeViewItem[] => {
-          const children = nodes.filter((node) => node.parentId === parentId);
+          const children = nodes.filter((node) => (node.parentId ?? undefined) === parentId);
           return children.map((node) => ({
             id: node.id,
             name: (node.data.name as string) || 'Group',
