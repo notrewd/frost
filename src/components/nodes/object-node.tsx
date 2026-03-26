@@ -50,6 +50,7 @@ export interface ObjectNodeData extends Record<string, unknown> {
   methods?: ObjectNodeMethod[];
   abstract?: boolean;
   note?: string;
+  viewType?: "external" | "internal";
 }
 
 interface ObjectNodeProps {
@@ -150,6 +151,22 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
     [coloredNodes, isDark, parameterColorDark, parameterColorLight],
   );
 
+  const displayedAttributes = useMemo(() => {
+    if (!data.attributes) return [];
+    if (data.viewType === "external") {
+      return data.attributes.filter((a) => a.accessModifier === "public");
+    }
+    return data.attributes;
+  }, [data.attributes, data.viewType]);
+
+  const displayedMethods = useMemo(() => {
+    if (!data.methods) return [];
+    if (data.viewType === "external") {
+      return data.methods.filter((m) => m.accessModifier === "public");
+    }
+    return data.methods;
+  }, [data.methods, data.viewType]);
+
   return (
     <>
       <NodeContextMenu>
@@ -192,11 +209,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
             >
               {data.name}
             </p>
-            {data.attributes && data.attributes.length > 0 && (
+            {displayedAttributes.length > 0 && (
               <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
             )}
-            {data.attributes?.map((attr, index) => (
-              <p key={index} className="px-4">
+            {displayedAttributes.map((attr, index) => (
+              <p key={index} className="px-4 flex gap-2 items-center text-nowrap">
                 <span style={coloredNodes ? { color: aColor } : undefined}>
                   {attr.accessModifier === "public"
                     ? "+"
@@ -204,6 +221,11 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                       ? "-"
                       : "#"}{" "}
                 </span>
+                {attr.stereotype && <span className="flex items-center text-muted-foreground">
+                  <ChevronsLeft className={cn(compactNodes ? "size-3" : "size-4")} />
+                  <span>{attr.stereotype}</span>
+                  <ChevronsRight className={cn(compactNodes ? "size-3" : "size-4")} />
+                </span>}
                 <span
                   className={cn({
                     underline: attr.static,
@@ -237,11 +259,16 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                 </span>
               </p>
             ))}
-            {data.methods && data.methods.length > 0 && (
+            {displayedMethods.length > 0 && (
               <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
             )}
-            {data.methods?.map((method, index) => (
-              <p key={index} className="px-4">
+            {displayedMethods.map((method, index) => {
+              const isConstructor = method.name === data.name || method.name === "constructor";
+              const renderName = data.viewType === "external" && isConstructor ? "new" : method.name;
+              const renderReturnType = data.viewType === "external" && isConstructor ? data.name : method.returnType;
+
+              return (
+              <p key={index} className="px-4 flex gap-2 items-center text-nowrap">
                 <span style={coloredNodes ? { color: aColor } : undefined}>
                   {method.accessModifier === "public"
                     ? "+"
@@ -255,7 +282,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                     italic: method.abstract,
                   })}
                 >
-                  {method.name}(
+                  {renderName}(
                   {method.parameters.map((param, index) => (
                     <>
                       <span
@@ -287,7 +314,7 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                     </>
                   ))}
                   )
-                  {method.returnType && (
+                  {renderReturnType && (
                     <>
                       <span
                         style={coloredNodes ? { color: sColor } : undefined}
@@ -297,14 +324,14 @@ const ObjectNode: FC<ObjectNodeProps> = ({ id, data, selected }) => {
                       <span
                         style={coloredNodes ? { color: tColor } : undefined}
                       >
-                        {method.returnType}
+                        {renderReturnType}
                       </span>
                     </>
                   )}
                 </span>
               </p>
-            ))}
-            {!data.attributes?.length && !data.methods?.length && (
+            )})}
+            {!displayedAttributes.length && !displayedMethods.length && (
               <>
                 <Separator className={cn(compactNodes ? "my-1" : "my-2")} />
                 <p className="px-4 italic text-muted-foreground">

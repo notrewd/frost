@@ -17,6 +17,7 @@ import {
   Scissors,
   Copy,
   ClipboardPaste,
+  Code,
   BoxSelect,
   Download,
   ListTree,
@@ -110,6 +111,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     }
   }, []);
 
+  const showGenerateWindow = useCallback(async () => {
+    try {
+      await invoke("open_generate_window");
+    } catch (error) {
+      console.error("Failed to open generate window:", error);
+    }
+  }, []);
+
   const showExportWindow = useCallback(async () => {
     try {
       await invoke("open_export_window");
@@ -190,6 +199,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
 
   const handleArrangeHorizontally = useCallback(() => {
     emit("arrange-nodes", { direction: "RIGHT" });
+  }, []);
+
+  const handleToExternalView = useCallback(() => {
+    emit("transform-nodes", { view: "external" });
+  }, []);
+
+  const handleToInternalView = useCallback(() => {
+    emit("transform-nodes", { view: "internal" });
   }, []);
 
   useEffect(() => {
@@ -442,6 +459,26 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                       <AlignHorizontalDistributeCenter className="size-4" />
                       Make Horizontal
                       <MenubarShortcut>Ctrl+Shift+H</MenubarShortcut>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>Transform</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={handleToExternalView}>
+                      To External View
+                    </MenubarItem>
+                    <MenubarItem onClick={handleToInternalView}>
+                      To Internal View
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>Generate</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={showGenerateWindow}>
+                      <Code className="size-4" />
+                      From Source Code...
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
