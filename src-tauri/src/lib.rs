@@ -97,6 +97,8 @@ struct MenuItems {
     select_all_nodes: MenuItem<Wry>,
     arrange_vertically: MenuItem<Wry>,
     arrange_horizontally: MenuItem<Wry>,
+    to_external_view: MenuItem<Wry>,
+    to_internal_view: MenuItem<Wry>,
     generate_from_code: MenuItem<Wry>,
     edges_outliner: MenuItem<Wry>,
     history: MenuItem<Wry>,
@@ -194,6 +196,8 @@ async fn open_editor_window(
             state.menu_items.save_as.set_enabled(true)?;
             state.menu_items.arrange_vertically.set_enabled(true)?;
             state.menu_items.arrange_horizontally.set_enabled(true)?;
+            state.menu_items.to_external_view.set_enabled(true)?;
+            state.menu_items.to_internal_view.set_enabled(true)?;
             state.menu_items.generate_from_code.set_enabled(true)?;
             state.menu_items.edges_outliner.set_enabled(true)?;
             state.menu_items.history.set_enabled(true)?;
@@ -850,6 +854,27 @@ pub fn run() {
                 .item(&generate_from_code_item)
                 .build()?;
 
+            let to_external_view_item = MenuItem::with_id(
+                app,
+                "to_external_view",
+                "To External View",
+                false,
+                None::<String>,
+            )?;
+
+            let to_internal_view_item = MenuItem::with_id(
+                app,
+                "to_internal_view",
+                "To Internal View",
+                false,
+                None::<String>,
+            )?;
+
+            let transform_menu = SubmenuBuilder::new(app, "Transform")
+                .item(&to_external_view_item)
+                .item(&to_internal_view_item)
+                .build()?;
+
             let window_menu = SubmenuBuilder::new(app, "Window").minimize().build()?;
 
             let menu = MenuBuilder::new(app)
@@ -858,6 +883,7 @@ pub fn run() {
                     &file_menu,
                     &edit_menu,
                     &arrange_menu,
+                    &transform_menu,
                     &generate_menu,
                     &view_menu,
                     &window_menu,
@@ -877,6 +903,8 @@ pub fn run() {
                     select_all_nodes: select_all_nodes_item.clone(),
                     arrange_vertically: arrange_vertically_item.clone(),
                     arrange_horizontally: arrange_horizontally_item.clone(),
+                    to_external_view: to_external_view_item.clone(),
+                    to_internal_view: to_internal_view_item.clone(),
                     generate_from_code: generate_from_code_item.clone(),
                     edges_outliner: edges_outliner_item.clone(),
                     history: history_item.clone(),
@@ -933,6 +961,12 @@ pub fn run() {
                     }
                     "generate_from_code" => {
                         tauri::async_runtime::spawn(open_generate_window(app.clone()));
+                    }
+                    "to_external_view" => {
+                        app.emit("transform-nodes", serde_json::json!({ "view": "external" })).unwrap();
+                    }
+                    "to_internal_view" => {
+                        app.emit("transform-nodes", serde_json::json!({ "view": "internal" })).unwrap();
                     }
                     _ => {
                         println!("Unhandled menu item: {}", event.id().0);

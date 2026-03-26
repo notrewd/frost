@@ -799,6 +799,29 @@ const FlowEditor = () => {
       },
     );
 
+    const transformUnlisten = listen<{ view: string }>(
+      "transform-nodes",
+      async (event) => {
+        const { view } = event.payload;
+        const currentNodes = useFlowStore.getState().nodes;
+        
+        const newNodes = currentNodes.map((node) => {
+          if (node.type === "object") {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                viewType: view as "external" | "internal",
+              },
+            };
+          }
+          return node;
+        });
+
+        useFlowStore.getState().setNodes(() => newNodes);
+      },
+    );
+
     return () => {
       projectOpenedUnlisten.then((f) => f());
       undoUnlisten.then((f) => f());
@@ -812,6 +835,7 @@ const FlowEditor = () => {
       deleteEdgeUnlisten.then((f) => f());
       focusEdgeUnlisten.then((f) => f());
       arrangeUnlisten.then((f) => f());
+      transformUnlisten.then((f) => f());
     };
   }, []);
 

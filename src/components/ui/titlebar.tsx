@@ -201,6 +201,14 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
     emit("arrange-nodes", { direction: "RIGHT" });
   }, []);
 
+  const handleToExternalView = useCallback(() => {
+    emit("transform-nodes", { view: "external" });
+  }, []);
+
+  const handleToInternalView = useCallback(() => {
+    emit("transform-nodes", { view: "internal" });
+  }, []);
+
   useEffect(() => {
     if (type() !== "windows") {
       return;
@@ -451,6 +459,17 @@ const Titlebar: FC<TitlebarProps> = ({ variant = "default" }) => {
                       <AlignHorizontalDistributeCenter className="size-4" />
                       Make Horizontal
                       <MenubarShortcut>Ctrl+Shift+H</MenubarShortcut>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger>Transform</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem onClick={handleToExternalView}>
+                      To External View
+                    </MenubarItem>
+                    <MenubarItem onClick={handleToInternalView}>
+                      To Internal View
                     </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
