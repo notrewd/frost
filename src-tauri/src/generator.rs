@@ -35,6 +35,7 @@ struct UmlMethod {
     name: String,
     return_type: String,
     access_modifier: String,
+    is_static: bool,
     parameters: Vec<UmlField>,
 }
 
@@ -121,6 +122,7 @@ pub fn generate_diagram_impl(
                 "name": method.name,
                 "returnType": method.return_type,
                 "accessModifier": method.access_modifier.to_lowercase(),
+                "static": method.is_static,
                 "parameters": params
             }));
         }
@@ -398,6 +400,7 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                     } else {
                                         String::new()
                                     },
+                                    is_static: bct == "constructor_declaration",
                                     ..Default::default()
                                 };
                                 if let Some(md_children) = body_child["Children"].as_array() {
@@ -562,6 +565,10 @@ fn extract_python_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>)
                                                 p["TextValue"].as_str().unwrap_or("").to_string();
                                         }
                                     }
+                                }
+                                if m.name == "__init__" || m.name == "__new__" {
+                                    m.is_static = true;
+                                    m.return_type = class.name.clone();
                                 }
                                 class.methods.push(m);
                             }
