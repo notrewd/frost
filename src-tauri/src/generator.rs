@@ -390,9 +390,14 @@ fn extract_java_classes(node: &serde_json::Value, classes: &mut Vec<UmlClass>) {
                                         access_modifier: access.clone(),
                                     });
                                 }
-                            } else if bct == "method_declaration" {
+                            } else if bct == "method_declaration" || bct == "constructor_declaration" {
                                 let mut method = UmlMethod {
                                     access_modifier: "public".into(),
+                                    return_type: if bct == "constructor_declaration" {
+                                        class.name.clone()
+                                    } else {
+                                        String::new()
+                                    },
                                     ..Default::default()
                                 };
                                 if let Some(md_children) = body_child["Children"].as_array() {
